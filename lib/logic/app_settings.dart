@@ -1,4 +1,4 @@
-// small app settings related that are saved into shared_preferences
+// small app settings that are saved into shared_preferences
 import 'package:open_budget/logic/currencies.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

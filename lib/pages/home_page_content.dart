@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:open_budget/logic/app_settings.dart';
 import 'package:open_budget/logic/currencies.dart';
 import 'package:open_budget/logic/database/database.dart';
+import 'package:open_budget/widgets/build_transactions_list.dart';
 import 'package:open_budget/widgets/custom_text_field.dart';
 
 
@@ -67,28 +68,13 @@ class _HomePageContentState extends State<HomePageContent> {
                 builder: (context, snapshot) {
                   final items = snapshot.data ?? [];
                   return items.isEmpty
-                  ? const Center(child: Text('No Transactions Found'),)
-                  : ListView.builder(
-                    itemCount: items.length,
-                    itemBuilder: (context, index) {
-                      final item = items[index];
-                      return  ListTile(
-                        title: Text(item.category),
-                        subtitle: item.description.trim().isNotEmpty
-                          ? Text(item.description)
-                          : null,
-                        trailing: Text(
-                          item.amount.toString(),
-                          style: TextStyle(
-                            color: item.amount > 0
-                            ? Colors.green
-                            : Colors.black,
-                            fontSize: 14
-                          ),
-                        ),
-                        onTap: () => _showTransactionDetails(item),
-                      );
-                    }
+                  ? const Center(child: Text('No Transactions Found'))
+                  : buildTransactionList(
+                    context: context, 
+                    shrinkWrap: false,
+                    items: items, 
+                    currentCurrency: _currentCurrency, 
+                    showTransactionDetails: _showTransactionDetails
                   );
                 }
               )
@@ -146,30 +132,30 @@ class _HomePageContentState extends State<HomePageContent> {
               // transaction itself
               Align(
                 alignment: Alignment.center,
-                child: Text(item.amount.toString(), style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold)),
+                child: Text('${item.amount.toString()} ${_currentCurrency.symbol}', style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold)),
               ),
               // date and time in dd-mm-yyyy hh:mm format
               ListTile(
                 tileColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)
+                  borderRadius: BorderRadius.circular(15)
                 ),
                 title: const Text('Date'),
                 trailing: Text(
                   '${item.dateAndTime.day.toString().padLeft(2, '0')}-${item.dateAndTime.month.toString().padLeft(2, '0')}-${item.dateAndTime.year} ${item.dateAndTime.hour.toString().padLeft(2, '0')}:${item.dateAndTime.minute.toString().padLeft(2, '0')}',
-                  style: const TextStyle(fontSize: 14),
+                  style: const TextStyle(fontSize: 16),
                 ),
               ),
               // category  
               ListTile(
                 tileColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)
+                  borderRadius: BorderRadius.circular(15)
                 ),
                 title: const Text('Category'),
                 trailing: Text(
                   item.category,
-                  style: const TextStyle(fontSize: 14),
+                  style: const TextStyle(fontSize: 16),
                 ),
               ),
               // description inside transaction details
@@ -253,10 +239,10 @@ class _HomePageContentState extends State<HomePageContent> {
                 backgroundColor: Colors.white,
                 collapsedBackgroundColor: Colors.white,
                 collapsedShape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)
+                  borderRadius: BorderRadius.circular(15)
                 ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)
+                  borderRadius: BorderRadius.circular(15),
                 ),
                 title: const Text('Currency'),
                 trailing: const Icon(Icons.arrow_drop_down_rounded),
@@ -271,7 +257,10 @@ class _HomePageContentState extends State<HomePageContent> {
                           title: Text(currencyItem.name),
                           trailing: Text(
                             currencyItem.code,
-                            style: const TextStyle(fontSize: 14),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey
+                            ),
                           ),
                           onTap: () {
                             Navigator.pop(context);
@@ -362,28 +351,13 @@ class _HomePageContentState extends State<HomePageContent> {
                   final items = snapshot.data ?? [];
                   final lastThreeItems = items.take(3).toList();
                   return items.isNotEmpty
-                  ? ListView.builder(
+                  ? buildTransactionList(
+                    context: context, 
                     shrinkWrap: true,
-                    itemCount: lastThreeItems.length,
-                    itemBuilder: (context, index) {
-                      final item = lastThreeItems[index];
-                      return ListTile(
-                        title: Text(item.category),
-                        subtitle: item.description.isEmpty
-                          ? null
-                          : Text(item.description),
-                        trailing: Text(
-                          item.amount.toString(),
-                          style: TextStyle(
-                            color: item.amount > 0
-                            ? Colors.green
-                            : Colors.black,
-                            fontSize: 14
-                          ),
-                        ),
-                        onTap: () => _showTransactionDetails(item),
-                      );
-                    }
+                    items: lastThreeItems, 
+                    currentCurrency: _currentCurrency, 
+                    showTransactionDetails: 
+                    _showTransactionDetails
                   )
                   : const Text('No Transactions Found');
                 }

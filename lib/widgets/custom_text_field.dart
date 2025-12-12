@@ -29,14 +29,14 @@ class CustomTextField extends StatelessWidget {
         hoverColor: Colors.white,
         hintText: hintText,
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(15),
           borderSide: const BorderSide(
             color: Colors.white,
             width: 1
           )
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(15),
           borderSide: const BorderSide(
             color: Colors.blue,
             width: 2,

@@ -3,6 +3,7 @@ import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/logic/handle_data_submit.dart';
 import 'package:open_budget/widgets/custom_text_field.dart';
 import 'package:open_budget/widgets/date_time_picker.dart';
+import 'package:open_budget/widgets/show_categories.dart';
 import 'package:open_budget/widgets/show_snack_bar.dart';
 import 'package:open_budget/widgets/submit_button.dart';
 
@@ -68,72 +69,6 @@ class ExpenseScreenState extends State<ExpenseScreen> {
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
 
-  // expense categories
-  void _showExprenseCategories(BuildContext context) {
-    showModalBottomSheet(
-      backgroundColor: Colors.grey.shade200,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadiusGeometry.vertical(top: Radius.circular(0))
-      ),
-      context: context, 
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(10),
-          child: Column(
-            spacing: 10,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.white
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close)
-                  ),
-                  const Text(
-                    'Select expense category',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(width: 48),
-                ],
-              ),
-              Expanded(
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: _expenseCategories.length,
-                  itemBuilder: (context, index) {
-                    return Column(
-                      children: [
-                        ListTile(
-                          tileColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15)
-                          ),
-                          leading: Icon(_expenseCategories[index]['icon']),
-                          title: Text(_expenseCategories[index]['name']),
-                          onTap: () {
-                            Navigator.pop(context);
-                            setState(() {
-                              _selectedCategory = _expenseCategories[index]['name'];
-                            });
-                          },
-                        ),
-                        const SizedBox(height: 5),
-                      ],
-                    );
-                  }
-                ),
-              )
-            ],
-          )
-        );
-      }
-    );
-  }
-
   void _clearInputData() {
     setState(() {
       _expenseController.clear();
@@ -158,7 +93,7 @@ class ExpenseScreenState extends State<ExpenseScreen> {
         ListTile(
           tileColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10)
+            borderRadius: BorderRadius.circular(15)
           ),
           title: Text(
             _selectedDate != null
@@ -167,15 +102,17 @@ class ExpenseScreenState extends State<ExpenseScreen> {
           ),
           trailing: const Icon(Icons.arrow_drop_down_rounded),
           onTap: ()async {
-            _selectedDate = await pickDate(context);
-            setState(() {});
+            final selectedDate = await pickDate(context);
+            setState(() {
+              _selectedDate = selectedDate;
+            });
           },
         ),
         // time
         ListTile(
           tileColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10)
+            borderRadius: BorderRadius.circular(15)
           ),
           title: Text(
             _selectedTime != null
@@ -184,14 +121,16 @@ class ExpenseScreenState extends State<ExpenseScreen> {
           ),
           trailing: const Icon(Icons.arrow_drop_down_rounded),
           onTap: () async {
-            _selectedTime = await pickTime(context);
-            setState(() {});
+            final selectedTime = await pickTime(context);
+            setState(() {
+              _selectedTime = selectedTime;
+            });
           },
         ),
         ListTile(
           tileColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10)
+            borderRadius: BorderRadius.circular(15)
           ),
           title: Text(
             _selectedCategory.isEmpty
@@ -199,7 +138,17 @@ class ExpenseScreenState extends State<ExpenseScreen> {
             : _selectedCategory
           ),
           trailing: const Icon(Icons.arrow_drop_down_rounded),
-          onTap: () => _showExprenseCategories(context),
+          onTap: () => showCategories(
+            context: context, 
+            isIncome: false, 
+            categories: _expenseCategories, 
+            onTap: (index) {
+              Navigator.pop(context);
+              setState(() {
+                _selectedCategory = _expenseCategories[index]['name'];
+              }); 
+            }
+          ),
         ),
         CustomTextField(
           controller: _expenseDescriptionController,

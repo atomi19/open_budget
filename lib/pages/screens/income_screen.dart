@@ -3,6 +3,7 @@ import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/logic/handle_data_submit.dart';
 import 'package:open_budget/widgets/custom_text_field.dart';
 import 'package:open_budget/widgets/date_time_picker.dart';
+import 'package:open_budget/widgets/show_categories.dart';
 import 'package:open_budget/widgets/show_snack_bar.dart';
 import 'package:open_budget/widgets/submit_button.dart';
 
@@ -48,71 +49,6 @@ class IncomeScreenState extends State<IncomeScreen> {
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
 
-  // income categories modalBottomSheet
-  void _showIncomeCategories(BuildContext context) {
-    showModalBottomSheet(
-      backgroundColor: Colors.grey.shade200,
-      shape:const RoundedRectangleBorder(
-        borderRadius: BorderRadiusGeometry.vertical(top: Radius.circular(15))
-      ),
-      context: context, 
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(10),
-          child: Column(
-            spacing: 10,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.white
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close)
-                  ),
-                  const Text(
-                    'Select income category',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(width: 48),
-                ],
-              ),
-              Expanded(                
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: _incomeCategories.length,
-                  itemBuilder: (context, index) {
-                    return Column(
-                      children: [
-                        ListTile(
-                          tileColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15)
-                          ),
-                          leading: Icon(_incomeCategories[index]['icon']),
-                          title: Text(_incomeCategories[index]['name']),
-                          onTap: () {
-                            Navigator.pop(context);
-                            setState(() {
-                              _selectedCategory = _incomeCategories[index]['name'];
-                            });
-                          }
-                        ),
-                        const SizedBox(height: 5),
-                      ],
-                    );
-                  }
-                ),
-              )
-            ],
-          )
-        );
-      }
-    );
-  }
-
   void _clearInputData() {
     setState(() {      
       _incomeController.clear();
@@ -138,7 +74,7 @@ class IncomeScreenState extends State<IncomeScreen> {
         ListTile(
           tileColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10)
+            borderRadius: BorderRadius.circular(15)
           ),
           title: Text(
             _selectedDate != null
@@ -147,15 +83,17 @@ class IncomeScreenState extends State<IncomeScreen> {
           ),
           trailing: const Icon(Icons.arrow_drop_down_rounded),
           onTap: () async {
-            _selectedDate = await pickDate(context);
-            setState(() {});
+            final selectedDate = await pickDate(context);
+            setState(() {
+              _selectedDate = selectedDate;
+            });
           }
         ),
         // time
         ListTile(
           tileColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10)
+            borderRadius: BorderRadius.circular(15)
           ),
           title: Text(
             _selectedTime != null
@@ -164,14 +102,16 @@ class IncomeScreenState extends State<IncomeScreen> {
           ),
           trailing: const Icon(Icons.arrow_drop_down_rounded),
           onTap: () async {
-            _selectedTime = await pickTime(context);
-            setState(() {});
+            final selectedTime = await pickTime(context);
+            setState(() {
+              _selectedTime = selectedTime;
+            });
           }
         ),
         ListTile(
           tileColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10)
+            borderRadius: BorderRadius.circular(15)
           ),
           title: Text(
             _selectedCategory.isEmpty
@@ -179,7 +119,17 @@ class IncomeScreenState extends State<IncomeScreen> {
             : _selectedCategory
           ),
           trailing: const Icon(Icons.arrow_drop_down_rounded),
-          onTap: () => _showIncomeCategories(context),
+          onTap: () => showCategories(
+            context: context, 
+            isIncome: true, 
+            categories: _incomeCategories, 
+            onTap: (index) {
+              Navigator.pop(context);
+              setState(() {
+                _selectedCategory = _incomeCategories[index]['name'];
+              });
+            }
+          ),
         ),
         // description text field
         CustomTextField(

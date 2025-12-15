@@ -391,29 +391,19 @@ class _HomePageContentState extends State<HomePageContent> {
           }
         ),
         // last 3 transactions
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(15),
-          ),
+        const Padding(
+          padding: EdgeInsets.fromLTRB(10, 10, 10, 0),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text('Transactions', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          )
+        ),
+        Material(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(15),
+          clipBehavior: Clip.antiAlias,
           child: Column(
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('History', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  TextButton(
-                    onPressed: () => _showAllTransactions(),
-                    child: const Row(
-                      children: [
-                        Text('All', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                        Icon(Icons.arrow_drop_down_rounded),
-                      ],
-                    )
-                  )
-                ],
-              ),
               StreamBuilder(
                 stream: widget.db.watchAllTransactionItems(),
                 builder: (context, snapshot) {
@@ -430,7 +420,12 @@ class _HomePageContentState extends State<HomePageContent> {
                   )
                   : const Text('No Transactions Found');
                 }
-              )
+              ),
+              ListTile(
+                title: const Text('All Transactions'),
+                trailing: const Icon(Icons.arrow_right_rounded),
+                onTap: () => _showAllTransactions(),
+              ),
             ],
           )
         ),

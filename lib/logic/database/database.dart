@@ -82,6 +82,22 @@ class TransactionsDatabase extends _$TransactionsDatabase {
     });
   }
 
+  // search transactions
+  Stream<List<Transaction>> searchTransactions(String query) {
+    // if query is empty return all transactions
+    if(query.isEmpty) {
+      return watchAllTransactionItems();
+    }
+    final String formattedQuery = '%${query.toLowerCase()}%';
+    // search through descriptions and amounts 
+    return (
+      select(transactions)..where((t) => 
+        t.description.lower().like(formattedQuery) |
+        t.amount.cast<String>().like(formattedQuery)
+      )
+    ).watch();
+  }
+
   static QueryExecutor _openConnection() {
     return driftDatabase(
       name: 'open_budget_db',

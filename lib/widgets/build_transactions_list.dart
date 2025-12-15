@@ -20,7 +20,7 @@ Widget buildTransactionList({
       return Stack(
         children: [
           ListTile(
-            title: Text(item.category),
+            title: Text(item.category, style: const TextStyle(fontSize: 15)),
             subtitle: item.description.trim().isNotEmpty
               ? Text(item.description)
               : null,
@@ -30,7 +30,7 @@ Widget buildTransactionList({
                 color: item.amount > 0
                 ? Colors.green
                 : Colors.black,
-                fontSize: 16
+                fontSize: 15
               ),
             ),
             onTap: () => showTransactionDetails(item),

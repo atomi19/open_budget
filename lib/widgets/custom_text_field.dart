@@ -2,18 +2,24 @@ import 'package:flutter/material.dart';
 
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
+  final Color? backgroundColor;
   final String hintText;
   final int? minLines;
   final int? maxLines;
   final Widget? prefix;
+  final Widget? prefixIcon;
+  final void Function(String)? onChanged;
 
   const CustomTextField({
     super.key,
     required this.controller,
+    this.backgroundColor,
     required this.hintText,
     this.minLines,
     this.maxLines,
     this.prefix,
+    this.prefixIcon,
+    this.onChanged,
   });
   
   @override
@@ -24,9 +30,10 @@ class CustomTextField extends StatelessWidget {
       maxLines: maxLines,
       decoration: InputDecoration(
         prefix: prefix,
+        prefixIcon: prefixIcon,
         filled: true,
-        fillColor: Colors.white,
-        hoverColor: Colors.white,
+        fillColor: backgroundColor ?? Colors.white,
+        hoverColor: backgroundColor ?? Colors.white,
         hintText: hintText,
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
@@ -43,6 +50,7 @@ class CustomTextField extends StatelessWidget {
           )
         )
       ),
+      onChanged: onChanged,
     );
   }
 }

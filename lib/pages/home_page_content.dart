@@ -20,7 +20,11 @@ class HomePageContent extends StatefulWidget {
 
 class _HomePageContentState extends State<HomePageContent> {
   final TextEditingController _transactionDescriptionController = TextEditingController();
+  final TextEditingController _searchTransactionController = TextEditingController();
   Currency _currentCurrency = Currency.currencies.first;
+
+  bool _isSearchingTransactions = false;
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -42,47 +46,112 @@ class _HomePageContentState extends State<HomePageContent> {
         borderRadius: BorderRadiusGeometry.vertical(top: Radius.circular(0))
       ),
       builder: (context) {
-        return Column(
-          children: [
-            Padding(
-              padding: const EdgeInsetsGeometry.all(10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close)
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsetsGeometry.all(10),
+                  child: _isSearchingTransactions
+                  // header with searching field
+                  ? Row(
+                    children: [
+                      Expanded(
+                        child: CustomTextField(
+                          controller: _searchTransactionController, 
+                          backgroundColor: Colors.grey.shade200,
+                          prefixIcon: const Icon(Icons.search_outlined),
+                          hintText: 'Search transactions...',
+                          onChanged: (String query) {
+                            setState(() {
+                              _searchQuery = query.trim();
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      IconButton(
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.grey.shade200,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isSearchingTransactions = !_isSearchingTransactions;
+                          });
+                        }, 
+                        icon: const Icon(Icons.close_outlined)
+                      ),
+                    ],
+                  )
+                  // default header when user is not searching transactions
+                  : Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        color: Colors.blue,
+                        onPressed: () => Navigator.pop(context), 
+                        icon: const Icon(Icons.close_outlined)
+                      ),
+                      const Text(
+                        'All Transactions',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      IconButton(
+                        color: Colors.blue,
+                        onPressed: () {
+                          setState(() {
+                            _isSearchingTransactions = !_isSearchingTransactions;
+                          });
+                        }, 
+                        icon: const Icon(Icons.search_outlined)
+                      ),
+                    ],
                   ),
-                  const Text(
-                    'All Transactions',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                // transactions list
+                Expanded(
+                  child: _isSearchingTransactions 
+                  // search transactions
+                  ? StreamBuilder(
+                    stream: widget.db.searchTransactions(_searchQuery), 
+                    builder: (context, snapshot) {
+                      final items = snapshot.data ?? [];
+                      return items.isEmpty
+                      ? const Center(child: Text('No results found'))
+                      : buildTransactionList(
+                        context: context, 
+                        shrinkWrap: false,
+                        items: items, 
+                        currentCurrency: _currentCurrency, 
+                        showTransactionDetails: _showTransactionDetails
+                      );
+                    }
+                  )
+                  // all transactions
+                  : StreamBuilder(
+                    stream: widget.db.watchAllTransactionItems(), 
+                    builder: (context, snapshot) {
+                      final items = snapshot.data ?? [];
+                      return items.isEmpty
+                      ? const Center(child: Text('No transactions yet'))
+                      : buildTransactionList(
+                        context: context, 
+                        shrinkWrap: false,
+                        items: items, 
+                        currentCurrency: _currentCurrency, 
+                        showTransactionDetails: _showTransactionDetails
+                      );
+                    }
                   ),
-                  const SizedBox(width: 48),
-                ],
-              ),
-            ),
-            // all transactions
-            Expanded(
-              child: StreamBuilder(
-                stream: widget.db.watchAllTransactionItems(), 
-                builder: (context, snapshot) {
-                  final items = snapshot.data ?? [];
-                  return items.isEmpty
-                  ? const Center(child: Text('No Transactions Found'))
-                  : buildTransactionList(
-                    context: context, 
-                    shrinkWrap: false,
-                    items: items, 
-                    currentCurrency: _currentCurrency, 
-                    showTransactionDetails: _showTransactionDetails
-                  );
-                }
-              )
-            )
-          ],
+                ),
+              ],
+            );
+          },
         );
       }
-    );
+    ).then((value) {
+      _isSearchingTransactions = false;
+    });
   }
 
   // transaction details modalBottomSheet
@@ -333,13 +402,13 @@ class _HomePageContentState extends State<HomePageContent> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('History', style: TextStyle(fontSize: 14)),
+                  const Text('History', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   TextButton(
                     onPressed: () => _showAllTransactions(),
                     child: const Row(
                       children: [
-                        Text('All'),
-                        Icon(Icons.arrow_right),
+                        Text('All', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        Icon(Icons.arrow_drop_down_rounded),
                       ],
                     )
                   )

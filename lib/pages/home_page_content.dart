@@ -123,7 +123,8 @@ class _HomePageContentState extends State<HomePageContent> {
                         shrinkWrap: false,
                         items: items, 
                         currentCurrency: _currentCurrency, 
-                        showTransactionDetails: _showTransactionDetails
+                        showTransactionDetails: _showTransactionDetails,
+                        shouldInsertDate: true
                       );
                     }
                   )
@@ -139,7 +140,8 @@ class _HomePageContentState extends State<HomePageContent> {
                         shrinkWrap: false,
                         items: items, 
                         currentCurrency: _currentCurrency, 
-                        showTransactionDetails: _showTransactionDetails
+                        showTransactionDetails: _showTransactionDetails,
+                        shouldInsertDate: true
                       );
                     }
                   ),
@@ -415,8 +417,8 @@ class _HomePageContentState extends State<HomePageContent> {
                     shrinkWrap: true,
                     items: lastThreeItems, 
                     currentCurrency: _currentCurrency, 
-                    showTransactionDetails: 
-                    _showTransactionDetails
+                    showTransactionDetails: _showTransactionDetails,
+                    shouldInsertDate: false,
                   )
                   : const Text('No Transactions Found');
                 }

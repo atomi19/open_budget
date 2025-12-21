@@ -32,6 +32,13 @@ class _HomePageContentState extends State<HomePageContent> {
     _loadCurrency();
   }
 
+  @override
+  void dispose() {
+    _transactionDescriptionController.dispose();
+    _searchTransactionController.dispose();
+    super.dispose();
+  }
+
   // load currency from shared_preferences
   Future<void> _loadCurrency() async {
     _currentCurrency = await AppSettings.getSelectedCurrency() ?? Currency.currencies.first;
@@ -77,6 +84,8 @@ class _HomePageContentState extends State<HomePageContent> {
                         onPressed: () {
                           setState(() {
                             _isSearchingTransactions = !_isSearchingTransactions;
+                            _searchTransactionController.clear();
+                            _searchQuery = '';
                           });
                         }, 
                         icon: const Icon(Icons.close_outlined)
@@ -153,6 +162,7 @@ class _HomePageContentState extends State<HomePageContent> {
       }
     ).then((value) {
       _isSearchingTransactions = false;
+      _searchTransactionController.clear();
     });
   }
 
@@ -260,14 +270,44 @@ class _HomePageContentState extends State<HomePageContent> {
         title: const Text('Delete transaction?'),
         content: const Text('Are you sure you want to delete this transaction?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () {
-            Navigator.pop(context); // close alertDialog
-            Navigator.pop(context); // close transaction details modalBottomSheet
-            widget.db.deleteTransaction(id);
-          }, 
-          child: const Text('Delete')),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.all(15),
+
+                    backgroundColor: Colors.grey.shade200,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    )
+                  ),
+                  onPressed: () => Navigator.pop(context), 
+                  child: const Text('Cancel', style: TextStyle(fontSize: 15)),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.all(15),
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.red.shade100,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context); // close alertDialog
+                    Navigator.pop(context); // close transaction details modalBottomSheet
+                    widget.db.deleteTransaction(id);
+                  }, 
+                  child: const Text('Delete', style: TextStyle(fontSize: 15, color: Colors.white)),
+                ),
+              )
+            ],
+          )
         ],
       )
     );

@@ -69,6 +69,8 @@ class IncomeScreenState extends State<IncomeScreen> {
           controller: _incomeController,
           hintText: 'Enter income...',
           prefix:const Text('+ '),
+          //minLines: 1,
+          maxLines: 1,
         ),
         // date 
         ListTile(

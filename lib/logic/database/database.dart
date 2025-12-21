@@ -91,7 +91,12 @@ class TransactionsDatabase extends _$TransactionsDatabase {
     final String formattedQuery = '%${query.toLowerCase()}%';
     // search through descriptions and amounts 
     return (
-      select(transactions)..where((t) => 
+      select(transactions)..orderBy([
+        (t) => OrderingTerm(
+          expression: t.dateAndTime,
+          mode: OrderingMode.desc,
+        )
+      ])..where((t) => 
         t.description.lower().like(formattedQuery) |
         t.amount.cast<String>().like(formattedQuery)
       )

@@ -88,6 +88,7 @@ class ExpenseScreenState extends State<ExpenseScreen> {
           controller: _expenseController, 
           hintText: 'Enter expense...',
           prefix: const Text('- '),
+          maxLines: 1,
         ),
         // date 
         ListTile(

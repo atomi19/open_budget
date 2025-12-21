@@ -14,12 +14,16 @@ void showCategories({
       borderRadius: BorderRadiusGeometry.vertical(top: Radius.circular(15))
     ),
     builder: (context) {
-      return Padding(
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          spacing: 10,
-          children: [
-            Row(
+      return Column(
+        spacing: 10,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              color: Colors.grey.shade200,
+            ),
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 IconButton(
@@ -38,7 +42,10 @@ void showCategories({
                 const SizedBox(width: 48),
               ],
             ),
-            Expanded(                
+          ),
+          Expanded(                
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
               child: ListView.builder(
                 shrinkWrap: true,
                 itemCount: categories.length,
@@ -64,8 +71,8 @@ void showCategories({
                 }
               ),
             )
-          ],
-        ),
+          )
+        ],
       );
     }
   );

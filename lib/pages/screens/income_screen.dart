@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/logic/handle_data_submit.dart';
+import 'package:open_budget/widgets/custom_list_tile.dart';
 import 'package:open_budget/widgets/custom_text_field.dart';
 import 'package:open_budget/widgets/date_time_picker.dart';
 import 'package:open_budget/widgets/show_categories.dart';
@@ -73,16 +74,10 @@ class IncomeScreenState extends State<IncomeScreen> {
           maxLines: 1,
         ),
         // date 
-        ListTile(
-          tileColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15)
-          ),
-          title: Text(
-            _selectedDate != null
+        CustomListTile(
+          title: _selectedDate != null
             ? '${_selectedDate!.day.toString().padLeft(2, '0')}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.year}'
-            : 'Date'
-          ),
+            : 'Date',
           trailing: const Icon(Icons.arrow_drop_down_rounded),
           onTap: () async {
             final selectedDate = await pickDate(context);
@@ -92,16 +87,10 @@ class IncomeScreenState extends State<IncomeScreen> {
           }
         ),
         // time
-        ListTile(
-          tileColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15)
-          ),
-          title: Text(
-            _selectedTime != null
+        CustomListTile(
+          title: _selectedTime != null
             ? _selectedTime!.format(context)
-            : 'Time'
-          ),
+            : 'Time',
           trailing: const Icon(Icons.arrow_drop_down_rounded),
           onTap: () async {
             final selectedTime = await pickTime(context);
@@ -110,16 +99,11 @@ class IncomeScreenState extends State<IncomeScreen> {
             });
           }
         ),
-        ListTile(
-          tileColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15)
-          ),
-          title: Text(
-            _selectedCategory.isEmpty
+        // category
+        CustomListTile(
+          title: _selectedCategory.isEmpty
             ? 'Category'
-            : _selectedCategory
-          ),
+            : _selectedCategory,
           trailing: const Icon(Icons.arrow_drop_down_rounded),
           onTap: () => showCategories(
             context: context, 

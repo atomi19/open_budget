@@ -1,5 +1,6 @@
 // show categories based on category list (used in income and expense screens)
 import 'package:flutter/material.dart';
+import 'package:open_budget/widgets/custom_list_tile.dart';
 
 void showCategories({
   required BuildContext context,
@@ -52,17 +53,13 @@ void showCategories({
                 itemBuilder: (context, index) {
                   return Column(
                     children: [
-                      ListTile(
-                        tileColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15)
-                        ),
+                      CustomListTile(
                         leading: Icon(
                           categories[index]['icon'],
                           color: Colors.blue,
                           weight: 1,
                         ),
-                        title: Text(categories[index]['name']),
+                        title: categories[index]['name'],
                         onTap: () => onTap(index),
                       ),
                       const SizedBox(height: 5),

@@ -4,6 +4,7 @@ import 'package:open_budget/logic/app_settings.dart';
 import 'package:open_budget/logic/currencies.dart';
 import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/widgets/build_transactions_list.dart';
+import 'package:open_budget/widgets/custom_list_tile.dart';
 import 'package:open_budget/widgets/custom_text_field.dart';
 
 
@@ -21,7 +22,10 @@ class HomePageContent extends StatefulWidget {
 class _HomePageContentState extends State<HomePageContent> {
   final TextEditingController _transactionDescriptionController = TextEditingController();
   final TextEditingController _searchTransactionController = TextEditingController();
+
+  // settings
   Currency _currentCurrency = Currency.currencies.first;
+  bool _isShowingDescription = false;
 
   bool _isSearchingTransactions = false;
   String _searchQuery = '';
@@ -30,6 +34,7 @@ class _HomePageContentState extends State<HomePageContent> {
   void initState() {
     super.initState();
     _loadCurrency();
+    _loadDescriptionState();
   }
 
   @override
@@ -42,6 +47,11 @@ class _HomePageContentState extends State<HomePageContent> {
   // load currency from shared_preferences
   Future<void> _loadCurrency() async {
     _currentCurrency = await AppSettings.getSelectedCurrency() ?? Currency.currencies.first;
+  }
+
+  // load description preview state from shared_preferences
+  Future<void> _loadDescriptionState() async {
+    _isShowingDescription = await AppSettings.getTransactionDescriptionState() ?? false;
   }
 
   // all transactions modalBottomSheet
@@ -133,7 +143,8 @@ class _HomePageContentState extends State<HomePageContent> {
                         items: items, 
                         currentCurrency: _currentCurrency, 
                         showTransactionDetails: _showTransactionDetails,
-                        shouldInsertDate: true
+                        shouldInsertDate: true,
+                        showDescription: _isShowingDescription,
                       );
                     }
                   )
@@ -150,7 +161,8 @@ class _HomePageContentState extends State<HomePageContent> {
                         items: items, 
                         currentCurrency: _currentCurrency, 
                         showTransactionDetails: _showTransactionDetails,
-                        shouldInsertDate: true
+                        shouldInsertDate: true,
+                        showDescription: _isShowingDescription,
                       );
                     }
                   ),
@@ -216,27 +228,19 @@ class _HomePageContentState extends State<HomePageContent> {
                 child: Text('${item.amount.toString()} ${_currentCurrency.symbol}', style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold)),
               ),
               // date and time in dd-mm-yyyy hh:mm format
-              ListTile(
-                tileColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15)
-                ),
-                title: const Text('Date'),
+              CustomListTile(
+                title: 'Date',
                 trailing: Text(
                   '${item.dateAndTime.day.toString().padLeft(2, '0')}-${item.dateAndTime.month.toString().padLeft(2, '0')}-${item.dateAndTime.year} ${item.dateAndTime.hour.toString().padLeft(2, '0')}:${item.dateAndTime.minute.toString().padLeft(2, '0')}',
-                  style: const TextStyle(fontSize: 16),
+                  style: const TextStyle(fontSize: 15),
                 ),
               ),
-              // category  
-              ListTile(
-                tileColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15)
-                ),
-                title: const Text('Category'),
+              // category
+              CustomListTile(
+                title: 'Category', 
                 trailing: Text(
                   item.category,
-                  style: const TextStyle(fontSize: 16),
+                  style: const TextStyle(fontSize: 15),
                 ),
               ),
               // description inside transaction details
@@ -322,72 +326,115 @@ class _HomePageContentState extends State<HomePageContent> {
       ),
       backgroundColor: Colors.grey.shade200,
       builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(10),
-          child: Wrap(
-            runSpacing: 10,
-            children: [
-              // header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        return StatefulBuilder(
+          builder: (context, StateSetter modalSetState) {
+            return Padding(
+              padding: const EdgeInsets.all(10),
+              child: Wrap(
+                runSpacing: 10,
                 children: [
-                  IconButton(
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.white
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close)
+                  // header
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.white
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.close)
+                      ),
+                      const Text(
+                        'Settings',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(width: 48),
+                    ],
                   ),
-                  const Text(
-                    'Settings',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(width: 48),
-                ],
-              ),
-              // currency expansion tile setting
-              ExpansionTile(
-                backgroundColor: Colors.white,
-                collapsedBackgroundColor: Colors.white,
-                collapsedShape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15)
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                title: const Text('Currency'),
-                trailing: const Icon(Icons.arrow_drop_down_rounded),
-                children: [
-                  SizedBox(
-                    height: 250,
-                    child: ListView.builder(
-                      itemCount: Currency.currencies.length,
-                      itemBuilder: (context, index) {
-                        final currencyItem = Currency.currencies[index];
-                        return ListTile(
-                          title: Text(currencyItem.name),
-                          trailing: Text(
-                            currencyItem.code,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey
-                            ),
+                  Column(
+                    children: [
+                      CustomListTile(
+                        title: 'Show transaction description',             
+                        trailing: Switch(
+                          value: _isShowingDescription, 
+                          focusColor: Colors.amber,
+                          activeThumbColor: Colors.white,
+                          inactiveThumbColor: Colors.grey.shade200,
+                          activeTrackColor: Colors.blue,
+                          inactiveTrackColor: Colors.grey.shade500,
+                          trackOutlineColor: WidgetStateProperty.resolveWith(
+                            (Set<WidgetState> states) {
+                              return Colors.transparent;
+                            }
                           ),
-                          onTap: () {
-                            Navigator.pop(context);
-                            setState(() {                              
-                              AppSettings.setCurrency(currencyItem.code); // save selected currency
-                              _loadCurrency(); // load selected currency
+                          onChanged: (bool value) {
+                            setState(() {
+                              setState(() {
+                                _isShowingDescription = value;
+                              });
+                              modalSetState(() {
+                                _isShowingDescription = value;
+                              });
+                              AppSettings.switchTransactionDescription(value);
+                              _loadDescriptionState();
                             });
                           }
-                        );
-                      }
+                        ),
+                      ),
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                          padding: EdgeInsets.fromLTRB(10, 5, 10, 10),
+                          child: Text('Display the description below each transaction', style: TextStyle(fontSize: 13),),
+                        ),
+                      )
+                    ],
+                  ),
+                  // currency expansion tile setting
+                  ExpansionTile(
+                    backgroundColor: Colors.white,
+                    collapsedBackgroundColor: Colors.white,
+                    collapsedShape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15)
                     ),
-                  )
-                ]
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    title: const Text('Currency'),
+                    trailing: const Icon(Icons.arrow_drop_down_rounded),
+                    children: [
+                      SizedBox(
+                        height: 250,
+                        child: ListView.builder(
+                          itemCount: Currency.currencies.length,
+                          itemBuilder: (context, index) {
+                            final currencyItem = Currency.currencies[index]; 
+                            return CustomListTile(
+                              title: currencyItem.name, 
+                              trailing: Text(
+                                currencyItem.code,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey
+                                ),
+                              ),
+                              onTap: () {
+                                Navigator.pop(context);
+                                setState(() {                              
+                                  AppSettings.setCurrency(currencyItem.code); // save selected currency
+                                  _loadCurrency(); // load selected currency
+                                });
+                              }
+                            );
+                          }
+                        ),
+                      )
+                    ]
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          }
         );
       }
     );
@@ -459,12 +506,13 @@ class _HomePageContentState extends State<HomePageContent> {
                     currentCurrency: _currentCurrency, 
                     showTransactionDetails: _showTransactionDetails,
                     shouldInsertDate: false,
+                    showDescription: _isShowingDescription,
                   )
                   : const Text('No Transactions Found');
                 }
               ),
-              ListTile(
-                title: const Text('All Transactions'),
+              CustomListTile(
+                title: 'All Transactions',
                 trailing: const Icon(Icons.arrow_right_rounded),
                 onTap: () => _showAllTransactions(),
               ),

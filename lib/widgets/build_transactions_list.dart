@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:open_budget/logic/currencies.dart';
 import 'package:open_budget/logic/database/database.dart';
+import 'package:open_budget/widgets/custom_list_tile.dart';
 
 const List<String> _months = [
   'January',
@@ -27,6 +28,7 @@ Widget buildTransactionList({
   required Currency currentCurrency,
   required Function(Transaction) showTransactionDetails,
   required bool shouldInsertDate,
+  required bool showDescription,
 }) {
   return ListView.builder(
     shrinkWrap: shrinkWrap,
@@ -62,11 +64,18 @@ Widget buildTransactionList({
               ),
             ),
           // transaction ListTile
-          ListTile(
-            title: Text(item.category, style: const TextStyle(fontSize: 15)),
-            subtitle: item.description.trim().isNotEmpty
-              ? Text(item.description)
-              : null,
+          CustomListTile(
+            title: item.category,
+            subtitle: showDescription
+            ? item.description.trim().isNotEmpty
+              ? Text(
+                item.description,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: Colors.grey.shade600),
+              )
+              : null
+            : null,
             trailing: Text(
               '${item.amount.toString()} ${currentCurrency.symbol}',
               style: TextStyle(

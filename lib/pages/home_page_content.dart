@@ -357,7 +357,6 @@ class _HomePageContentState extends State<HomePageContent> {
                         title: 'Show transaction description',             
                         trailing: Switch(
                           value: _isShowingDescription, 
-                          focusColor: Colors.amber,
                           activeThumbColor: Colors.white,
                           inactiveThumbColor: Colors.grey.shade200,
                           activeTrackColor: Colors.blue,

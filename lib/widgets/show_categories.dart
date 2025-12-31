@@ -1,11 +1,12 @@
-// show categories based on category list (used in income and expense screens)
+// show separate categories for income and expense (used inside income and expense screens)
 import 'package:flutter/material.dart';
+import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/widgets/custom_list_tile.dart';
 
 void showCategories({
   required BuildContext context,
   required bool isIncome,
-  required List<Map<String, dynamic>> categories,
+  required List<Category> categories,
   required Function(int index) onTap,
 }) {
   showModalBottomSheet(
@@ -55,11 +56,15 @@ void showCategories({
                     children: [
                       CustomListTile(
                         leading: Icon(
-                          categories[index]['icon'],
+                          // use icon code point
+                          IconData(
+                            categories[index].iconCodePoint,
+                            fontFamily: 'MaterialIcons'
+                          ),
                           color: Colors.blue,
                           weight: 1,
                         ),
-                        title: categories[index]['name'],
+                        title: categories[index].name,
                         onTap: () => onTap(index),
                       ),
                       const SizedBox(height: 5),

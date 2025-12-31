@@ -25,6 +25,7 @@ Widget buildTransactionList({
   required BuildContext context,
   required bool shrinkWrap,
   required List<Transaction> items,
+  required Map<int, Category> categoriesById,
   required Currency currentCurrency,
   required Function(Transaction) showTransactionDetails,
   required bool shouldInsertDate,
@@ -65,7 +66,14 @@ Widget buildTransactionList({
             ),
           // transaction ListTile
           CustomListTile(
-            title: item.category,
+            // category icon
+            leading: Icon(
+              IconData(categoriesById[item.categoryId]?.iconCodePoint ?? 62536, fontFamily: 'MaterialIcons'),
+              color: Colors.blue,
+            ),
+            // category name
+            title: categoriesById[item.categoryId]?.name ?? 'Unknown Category',
+            // description
             subtitle: showDescription
             ? item.description.trim().isNotEmpty
               ? Text(
@@ -76,6 +84,7 @@ Widget buildTransactionList({
               )
               : null
             : null,
+            // transaction amount
             trailing: Text(
               '${item.amount.toString()} ${currentCurrency.symbol}',
               style: TextStyle(

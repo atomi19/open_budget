@@ -30,9 +30,15 @@ class _HomePageContentState extends State<HomePageContent> {
   bool _isSearchingTransactions = false;
   String _searchQuery = '';
 
+  // store categories locally 
+  // sort them by id 
+  // category is the value
+  Map<int, Category> _categoriesById = {};
+
   @override
   void initState() {
     super.initState();
+    _loadCategories();
     _loadCurrency();
     _loadDescriptionState();
   }
@@ -52,6 +58,16 @@ class _HomePageContentState extends State<HomePageContent> {
   // load description preview state from shared_preferences
   Future<void> _loadDescriptionState() async {
     _isShowingDescription = await AppSettings.getTransactionDescriptionState() ?? false;
+  }
+
+  // load and keep categories locally
+  // e.g. to get category name 
+  Future<void> _loadCategories() async {
+    widget.db.watchCategories().listen((categories) {
+      setState(() {
+        _categoriesById= {for (var c in categories) c.id : c};
+      });
+    });
   }
 
   // all transactions modalBottomSheet
@@ -141,6 +157,7 @@ class _HomePageContentState extends State<HomePageContent> {
                         context: context, 
                         shrinkWrap: false,
                         items: items, 
+                        categoriesById: _categoriesById,
                         currentCurrency: _currentCurrency, 
                         showTransactionDetails: _showTransactionDetails,
                         shouldInsertDate: true,
@@ -159,6 +176,7 @@ class _HomePageContentState extends State<HomePageContent> {
                         context: context, 
                         shrinkWrap: false,
                         items: items, 
+                        categoriesById: _categoriesById,
                         currentCurrency: _currentCurrency, 
                         showTransactionDetails: _showTransactionDetails,
                         shouldInsertDate: true,
@@ -239,7 +257,7 @@ class _HomePageContentState extends State<HomePageContent> {
               CustomListTile(
                 title: 'Category', 
                 trailing: Text(
-                  item.category,
+                  _categoriesById[item.categoryId]?.name ?? 'Unknown Category',
                   style: const TextStyle(fontSize: 15),
                 ),
               ),
@@ -502,6 +520,7 @@ class _HomePageContentState extends State<HomePageContent> {
                     context: context, 
                     shrinkWrap: true,
                     items: lastThreeItems, 
+                    categoriesById: _categoriesById,
                     currentCurrency: _currentCurrency, 
                     showTransactionDetails: _showTransactionDetails,
                     shouldInsertDate: false,

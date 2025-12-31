@@ -6,27 +6,38 @@ import 'package:path_provider/path_provider.dart';
 part 'database.g.dart';
 
 // tables
+// transactions table
 class Transactions extends Table {
   IntColumn get id => integer().autoIncrement()();
   RealColumn get amount => real()();
   TextColumn get description => text()();
-  TextColumn get category => text()();
+  IntColumn get categoryId => integer()(); // category id 
   DateTimeColumn get dateAndTime => dateTime()();
 }
 
+// categories table
+class Categories extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text()();
+  BoolColumn get isIncome => boolean()(); // true - income, false - expense
+  IntColumn get iconCodePoint => integer()();
+}
+
 // db
-@DriftDatabase(tables: [Transactions])
+@DriftDatabase(tables: [Transactions, Categories])
 class TransactionsDatabase extends _$TransactionsDatabase {
   TransactionsDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
   int get schemaVersion => 1;
 
+  // transactions daos
+
   // add (insert) transaction
   Future<int> addTransaction({
     required double amount,
     required String description,
-    required String category,
+    required int categoryId,
     required DateTime date, 
     required TimeOfDay time,
   }) {
@@ -42,7 +53,7 @@ class TransactionsDatabase extends _$TransactionsDatabase {
       TransactionsCompanion.insert(
         amount: amount, 
         description: description, 
-        category: category,
+        categoryId: categoryId,
         dateAndTime: dateAndTime,
       )
     );
@@ -101,6 +112,44 @@ class TransactionsDatabase extends _$TransactionsDatabase {
         t.amount.cast<String>().like(formattedQuery)
       )
     ).watch();
+  }
+
+
+  // categories daos
+
+  // watch all categories
+  Stream<List<Category>> watchCategories() {
+    return (select(categories)).watch();
+  }
+
+  // watch income/expense categories
+  Stream<List<Category>> watchIncomeOrExpenseCategories(bool isIncome) {
+    return (select(categories)..where((c) => c.isIncome.equals(isIncome))).watch();
+  }
+
+  // add category
+  Future<int> addCategory({
+    required String name,
+    required bool isIncome,
+    required int iconCodePoint,
+  }) {
+    return into(categories).insert(
+      CategoriesCompanion.insert(
+        name: name, 
+        isIncome: isIncome, 
+        iconCodePoint: iconCodePoint,
+      )
+    );
+  } 
+
+  // delete category
+  Future<int> deleteCategory(int categoryId) {
+    return (delete(categories)..where((c) => c.id.equals(categoryId))).go();
+  }
+
+  // find category
+  Future<Category?> getCategoryById(int id) {
+    return (select(categories)..where((c) => c.id.equals(id))).getSingleOrNull();
   }
 
   static QueryExecutor _openConnection() {

@@ -8,7 +8,7 @@ void handleDataSubmit({
   required String amountStr,
   required DateTime? selectedDate, 
   required TimeOfDay? selectedTime,
-  required String selectedCategory,
+  required int? categoryId,
   required TextEditingController descriptionController,
   required VoidCallback clearInputData,
 }) async {
@@ -32,7 +32,7 @@ void handleDataSubmit({
     }
 
     // validate category
-    if(selectedCategory.isEmpty) {
+    if(categoryId == null) {
       displaySnackBar('Select a category');
       return;
     }
@@ -41,7 +41,7 @@ void handleDataSubmit({
     await db.addTransaction(
       amount: amount, 
       description: descriptionController.text, 
-      category: selectedCategory, 
+      categoryId: categoryId, 
       date: selectedDate, 
       time: selectedTime,
     );

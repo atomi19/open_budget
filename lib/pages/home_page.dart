@@ -13,7 +13,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final db = TransactionsDatabase();
+  final db = AppDatabase();
   int _currentTabIndex = 0;
 
   @override

@@ -9,7 +9,7 @@ import 'package:open_budget/widgets/custom_text_field.dart';
 
 
 class HomePageContent extends StatefulWidget {
-  final TransactionsDatabase db;
+  final AppDatabase db;
 
   const HomePageContent({
     super.key,

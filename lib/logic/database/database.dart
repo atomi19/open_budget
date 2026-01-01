@@ -25,8 +25,8 @@ class Categories extends Table {
 
 // db
 @DriftDatabase(tables: [Transactions, Categories])
-class TransactionsDatabase extends _$TransactionsDatabase {
-  TransactionsDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
+class AppDatabase extends _$AppDatabase {
+  AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
   int get schemaVersion => 1;

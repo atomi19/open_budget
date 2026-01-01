@@ -8,7 +8,7 @@ import 'package:open_budget/widgets/show_snack_bar.dart';
 import 'package:open_budget/widgets/submit_button.dart';
 
 class AddTransactionPage extends StatefulWidget {
-  final TransactionsDatabase db;
+  final AppDatabase db;
 
   const AddTransactionPage({
     super.key,

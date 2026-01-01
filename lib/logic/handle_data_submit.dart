@@ -3,7 +3,7 @@ import 'package:open_budget/logic/database/database.dart';
 
 // validate data that user entered and save into db
 void handleDataSubmit({
-  required TransactionsDatabase db,
+  required AppDatabase db,
   required void Function(String message) displaySnackBar,
   required String amountStr,
   required DateTime? selectedDate, 

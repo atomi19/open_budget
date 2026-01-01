@@ -10,7 +10,7 @@ import 'package:open_budget/widgets/show_snack_bar.dart';
 import 'package:open_budget/widgets/submit_button.dart';
 
 class TransactionAddForm extends StatefulWidget {
-  final TransactionsDatabase db;
+  final AppDatabase db;
   final bool isIncome;
   final void Function({
     required bool isIncome, 

@@ -3,7 +3,7 @@ import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/widgets/transaction_add_form.dart';
 
 class IncomeScreen extends StatefulWidget {
-  final TransactionsDatabase db;
+  final AppDatabase db;
   final void Function({
     required bool isIncome, 
     required Function(int index) onTap,

@@ -7,6 +7,11 @@ import 'package:open_budget/widgets/build_transactions_list.dart';
 import 'package:open_budget/widgets/custom_list_tile.dart';
 import 'package:open_budget/widgets/custom_text_field.dart';
 
+enum _TransactionsListType {
+  incomes,
+  all,
+  expenses,
+}
 
 class HomePageContent extends StatefulWidget {
   final AppDatabase db;
@@ -27,8 +32,10 @@ class _HomePageContentState extends State<HomePageContent> {
   Currency _currentCurrency = Currency.currencies.first;
   bool _isShowingDescription = false;
 
+  // all transactions modalBottomSheet states
   bool _isSearchingTransactions = false;
   String _searchQuery = '';
+  _TransactionsListType _currentTransactionsListType = _TransactionsListType.all; // income, all, expense
 
   // store categories locally 
   // sort them by id 
@@ -68,6 +75,16 @@ class _HomePageContentState extends State<HomePageContent> {
         _categoriesById= {for (var c in categories) c.id : c};
       });
     });
+  }
+
+  // filter transactions by income, expense or all transactions
+  List<Transaction> _filterTransactions(List<Transaction> items) {
+    final filteredItems = switch (_currentTransactionsListType) {
+      _TransactionsListType.incomes => items.where((t) => t.amount > 0),
+      _TransactionsListType.all => items,
+      _TransactionsListType.expenses => items.where((t) => t.amount < 0),
+    }.toList();
+    return filteredItems;
   }
 
   // all transactions modalBottomSheet
@@ -143,6 +160,47 @@ class _HomePageContentState extends State<HomePageContent> {
                     ],
                   ),
                 ),
+                // incomes, all, expenses textbuttons
+                Container(
+                  padding: const EdgeInsets.all(3),
+                  margin: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(15),
+                    color: Colors.grey.shade200,
+                  ),
+                  child:Row(
+                    children: _TransactionsListType.values.map((type) {
+                      final label = switch (type) {
+                        _TransactionsListType.incomes => 'Incomes',
+                        _TransactionsListType.all => 'All',
+                        _TransactionsListType.expenses => 'Expenses',
+                      };
+                      final isSelected = _currentTransactionsListType == type;
+                      return Expanded(
+                        child: TextButton(
+                          style: TextButton.styleFrom(
+                            backgroundColor: isSelected
+                            ? Colors.blue
+                            : Colors.grey.shade200,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _currentTransactionsListType = type;
+                            });
+                          }, 
+                          child: Text(
+                            label,
+                            style: TextStyle(
+                              color: isSelected
+                                ? Colors.white
+                                : Colors.black
+                            ),
+                          )
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
                 // transactions list
                 Expanded(
                   child: _isSearchingTransactions 
@@ -151,12 +209,13 @@ class _HomePageContentState extends State<HomePageContent> {
                     stream: widget.db.searchTransactions(_searchQuery), 
                     builder: (context, snapshot) {
                       final items = snapshot.data ?? [];
+                      final filteredItems = _filterTransactions(items);
                       return items.isEmpty
                       ? const Center(child: Text('No results found'))
                       : buildTransactionList(
                         context: context, 
                         shrinkWrap: false,
-                        items: items, 
+                        items: filteredItems, 
                         categoriesById: _categoriesById,
                         currentCurrency: _currentCurrency, 
                         showTransactionDetails: _showTransactionDetails,
@@ -170,12 +229,13 @@ class _HomePageContentState extends State<HomePageContent> {
                     stream: widget.db.watchAllTransactionItems(), 
                     builder: (context, snapshot) {
                       final items = snapshot.data ?? [];
-                      return items.isEmpty
+                      final filteredItems = _filterTransactions(items);
+                      return filteredItems.isEmpty
                       ? const Center(child: Text('No transactions yet'))
                       : buildTransactionList(
                         context: context, 
                         shrinkWrap: false,
-                        items: items, 
+                        items: filteredItems, 
                         categoriesById: _categoriesById,
                         currentCurrency: _currentCurrency, 
                         showTransactionDetails: _showTransactionDetails,
@@ -193,6 +253,7 @@ class _HomePageContentState extends State<HomePageContent> {
     ).then((value) {
       _isSearchingTransactions = false;
       _searchTransactionController.clear();
+      _currentTransactionsListType = _TransactionsListType.all;
     });
   }
 

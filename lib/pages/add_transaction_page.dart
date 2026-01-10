@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/pages/screens/expense_screen.dart';
 import 'package:open_budget/pages/screens/income_screen.dart';
+import 'package:open_budget/widgets/custom_modal_bottom_sheet.dart';
 import 'package:open_budget/widgets/custom_text_field.dart';
 import 'package:open_budget/widgets/show_snack_bar.dart';
 import 'package:open_budget/widgets/submit_button.dart';
@@ -20,9 +21,6 @@ class AddTransactionPage extends StatefulWidget {
 
 class _AddTransactionPageState extends State<AddTransactionPage> {
   int _transactionPageIndex = 0; // 0 - income page, 1 - spending page
-  final TextEditingController _categoryNameController = TextEditingController();
-
-  IconData? _selectedIcon;
 
   // icons for custom categories
   final _categoryIcons = [
@@ -66,17 +64,93 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     required bool isIncome,
     required Function(int index) onTap,
   }) {
-    showModalBottomSheet(
+    showCustomModalBottomSheet(
       context: context, 
-      backgroundColor: Colors.grey.shade200,
-      shape:const RoundedRectangleBorder(
-        borderRadius: BorderRadiusGeometry.vertical(top: Radius.circular(15))
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 10,
+        children: [
+          // header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.white
+                ),
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close)
+              ),
+              Text(
+                isIncome
+                ? 'Select income category'
+                : 'Select expense category',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(width: 48),
+            ],
+          ),
+          Expanded(
+            child: ListView(
+              children: [
+                StreamBuilder(
+                  stream: isIncome
+                  ? widget.db.watchIncomeOrExpenseCategories(isIncome)
+                  : widget.db.watchIncomeOrExpenseCategories(isIncome),
+                  builder: (context, snapshot) {
+                    final items =snapshot.data ?? [];
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: items.length,
+                      itemBuilder: (context, index) {
+                        final item = items[index];
+                        return Column(
+                          children: [
+                            ListTile(
+                              tileColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15)
+                              ),
+                              leading: Icon(IconData(item.iconCodePoint, fontFamily: 'MaterialIcons'), color: Colors.blue,),
+                              title: Text(item.name),
+                              trailing: IconButton(
+                                onPressed: () => widget.db.deleteCategory(item.id),
+                                icon: const Icon(Icons.delete_outlined)
+                              ),
+                              onTap: () => onTap(item.id),
+                            ),
+                            const SizedBox(height: 5),
+                          ],
+                        );
+                      }
+                    );
+                  }
+                ),
+                TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.white
+                  ),
+                  onPressed: () => _showCategoryCreationSheet(isIncome: isIncome), 
+                  child: const Text('Create category', style: TextStyle(decoration: TextDecoration.underline),)
+                ),
+              ],
+            ),
+          )
+        ],
       ),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(10),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+    );
+  }
+
+  void _showCategoryCreationSheet({
+    required bool isIncome,
+  }) {
+    final TextEditingController categoryNameController = TextEditingController();
+    IconData? selectedIcon;
+    showCustomModalBottomSheet(
+      context: context, 
+      child: StatefulBuilder(
+        builder: (context, StateSetter setState) {
+          return Column(
             spacing: 10,
             children: [
               // header
@@ -92,179 +166,84 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                   ),
                   Text(
                     isIncome
-                    ? 'Select income category'
-                    : 'Select expense category',
+                    ? 'Create income category'
+                    : 'Create expense category',
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(width: 48),
                 ],
               ),
-              Expanded(
-                child: ListView(
-                  children: [
-                    StreamBuilder(
-                      stream: isIncome
-                      ? widget.db.watchIncomeOrExpenseCategories(isIncome)
-                      : widget.db.watchIncomeOrExpenseCategories(isIncome),
-                      builder: (context, snapshot) {
-                        final items =snapshot.data ?? [];
-                        return ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: items.length,
-                          itemBuilder: (context, index) {
-                            final item = items[index];
-                            return Column(
-                              children: [
-                                ListTile(
-                                  tileColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15)
-                                  ),
-                                  leading: Icon(IconData(item.iconCodePoint, fontFamily: 'MaterialIcons'), color: Colors.blue,),
-                                  title: Text(item.name),
-                                  trailing: IconButton(
-                                    onPressed: () => widget.db.deleteCategory(item.id),
-                                    icon: const Icon(Icons.delete_outlined)
-                                  ),
-                                  onTap: () => onTap(item.id),
-                                ),
-                                const SizedBox(height: 5),
-                              ],
-                            );
-                          }
-                        );
-                      }
-                    ),
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        backgroundColor: Colors.white
-                      ),
-                      onPressed: () => _showCategoryCreationSheet(isIncome: isIncome), 
-                      child: const Text('Create category', style: TextStyle(decoration: TextDecoration.underline),)
-                    ),
-                  ],
-                ),
-              )
-            ],
-          ),
-        );
-      }
-    );
-  }
-
-  void _showCategoryCreationSheet({
-    required bool isIncome,
-  }) {
-    showModalBottomSheet(
-      context: context, 
-      backgroundColor: Colors.grey.shade200,
-      shape:const RoundedRectangleBorder(
-        borderRadius: BorderRadiusGeometry.vertical(top: Radius.circular(15))
-      ),
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, StateSetter setState) {
-            return Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                spacing: 10,
-                children: [
-                  // header
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      IconButton(
-                        style: IconButton.styleFrom(
-                          backgroundColor: Colors.white
-                        ),
-                        onPressed: () => Navigator.pop(context),
-                        icon: const Icon(Icons.close)
-                      ),
-                      Text(
-                        isIncome
-                        ? 'Create income category'
-                        : 'Create expense category',
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(width: 48),
-                    ],
-                  ),
-                  CustomTextField(
-                    controller: _categoryNameController,
-                    hintText: 'Enter category name...'
-                  ),
-                  // expansion tile with icons for custom categories 
-                  ExpansionTile(
-                    backgroundColor: Colors.white,
-                    collapsedBackgroundColor: Colors.white,
-                    collapsedShape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15)
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    title: const Text('Icon'),
-                    trailing: _selectedIcon != null
-                    ? Icon(_selectedIcon)
-                    : const Icon(Icons.arrow_drop_down_rounded),
-                    childrenPadding: const EdgeInsets.all(10),
-                    children: [
-                      SizedBox(
-                        height: 150,
-                        child: GridView.builder(
-                          shrinkWrap: true,
-                          itemCount: _categoryIcons.length,
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 4,
-                            mainAxisSpacing: 2,
-                            crossAxisSpacing: 2,
-                          ), 
-                          itemBuilder: (context, index) {
-                            return IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  _selectedIcon = _categoryIcons[index];
-                                });
-                              },
-                              icon: Icon(_categoryIcons[index]),
-                              iconSize: 25,
-                              padding: EdgeInsets.zero,
-                            );
-                          }
-                        )
-                      )
-                    ]
-                  ),
-                  // submit button
-                  SubmitButton(
-                    onTap: () async {
-                      if(_categoryNameController.text.trim().isNotEmpty &&
-                        _selectedIcon != null) {
-                        Navigator.pop(context);
-                        await widget.db.addCategory(
-                          name: _categoryNameController.text,
-                          isIncome: isIncome,
-                          iconCodePoint: _selectedIcon!.codePoint,
-                        );
-                      } else {
-                        showSnackBar(
-                          context: context, 
-                          content: 'Enter category name'
-                        );
-                      }
-                    }, 
-                    text: 'Create'
-                  ),
-                ],
+              CustomTextField(
+                controller: categoryNameController,
+                hintText: 'Enter category name...'
               ),
-            );
-          }
-        );
-      }
-    ).then((_) {
-      _categoryNameController.clear();
-      _selectedIcon = null;
-    });
+              // expansion tile with icons for custom categories 
+              ExpansionTile(
+                backgroundColor: Colors.white,
+                collapsedBackgroundColor: Colors.white,
+                collapsedShape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15)
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                title: const Text('Icon'),
+                trailing: selectedIcon != null
+                ? Icon(selectedIcon)
+                : const Icon(Icons.arrow_drop_down_rounded),
+                childrenPadding: const EdgeInsets.all(10),
+                children: [
+                  SizedBox(
+                    height: 150,
+                    child: GridView.builder(
+                      shrinkWrap: true,
+                      itemCount: _categoryIcons.length,
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 4,
+                        mainAxisSpacing: 2,
+                        crossAxisSpacing: 2,
+                      ), 
+                      itemBuilder: (context, index) {
+                        return IconButton(
+                          onPressed: () {
+                            setState(() {
+                              selectedIcon = _categoryIcons[index];
+                            });
+                          },
+                          icon: Icon(_categoryIcons[index]),
+                          iconSize: 25,
+                          padding: EdgeInsets.zero,
+                        );
+                      }
+                    )
+                  )
+                ]
+              ),
+              // submit button
+              SubmitButton(
+                onTap: () async {
+                  if(categoryNameController.text.trim().isNotEmpty &&
+                    selectedIcon != null) {
+                    Navigator.pop(context);
+                    await widget.db.addCategory(
+                      name: categoryNameController.text,
+                      isIncome: isIncome,
+                      iconCodePoint: selectedIcon!.codePoint,
+                    );
+                  } else {
+                    showSnackBar(
+                      context: context, 
+                      content: 'Enter category name'
+                    );
+                  }
+                }, 
+                text: 'Create'
+              ),
+            ],
+          );
+        }
+      )
+    );
   }
 
   @override

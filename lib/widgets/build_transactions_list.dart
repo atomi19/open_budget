@@ -68,7 +68,11 @@ Widget buildTransactionList({
           CustomListTile(
             // category icon
             leading: Icon(
-              IconData(categoriesById[item.categoryId]?.iconCodePoint ?? 62536, fontFamily: 'MaterialIcons'),
+              IconData(
+                // use category icon or fallback to question mark if for example category not found
+                categoriesById[item.categoryId]?.iconCodePoint ?? 0xf0555, 
+                fontFamily: 'MaterialIcons',
+              ),
               color: Colors.blue,
             ),
             // category name

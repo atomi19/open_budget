@@ -5,6 +5,7 @@ import 'package:open_budget/logic/currencies.dart';
 import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/widgets/build_transactions_list.dart';
 import 'package:open_budget/widgets/custom_list_tile.dart';
+import 'package:open_budget/widgets/custom_modal_bottom_sheet.dart';
 import 'package:open_budget/widgets/custom_text_field.dart';
 
 enum _TransactionsListType {
@@ -25,16 +26,11 @@ class HomePageContent extends StatefulWidget {
 }
 
 class _HomePageContentState extends State<HomePageContent> {
-  final TextEditingController _transactionDescriptionController = TextEditingController();
-  final TextEditingController _searchTransactionController = TextEditingController();
-
   // settings
   Currency _currentCurrency = Currency.currencies.first;
   bool _isShowingDescription = false;
 
-  // all transactions modalBottomSheet states
-  bool _isSearchingTransactions = false;
-  String _searchQuery = '';
+  // filter for income, all and expense transactions
   _TransactionsListType _currentTransactionsListType = _TransactionsListType.all; // income, all, expense
 
   // store categories locally 
@@ -48,13 +44,6 @@ class _HomePageContentState extends State<HomePageContent> {
     _loadCategories();
     _loadCurrency();
     _loadDescriptionState();
-  }
-
-  @override
-  void dispose() {
-    _transactionDescriptionController.dispose();
-    _searchTransactionController.dispose();
-    super.dispose();
   }
 
   // load currency from shared_preferences
@@ -89,259 +78,250 @@ class _HomePageContentState extends State<HomePageContent> {
 
   // all transactions modalBottomSheet
   void _showAllTransactions() {
-    showModalBottomSheet(
+    final TextEditingController searchTransactionController = TextEditingController();
+    bool isSearchingTransactions = false;
+    String searchQuery = '';
+    _currentTransactionsListType = _TransactionsListType.all; // show all transactions
+
+    showCustomModalBottomSheet(
       context: context, 
       isScrollControlled: true,
-      shape:const RoundedRectangleBorder(
-        borderRadius: BorderRadiusGeometry.vertical(top: Radius.circular(0))
-      ),
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsetsGeometry.all(10),
-                  child: _isSearchingTransactions
-                  // header with searching field
-                  ? Row(
-                    children: [
-                      Expanded(
-                        child: CustomTextField(
-                          controller: _searchTransactionController, 
-                          backgroundColor: Colors.grey.shade200,
-                          prefixIcon: const Icon(Icons.search_outlined),
-                          hintText: 'Search transactions...',
-                          onChanged: (String query) {
-                            setState(() {
-                              _searchQuery = query.trim();
-                            });
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      IconButton(
-                        style: IconButton.styleFrom(
-                          backgroundColor: Colors.grey.shade200,
-                        ),
-                        onPressed: () {
+      backgroundColor: Colors.white,
+      borderRadius: 0,
+      padding: 0,
+      child: StatefulBuilder(
+        builder: (BuildContext context, StateSetter setState) {
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsetsGeometry.all(10),
+                child: isSearchingTransactions
+                // header with searching field
+                ? Row(
+                  children: [
+                    Expanded(
+                      child: CustomTextField(
+                        controller: searchTransactionController, 
+                        backgroundColor: Colors.grey.shade200,
+                        prefixIcon: const Icon(Icons.search_outlined),
+                        hintText: 'Search transactions...',
+                        onChanged: (String query) {
                           setState(() {
-                            _isSearchingTransactions = !_isSearchingTransactions;
-                            _searchTransactionController.clear();
-                            _searchQuery = '';
+                            searchQuery = query.trim();
                           });
-                        }, 
-                        icon: const Icon(Icons.close_outlined)
+                        },
                       ),
-                    ],
-                  )
-                  // default header when user is not searching transactions
-                  : Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      IconButton(
-                        color: Colors.blue,
-                        onPressed: () => Navigator.pop(context), 
-                        icon: const Icon(Icons.close_outlined)
+                    ),
+                    const SizedBox(width: 10),
+                    IconButton(
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.grey.shade200,
                       ),
-                      const Text(
-                        'All Transactions',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      IconButton(
-                        color: Colors.blue,
-                        onPressed: () {
-                          setState(() {
-                            _isSearchingTransactions = !_isSearchingTransactions;
-                          });
-                        }, 
-                        icon: const Icon(Icons.search_outlined)
-                      ),
-                    ],
-                  ),
+                      onPressed: () {
+                        setState(() {
+                          isSearchingTransactions = !isSearchingTransactions;
+                          searchTransactionController.clear();
+                          searchQuery = '';
+                        });
+                      }, 
+                      icon: const Icon(Icons.close_outlined)
+                    ),
+                  ],
+                )
+                // default header when user is not searching transactions
+                : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      color: Colors.blue,
+                      onPressed: () => Navigator.pop(context), 
+                      icon: const Icon(Icons.close_outlined)
+                    ),
+                    const Text(
+                      'All Transactions',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    IconButton(
+                      color: Colors.blue,
+                      onPressed: () {
+                        setState(() {
+                          isSearchingTransactions = !isSearchingTransactions;
+                        });
+                      }, 
+                      icon: const Icon(Icons.search_outlined)
+                    ),
+                  ],
                 ),
-                // incomes, all, expenses textbuttons
-                Container(
-                  padding: const EdgeInsets.all(3),
-                  margin: const EdgeInsets.all(5),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15),
-                    color: Colors.grey.shade200,
-                  ),
-                  child:Row(
-                    children: _TransactionsListType.values.map((type) {
-                      final label = switch (type) {
-                        _TransactionsListType.incomes => 'Incomes',
-                        _TransactionsListType.all => 'All',
-                        _TransactionsListType.expenses => 'Expenses',
-                      };
-                      final isSelected = _currentTransactionsListType == type;
-                      return Expanded(
-                        child: TextButton(
-                          style: TextButton.styleFrom(
-                            backgroundColor: isSelected
-                            ? Colors.blue
-                            : Colors.grey.shade200,
+              ),
+              // incomes, all, expenses textbuttons
+              Container(
+                padding: const EdgeInsets.all(3),
+                margin: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(15),
+                  color: Colors.grey.shade200,
+                ),
+                child:Row(
+                  children: _TransactionsListType.values.map((type) {
+                    final label = switch (type) {
+                      _TransactionsListType.incomes => 'Incomes',
+                      _TransactionsListType.all => 'All',
+                      _TransactionsListType.expenses => 'Expenses',
+                    };
+                    final isSelected = _currentTransactionsListType == type;
+                    return Expanded(
+                      child: TextButton(
+                        style: TextButton.styleFrom(
+                          backgroundColor: isSelected
+                          ? Colors.blue
+                          : Colors.grey.shade200,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _currentTransactionsListType = type;
+                          });
+                        }, 
+                        child: Text(
+                          label,
+                          style: TextStyle(
+                            color: isSelected
+                              ? Colors.white
+                              : Colors.black
                           ),
-                          onPressed: () {
-                            setState(() {
-                              _currentTransactionsListType = type;
-                            });
-                          }, 
-                          child: Text(
-                            label,
-                            style: TextStyle(
-                              color: isSelected
-                                ? Colors.white
-                                : Colors.black
-                            ),
-                          )
-                        ),
-                      );
-                    }).toList(),
-                  ),
+                        )
+                      ),
+                    );
+                  }).toList(),
                 ),
-                // transactions list
-                Expanded(
-                  child: _isSearchingTransactions 
-                  // search transactions
-                  ? StreamBuilder(
-                    stream: widget.db.searchTransactions(_searchQuery), 
-                    builder: (context, snapshot) {
-                      final items = snapshot.data ?? [];
-                      final filteredItems = _filterTransactions(items);
-                      return items.isEmpty
-                      ? const Center(child: Text('No results found'))
-                      : buildTransactionList(
-                        context: context, 
-                        shrinkWrap: false,
-                        items: filteredItems, 
-                        categoriesById: _categoriesById,
-                        currentCurrency: _currentCurrency, 
-                        showTransactionDetails: _showTransactionDetails,
-                        shouldInsertDate: true,
-                        showDescription: _isShowingDescription,
-                      );
-                    }
-                  )
-                  // all transactions
-                  : StreamBuilder(
-                    stream: widget.db.watchAllTransactionItems(), 
-                    builder: (context, snapshot) {
-                      final items = snapshot.data ?? [];
-                      final filteredItems = _filterTransactions(items);
-                      return filteredItems.isEmpty
-                      ? const Center(child: Text('No transactions yet'))
-                      : buildTransactionList(
-                        context: context, 
-                        shrinkWrap: false,
-                        items: filteredItems, 
-                        categoriesById: _categoriesById,
-                        currentCurrency: _currentCurrency, 
-                        showTransactionDetails: _showTransactionDetails,
-                        shouldInsertDate: true,
-                        showDescription: _isShowingDescription,
-                      );
-                    }
-                  ),
+              ),
+              // transactions list
+              Expanded(
+                child: isSearchingTransactions 
+                // search transactions
+                ? StreamBuilder(
+                  stream: widget.db.searchTransactions(searchQuery), 
+                  builder: (context, snapshot) {
+                    final items = snapshot.data ?? [];
+                    final filteredItems = _filterTransactions(items);
+                    return items.isEmpty
+                    ? const Center(child: Text('No results found'))
+                    : buildTransactionList(
+                      context: context, 
+                      shrinkWrap: false,
+                      items: filteredItems, 
+                      categoriesById: _categoriesById,
+                      currentCurrency: _currentCurrency, 
+                      showTransactionDetails: _showTransactionDetails,
+                      shouldInsertDate: true,
+                      showDescription: _isShowingDescription,
+                    );
+                  }
+                )
+                // all transactions
+                : StreamBuilder(
+                  stream: widget.db.watchAllTransactionItems(), 
+                  builder: (context, snapshot) {
+                    final items = snapshot.data ?? [];
+                    final filteredItems = _filterTransactions(items);
+                    return filteredItems.isEmpty
+                    ? const Center(child: Text('No transactions yet'))
+                    : buildTransactionList(
+                      context: context, 
+                      shrinkWrap: false,
+                      items: filteredItems, 
+                      categoriesById: _categoriesById,
+                      currentCurrency: _currentCurrency, 
+                      showTransactionDetails: _showTransactionDetails,
+                      shouldInsertDate: true,
+                      showDescription: _isShowingDescription,
+                    );
+                  }
                 ),
-              ],
-            );
-          },
-        );
-      }
-    ).then((value) {
-      _isSearchingTransactions = false;
-      _searchTransactionController.clear();
-      _currentTransactionsListType = _TransactionsListType.all;
-    });
+              ),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   // transaction details modalBottomSheet
   void _showTransactionDetails(Transaction item) {
-    _transactionDescriptionController.text = item.description;
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadiusGeometry.vertical(top: Radius.circular(15))
-      ),
-      backgroundColor: Colors.grey.shade200,
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(10),
-          child: Wrap(
-            runSpacing: 10,
+    final TextEditingController transactionDescriptionController = TextEditingController();
+    transactionDescriptionController.text = item.description;
+
+    showCustomModalBottomSheet(
+      context: context, 
+      child: Wrap(
+        runSpacing: 10,
+        children: [
+          // header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // close showModalBottomSheet
-                  IconButton(
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.white
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close)
-                  ),
-                  const Text(
-                    'Transaction Details',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  // delete transaction
-                  IconButton(
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.white
-                    ),
-                    onPressed: () {
-                      _showDeleteConfirmation(item.id);
-                    }, 
-                    icon: const Icon(Icons.delete_outlined)
-                  ),
-                ],
-              ),
-              // transaction itself
-              Align(
-                alignment: Alignment.center,
-                child: Text('${item.amount.toString()} ${_currentCurrency.symbol}', style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold)),
-              ),
-              // date and time in dd-mm-yyyy hh:mm format
-              CustomListTile(
-                title: 'Date',
-                trailing: Text(
-                  '${item.dateAndTime.day.toString().padLeft(2, '0')}-${item.dateAndTime.month.toString().padLeft(2, '0')}-${item.dateAndTime.year} ${item.dateAndTime.hour.toString().padLeft(2, '0')}:${item.dateAndTime.minute.toString().padLeft(2, '0')}',
-                  style: const TextStyle(fontSize: 15),
+              // close
+              IconButton(
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.white
                 ),
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close)
               ),
-              // category
-              CustomListTile(
-                title: 'Category', 
-                trailing: Text(
-                  _categoriesById[item.categoryId]?.name ?? 'Unknown Category',
-                  style: const TextStyle(fontSize: 15),
-                ),
+              const Text(
+                'Transaction Details',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
-              // description inside transaction details
-              // if user changed description it will update
-              // when focus on CustomTextField is lost
-              Focus(
-                onFocusChange: (focus) {
-                  if(!focus) {
-                    widget.db.updateDescription(item.id, _transactionDescriptionController.text);
-                  }
-                },
-                child: CustomTextField(
-                  controller: _transactionDescriptionController, 
-                  hintText: 'Enter description...',
-                  minLines: 5,
-                  maxLines: 5,
+              // delete transaction
+              IconButton(
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.white
                 ),
+                onPressed: () {
+                  _showDeleteConfirmation(item.id);
+                }, 
+                icon: const Icon(Icons.delete_outlined)
               ),
             ],
-          )
-        );
-      }
+          ),
+          // transaction itself
+          Align(
+            alignment: Alignment.center,
+            child: Text('${item.amount.toString()} ${_currentCurrency.symbol}', style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold)),
+          ),
+          // date and time in dd-mm-yyyy hh:mm format
+          CustomListTile(
+            title: 'Date',
+            trailing: Text(
+              '${item.dateAndTime.day.toString().padLeft(2, '0')}-${item.dateAndTime.month.toString().padLeft(2, '0')}-${item.dateAndTime.year} ${item.dateAndTime.hour.toString().padLeft(2, '0')}:${item.dateAndTime.minute.toString().padLeft(2, '0')}',
+              style: const TextStyle(fontSize: 15),
+            ),
+          ),
+          // category
+          CustomListTile(
+            title: 'Category', 
+            trailing: Text(
+              _categoriesById[item.categoryId]?.name ?? 'Unknown Category',
+              style: const TextStyle(fontSize: 15),
+            ),
+          ),
+          // description inside transaction details
+          // if user changed description it will update
+          // when focus on CustomTextField is lost
+          Focus(
+            onFocusChange: (focus) {
+              if(!focus) {
+                widget.db.updateDescription(item.id, transactionDescriptionController.text);
+              }
+            },
+            child: CustomTextField(
+              controller: transactionDescriptionController, 
+              hintText: 'Enter description...',
+              minLines: 5,
+              maxLines: 5,
+            ),
+          ),
+        ],
+      )
     );
   }
 
@@ -398,123 +378,114 @@ class _HomePageContentState extends State<HomePageContent> {
 
   // settings modalBottomSheet
   void _showSettings() {
-    showModalBottomSheet(
+    showCustomModalBottomSheet(
       context: context, 
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadiusGeometry.vertical(top: Radius.circular(15))
-      ),
-      backgroundColor: Colors.grey.shade200,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, StateSetter modalSetState) {
-            return Padding(
-              padding: const EdgeInsets.all(10),
-              child: Wrap(
-                runSpacing: 10,
+      child: StatefulBuilder(
+        builder: (context, StateSetter modalSetState) {
+          return Wrap(
+            runSpacing: 10,
+            children: [
+              // header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // header
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      IconButton(
-                        style: IconButton.styleFrom(
-                          backgroundColor: Colors.white
-                        ),
-                        onPressed: () => Navigator.pop(context),
-                        icon: const Icon(Icons.close)
-                      ),
-                      const Text(
-                        'Settings',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(width: 48),
-                    ],
-                  ),
-                  Column(
-                    children: [
-                      CustomListTile(
-                        title: 'Show transaction description',             
-                        trailing: Switch(
-                          value: _isShowingDescription, 
-                          activeThumbColor: Colors.white,
-                          inactiveThumbColor: Colors.grey.shade200,
-                          activeTrackColor: Colors.blue,
-                          inactiveTrackColor: Colors.grey.shade500,
-                          trackOutlineColor: WidgetStateProperty.resolveWith(
-                            (Set<WidgetState> states) {
-                              return Colors.transparent;
-                            }
-                          ),
-                          onChanged: (bool value) {
-                            setState(() {
-                              setState(() {
-                                _isShowingDescription = value;
-                              });
-                              modalSetState(() {
-                                _isShowingDescription = value;
-                              });
-                              AppSettings.switchTransactionDescription(value);
-                              _loadDescriptionState();
-                            });
-                          }
-                        ),
-                      ),
-                      const Align(
-                        alignment: Alignment.centerLeft,
-                        child: Padding(
-                          padding: EdgeInsets.fromLTRB(10, 5, 10, 10),
-                          child: Text('Display the description below each transaction', style: TextStyle(fontSize: 13),),
-                        ),
-                      )
-                    ],
-                  ),
-                  // currency expansion tile setting
-                  ExpansionTile(
-                    backgroundColor: Colors.white,
-                    collapsedBackgroundColor: Colors.white,
-                    collapsedShape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15)
+                  IconButton(
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.white
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    title: const Text('Currency'),
-                    trailing: const Icon(Icons.arrow_drop_down_rounded),
-                    children: [
-                      SizedBox(
-                        height: 250,
-                        child: ListView.builder(
-                          itemCount: Currency.currencies.length,
-                          itemBuilder: (context, index) {
-                            final currencyItem = Currency.currencies[index]; 
-                            return CustomListTile(
-                              title: currencyItem.name, 
-                              trailing: Text(
-                                currencyItem.code,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.grey
-                                ),
-                              ),
-                              onTap: () {
-                                Navigator.pop(context);
-                                setState(() {                              
-                                  AppSettings.setCurrency(currencyItem.code); // save selected currency
-                                  _loadCurrency(); // load selected currency
-                                });
-                              }
-                            );
-                          }
-                        ),
-                      )
-                    ]
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close)
                   ),
+                  const Text(
+                    'Settings',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(width: 48),
                 ],
               ),
-            );
-          }
-        );
-      }
+              Column(
+                children: [
+                  CustomListTile(
+                    title: 'Show transaction description',             
+                    trailing: Switch(
+                      value: _isShowingDescription, 
+                      activeThumbColor: Colors.white,
+                      inactiveThumbColor: Colors.grey.shade200,
+                      activeTrackColor: Colors.blue,
+                      inactiveTrackColor: Colors.grey.shade500,
+                      trackOutlineColor: WidgetStateProperty.resolveWith(
+                        (Set<WidgetState> states) {
+                          return Colors.transparent;
+                        }
+                      ),
+                      onChanged: (bool value) {
+                        setState(() {
+                          setState(() {
+                            _isShowingDescription = value;
+                          });
+                          modalSetState(() {
+                            _isShowingDescription = value;
+                          });
+                          AppSettings.switchTransactionDescription(value);
+                          _loadDescriptionState();
+                        });
+                      }
+                    ),
+                  ),
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(10, 5, 10, 10),
+                      child: Text('Display the description below each transaction', style: TextStyle(fontSize: 13),),
+                    ),
+                  )
+                ],
+              ),
+              // currency expansion tile setting
+              ExpansionTile(
+                backgroundColor: Colors.white,
+                collapsedBackgroundColor: Colors.white,
+                collapsedShape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15)
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                title: const Text('Currency'),
+                trailing: const Icon(Icons.arrow_drop_down_rounded),
+                children: [
+                  SizedBox(
+                    height: 250,
+                    child: ListView.builder(
+                      itemCount: Currency.currencies.length,
+                      itemBuilder: (context, index) {
+                        final currencyItem = Currency.currencies[index]; 
+                        return CustomListTile(
+                          title: currencyItem.name, 
+                          trailing: Text(
+                            currencyItem.code,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey
+                            ),
+                          ),
+                          onTap: () {
+                            Navigator.pop(context);
+                            setState(() {                              
+                              AppSettings.setCurrency(currencyItem.code); // save selected currency
+                              _loadCurrency(); // load selected currency
+                            });
+                          }
+                        );
+                      }
+                    ),
+                  )
+                ]
+              ),
+            ],
+          );
+        }
+      ),
     );
   }
 

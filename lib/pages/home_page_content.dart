@@ -286,7 +286,17 @@ class _HomePageContentState extends State<HomePageContent> {
           // transaction itself
           Align(
             alignment: Alignment.center,
-            child: Text('${item.amount.toString()} ${_currentCurrency.symbol}', style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold)),
+            child: Text(
+              item.amount % 1 == 0
+                ? '${item.amount.toInt().toString()} ${_currentCurrency.symbol}'
+                : '${item.amount.toString()} ${_currentCurrency.symbol}', 
+              style: TextStyle(
+                fontSize: 40, 
+                fontWeight: FontWeight.bold,
+                color: item.amount > 0
+                  ? Colors.green
+                  : Colors.black,
+              )),
           ),
           // date and time in dd-mm-yyyy hh:mm format
           CustomListTile(

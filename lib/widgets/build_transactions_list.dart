@@ -90,7 +90,9 @@ Widget buildTransactionList({
             : null,
             // transaction amount
             trailing: Text(
-              '${item.amount.toString()} ${currentCurrency.symbol}',
+              item.amount % 1 == 0
+              ? '${item.amount.toInt().toString()} ${currentCurrency.symbol}'
+              : '${item.amount.toString()} ${currentCurrency.symbol}',
               style: TextStyle(
                 color: item.amount > 0
                 ? Colors.green

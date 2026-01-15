@@ -120,7 +120,7 @@ class TransactionAddFormState extends State<TransactionAddForm> {
         SubmitButton(
           onTap: () => handleDataSubmit(
             db: widget.db, 
-            displaySnackBar: (content) => showSnackBar(context: context, content: content),
+            displaySnackBar: (content) => showSnackBar(context: context, content: Text(content)),
             amountStr: widget.isIncome
             ? _amountController.text
             : '-${_amountController.text}', // pass amount String with - because it is expense

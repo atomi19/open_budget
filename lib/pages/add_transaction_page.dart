@@ -233,7 +233,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                   } else {
                     showSnackBar(
                       context: context, 
-                      content: 'Enter category name'
+                      content: const Text('Enter category name'),
                     );
                   }
                 }, 

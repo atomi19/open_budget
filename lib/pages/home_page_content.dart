@@ -7,6 +7,7 @@ import 'package:open_budget/widgets/build_transactions_list.dart';
 import 'package:open_budget/widgets/custom_list_tile.dart';
 import 'package:open_budget/widgets/custom_modal_bottom_sheet.dart';
 import 'package:open_budget/widgets/custom_text_field.dart';
+import 'package:open_budget/widgets/show_snack_bar.dart';
 
 enum _TransactionsListType {
   incomes,
@@ -372,9 +373,35 @@ class _HomePageContentState extends State<HomePageContent> {
                     ),
                   ),
                   onPressed: () {
+                    final messenger = ScaffoldMessenger.of(context);
                     Navigator.pop(context); // close alertDialog
                     Navigator.pop(context); // close transaction details modalBottomSheet
-                    widget.db.deleteTransaction(id);
+                    bool shouldDelete = true;
+
+                    showSnackBar(
+                      context: context, 
+                      content: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Transaction deleted'),
+                          TextButton(
+                            style: TextButton.styleFrom(
+                              backgroundColor: Colors.white,
+                            ),
+                            onPressed: () {
+                              shouldDelete = false;
+                              messenger.hideCurrentSnackBar();
+                            },
+                            child: const Text('Undo', style: TextStyle(color: Colors.black)),
+                          ),
+                        ],
+                      ),
+                      onClosed: () {
+                        if(shouldDelete) {
+                          widget.db.deleteTransaction(id);
+                        }
+                      }
+                    );
                   }, 
                   child: const Text('Delete', style: TextStyle(fontSize: 15, color: Colors.white)),
                 ),

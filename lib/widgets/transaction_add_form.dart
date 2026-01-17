@@ -41,6 +41,7 @@ class TransactionAddFormState extends State<TransactionAddForm> {
       _amountController.clear();
       _selectedDate = null;
       _selectedTime = null;
+      _selectedCategory = null;
       _selectedCategoryId = null;
       _descriptionController.clear();
     });

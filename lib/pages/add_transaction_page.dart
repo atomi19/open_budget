@@ -5,6 +5,7 @@ import 'package:open_budget/pages/screens/expense_screen.dart';
 import 'package:open_budget/pages/screens/income_screen.dart';
 import 'package:open_budget/widgets/custom_modal_bottom_sheet.dart';
 import 'package:open_budget/widgets/custom_text_field.dart';
+import 'package:open_budget/widgets/empty_list_placeholder.dart';
 import 'package:open_budget/widgets/show_snack_bar.dart';
 import 'package:open_budget/widgets/submit_button.dart';
 
@@ -99,7 +100,16 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                   : widget.db.watchIncomeOrExpenseCategories(isIncome),
                   builder: (context, snapshot) {
                     final items =snapshot.data ?? [];
-                    return ListView.builder(
+                    return items.isEmpty
+                    ? const Padding(
+                      padding: EdgeInsets.all(10),
+                      child: EmptyListPlaceholder(
+                        icon: Icons.close_rounded, 
+                        title: 'No categories yet', 
+                        subtitle: 'Create category first'
+                      )
+                    )
+                    : ListView.builder(
                       shrinkWrap: true,
                       itemCount: items.length,
                       itemBuilder: (context, index) {
@@ -126,12 +136,10 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                     );
                   }
                 ),
-                TextButton(
-                  style: TextButton.styleFrom(
-                    backgroundColor: Colors.white
-                  ),
-                  onPressed: () => _showCategoryCreationSheet(isIncome: isIncome), 
-                  child: const Text('Create category', style: TextStyle(decoration: TextDecoration.underline),)
+                const SizedBox(height: 10),
+                SubmitButton(
+                  onTap: () => _showCategoryCreationSheet(isIncome: isIncome), 
+                  text: 'Create category'
                 ),
               ],
             ),

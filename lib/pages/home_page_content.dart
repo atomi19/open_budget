@@ -7,6 +7,7 @@ import 'package:open_budget/widgets/build_transactions_list.dart';
 import 'package:open_budget/widgets/custom_list_tile.dart';
 import 'package:open_budget/widgets/custom_modal_bottom_sheet.dart';
 import 'package:open_budget/widgets/custom_text_field.dart';
+import 'package:open_budget/widgets/empty_list_placeholder.dart';
 import 'package:open_budget/widgets/show_snack_bar.dart';
 
 enum _TransactionsListType {
@@ -205,7 +206,11 @@ class _HomePageContentState extends State<HomePageContent> {
                     final items = snapshot.data ?? [];
                     final filteredItems = _filterTransactions(items);
                     return items.isEmpty
-                    ? const Center(child: Text('No results found'))
+                    ? const EmptyListPlaceholder(
+                        icon: Icons.search_off_outlined, 
+                        title: 'No results found', 
+                        subtitle: 'Try to search by category or amount'
+                      )
                     : buildTransactionList(
                       context: context, 
                       shrinkWrap: false,
@@ -225,7 +230,11 @@ class _HomePageContentState extends State<HomePageContent> {
                     final items = snapshot.data ?? [];
                     final filteredItems = _filterTransactions(items);
                     return filteredItems.isEmpty
-                    ? const Center(child: Text('No transactions yet'))
+                    ? const EmptyListPlaceholder(
+                        icon: Icons.close_rounded, 
+                        title: 'No transactions yet', 
+                        subtitle: 'Add transactions and they will appear here'
+                      )
                     : buildTransactionList(
                       context: context, 
                       shrinkWrap: false,
@@ -595,7 +604,14 @@ class _HomePageContentState extends State<HomePageContent> {
                     shouldInsertDate: false,
                     showDescription: _isShowingDescription,
                   )
-                  : const Text('No Transactions Found');
+                  : const Padding(
+                    padding: EdgeInsets.all(10),
+                    child: EmptyListPlaceholder(
+                      icon: Icons.close_rounded, 
+                      title: 'No transactions yet', 
+                      subtitle: 'Add transactions and they will appear here'
+                    )
+                  );
                 }
               ),
               CustomListTile(

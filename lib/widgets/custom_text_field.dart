@@ -6,6 +6,7 @@ class CustomTextField extends StatelessWidget {
   final String hintText;
   final int? minLines;
   final int? maxLines;
+  final bool? isDense;
   final Widget? prefix;
   final Widget? prefixIcon;
   final void Function(String)? onChanged;
@@ -17,6 +18,7 @@ class CustomTextField extends StatelessWidget {
     required this.hintText,
     this.minLines,
     this.maxLines,
+    this.isDense,
     this.prefix,
     this.prefixIcon,
     this.onChanged,
@@ -29,6 +31,7 @@ class CustomTextField extends StatelessWidget {
       minLines: minLines,
       maxLines: maxLines,
       decoration: InputDecoration(
+        isDense: isDense ?? false,
         prefix: prefix,
         prefixIcon: prefixIcon,
         filled: true,

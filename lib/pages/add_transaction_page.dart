@@ -1,10 +1,11 @@
 // main page that contains income and expense screens (switch between them)
 import 'package:flutter/material.dart';
 import 'package:open_budget/logic/database/database.dart';
-import 'package:open_budget/pages/screens/expense_screen.dart';
-import 'package:open_budget/pages/screens/income_screen.dart';
+import 'package:open_budget/logic/handle_data_submit.dart';
+import 'package:open_budget/widgets/custom_list_tile.dart';
 import 'package:open_budget/widgets/custom_modal_bottom_sheet.dart';
 import 'package:open_budget/widgets/custom_text_field.dart';
+import 'package:open_budget/widgets/date_time_picker.dart';
 import 'package:open_budget/widgets/empty_list_placeholder.dart';
 import 'package:open_budget/widgets/show_snack_bar.dart';
 import 'package:open_budget/widgets/submit_button.dart';
@@ -22,6 +23,29 @@ class AddTransactionPage extends StatefulWidget {
 
 class _AddTransactionPageState extends State<AddTransactionPage> {
   int _transactionPageIndex = 0; // 0 - income page, 1 - spending page
+
+  final TextEditingController _amountController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  Category? _selectedCategory;
+  int? _selectedCategoryId;
+  DateTime? _selectedDate;
+  TimeOfDay? _selectedTime;
+
+  // reset all variables for _transactionAddForm
+  void _resetData() {
+    setState(() {
+      _amountController.clear();
+      _selectedDate = null;
+      _selectedTime = null;
+      _selectedCategory = null;
+      _selectedCategoryId = null;
+      _descriptionController.clear();
+    });
+  }
+
+  Future _findCategoryById(int id) async {
+    _selectedCategory = await widget.db.getCategoryById(id);
+  }
 
   // icons for custom categories
   final _categoryIcons = [
@@ -61,6 +85,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     Icons.movie_outlined,
   ];
 
+  // list income or expense categories
   void _showCategories({
     required bool isIncome,
     required Function(int index) onTap,
@@ -149,6 +174,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     );
   }
 
+  // category creation modalBottomSheet
   void _showCategoryCreationSheet({
     required bool isIncome,
   }) {
@@ -254,6 +280,94 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     );
   }
 
+  // income or expense form
+  Widget _transactionAddForm({
+    required bool isIncome
+  }) {
+    return Column(
+      spacing: 10,
+      children: [
+        // amount textfield
+        CustomTextField(
+          controller: _amountController, 
+          hintText: isIncome
+            ? 'Enter income...'
+            : 'Enter expense...',
+          prefix: Text(
+            isIncome
+              ? '+ '
+              : '- '
+          ),
+          maxLines: 1,
+        ),
+        // date 
+        CustomListTile(
+          title: _selectedDate != null
+            ? '${_selectedDate!.day.toString().padLeft(2, '0')}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.year}'
+            : 'Date',
+          trailing: const Icon(Icons.arrow_drop_down_rounded),
+          onTap: ()async {
+            final selectedDate = await pickDate(context);
+            setState(() {
+              _selectedDate = selectedDate;
+            });
+          },
+        ),
+        // time 
+        CustomListTile(
+          title: _selectedTime != null
+            ? _selectedTime!.format(context)
+            : 'Time',
+          trailing: const Icon(Icons.arrow_drop_down_rounded),
+          onTap: () async {
+            final selectedTime = await pickTime(context);
+            setState(() {
+              _selectedTime = selectedTime;
+            });
+          },
+        ),
+        // category
+        CustomListTile(
+          title: _selectedCategory?.name ?? 'Category',
+          trailing: const Icon(Icons.arrow_drop_down_rounded),
+          onTap: () => _showCategories(
+            isIncome: isIncome,
+            onTap: (id) async {
+              setState(() {
+                _selectedCategoryId = id;
+              });
+              Navigator.pop(context);
+              await _findCategoryById(id);
+            }
+          ),
+        ),
+        // description textfield
+        CustomTextField(
+          controller: _descriptionController,
+          hintText: 'Enter description...',
+          minLines: 1,
+          maxLines: 5,
+        ),
+        // save button
+        SubmitButton(
+          onTap: () => handleDataSubmit(
+            db: widget.db, 
+            displaySnackBar: (content) => showSnackBar(context: context, content: Text(content)),
+            amountStr: isIncome
+            ? _amountController.text // income amount
+            : '-${_amountController.text}', // expense amount
+            selectedDate: _selectedDate, 
+            selectedTime: _selectedTime, 
+            categoryId: _selectedCategoryId, 
+            descriptionController: _descriptionController, 
+            clearInputData: _resetData
+          ),
+          text: 'Save'
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -278,7 +392,12 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                     ? Colors.blue
                     : Colors.transparent
                   ),
-                  onPressed: () => setState(() => _transactionPageIndex = 0), 
+                  onPressed: () {
+                    if(_transactionPageIndex != 0)  {
+                      _resetData();
+                      setState(() => _transactionPageIndex = 0);
+                    }
+                  },
                   child: Text(
                     'Income',
                     style: TextStyle(color: _transactionPageIndex == 0
@@ -293,7 +412,12 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                     ? Colors.blue
                     : Colors.transparent
                   ),
-                  onPressed: () => setState(() => _transactionPageIndex = 1), 
+                  onPressed: () {
+                    if(_transactionPageIndex != 1) {
+                      _resetData();
+                      setState(() => _transactionPageIndex = 1);
+                    }
+                  },
                   child: Text(
                     'Expense', 
                     style: TextStyle(color: _transactionPageIndex ==1
@@ -309,14 +433,10 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
             child: IndexedStack(
               index: _transactionPageIndex,
               children: [
-                IncomeScreen(
-                  db: widget.db,
-                  showCategories: _showCategories,
-                ),
-                ExpenseScreen(
-                  db: widget.db,
-                  showCategories: _showCategories,
-                ),
+                // income form
+                _transactionAddForm(isIncome: true),
+                // expense form
+                _transactionAddForm(isIncome: false),
               ],
             ),
           ),

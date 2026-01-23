@@ -104,6 +104,8 @@ class _HomePageContentState extends State<HomePageContent> {
                     Expanded(
                       child: CustomTextField(
                         controller: searchTransactionController, 
+                        maxLines: 1,
+                        isDense: true,
                         backgroundColor: Colors.grey.shade200,
                         prefixIcon: const Icon(Icons.search_outlined),
                         hintText: 'Search transactions...',
@@ -278,7 +280,7 @@ class _HomePageContentState extends State<HomePageContent> {
                 icon: const Icon(Icons.close)
               ),
               const Text(
-                'Transaction Details',
+                'Details',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               // delete transaction

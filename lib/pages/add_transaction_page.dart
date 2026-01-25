@@ -185,7 +185,6 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
       child: StatefulBuilder(
         builder: (context, StateSetter setState) {
           return Column(
-            spacing: 10,
             children: [
               // header
               Row(
@@ -207,72 +206,84 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                   const SizedBox(width: 48),
                 ],
               ),
-              CustomTextField(
-                controller: categoryNameController,
-                hintText: 'Enter category name...'
-              ),
-              // expansion tile with icons for custom categories 
-              ExpansionTile(
-                backgroundColor: Colors.white,
-                collapsedBackgroundColor: Colors.white,
-                collapsedShape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15)
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 10),
+                      // category name
+                      CustomTextField(
+                        controller: categoryNameController,
+                        hintText: 'Enter category name...'
+                      ),
+                      const SizedBox(height: 10),
+                      // expansion tile with icons for custom categories 
+                      ExpansionTile(
+                        backgroundColor: Colors.white,
+                        collapsedBackgroundColor: Colors.white,
+                        collapsedShape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15)
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        title: const Text('Icon'),
+                        trailing: selectedIcon != null
+                        ? Icon(selectedIcon)
+                        : const Icon(Icons.arrow_drop_down_rounded),
+                        childrenPadding: const EdgeInsets.all(10),
+                        children: [
+                          SizedBox(
+                            height: 150,
+                            child: GridView.builder(
+                              shrinkWrap: true,
+                              itemCount: _categoryIcons.length,
+                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 4,
+                                mainAxisSpacing: 2,
+                                crossAxisSpacing: 2,
+                              ), 
+                              itemBuilder: (context, index) {
+                                return IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      selectedIcon = _categoryIcons[index];
+                                    });
+                                  },
+                                  icon: Icon(_categoryIcons[index]),
+                                  iconSize: 25,
+                                  padding: EdgeInsets.zero,
+                                );
+                              }
+                            )
+                          )
+                        ]
+                      ),
+                      const SizedBox(height: 10),
+                      // submit button
+                      SubmitButton(
+                        onTap: () async {
+                          if(categoryNameController.text.trim().isNotEmpty &&
+                            selectedIcon != null) {
+                            Navigator.pop(context);
+                            await widget.db.addCategory(
+                              name: categoryNameController.text,
+                              isIncome: isIncome,
+                              iconCodePoint: selectedIcon!.codePoint,
+                            );
+                          } else {
+                            showSnackBar(
+                              context: context, 
+                              content: const Text('Enter category name'),
+                            );
+                          }
+                        }, 
+                        text: 'Create'
+                      ),
+                    ],
+                  ),
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                title: const Text('Icon'),
-                trailing: selectedIcon != null
-                ? Icon(selectedIcon)
-                : const Icon(Icons.arrow_drop_down_rounded),
-                childrenPadding: const EdgeInsets.all(10),
-                children: [
-                  SizedBox(
-                    height: 150,
-                    child: GridView.builder(
-                      shrinkWrap: true,
-                      itemCount: _categoryIcons.length,
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 4,
-                        mainAxisSpacing: 2,
-                        crossAxisSpacing: 2,
-                      ), 
-                      itemBuilder: (context, index) {
-                        return IconButton(
-                          onPressed: () {
-                            setState(() {
-                              selectedIcon = _categoryIcons[index];
-                            });
-                          },
-                          icon: Icon(_categoryIcons[index]),
-                          iconSize: 25,
-                          padding: EdgeInsets.zero,
-                        );
-                      }
-                    )
-                  )
-                ]
-              ),
-              // submit button
-              SubmitButton(
-                onTap: () async {
-                  if(categoryNameController.text.trim().isNotEmpty &&
-                    selectedIcon != null) {
-                    Navigator.pop(context);
-                    await widget.db.addCategory(
-                      name: categoryNameController.text,
-                      isIncome: isIncome,
-                      iconCodePoint: selectedIcon!.codePoint,
-                    );
-                  } else {
-                    showSnackBar(
-                      context: context, 
-                      content: const Text('Enter category name'),
-                    );
-                  }
-                }, 
-                text: 'Create'
-              ),
+              )
             ],
           );
         }
@@ -372,9 +383,10 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade200,
-      body:  Column(
+      body: Column(
         spacing: 10,
         children: [
+          // header
           Container(
             padding: const EdgeInsets.all(5),
             decoration: BoxDecoration(
@@ -429,16 +441,19 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
               ],
             ),
           ),
+          // income and expense forms
           Expanded(
-            child: IndexedStack(
-              index: _transactionPageIndex,
-              children: [
-                // income form
-                _transactionAddForm(isIncome: true),
-                // expense form
-                _transactionAddForm(isIncome: false),
-              ],
-            ),
+            child: SingleChildScrollView(
+              child:IndexedStack(
+                index: _transactionPageIndex,
+                children: [
+                  // income form
+                  _transactionAddForm(isIncome: true),
+                  // expense form
+                  _transactionAddForm(isIncome: false),
+                ],
+              ),
+            )
           ),
         ],
       )

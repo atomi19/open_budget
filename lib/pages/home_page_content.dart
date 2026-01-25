@@ -539,92 +539,94 @@ class _HomePageContentState extends State<HomePageContent> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      spacing: 10,
-      children: [
-        // header
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const SizedBox(width: 48),
-            IconButton(
-              onPressed: () => _showSettings(), 
-              style: IconButton.styleFrom(
-                backgroundColor: Colors.white,
-              ),
-              icon: const Icon(Icons.settings_outlined)
-            ),
-          ],
-        ),
-        // total balance
-        StreamBuilder(
-          stream: widget.db.watchTotalBalance(), 
-          builder: (context, snapshot) {
-            final totalBalance = snapshot.data ?? 0;
-            return Container(
-              alignment: Alignment.center,
-              width: double.infinity,
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(15)
-              ),
-              child: Text(
-                '${totalBalance.toString()} ${_currentCurrency.symbol}', 
-                style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
-              ),
-            );
-          }
-        ),
-        // last 3 transactions
-        const Padding(
-          padding: EdgeInsets.fromLTRB(10, 10, 10, 0),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Text('Transactions', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-          )
-        ),
-        Material(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(15),
-          clipBehavior: Clip.antiAlias,
-          child: Column(
+    return SingleChildScrollView(
+      child: Column(
+        spacing: 10,
+        children: [
+          // header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              StreamBuilder(
-                stream: widget.db.watchAllTransactionItems(),
-                builder: (context, snapshot) {
-                  final items = snapshot.data ?? [];
-                  final lastThreeItems = items.take(3).toList();
-                  return items.isNotEmpty
-                  ? buildTransactionList(
-                    context: context, 
-                    shrinkWrap: true,
-                    items: lastThreeItems, 
-                    categoriesById: _categoriesById,
-                    currentCurrency: _currentCurrency, 
-                    showTransactionDetails: _showTransactionDetails,
-                    shouldInsertDate: false,
-                    showDescription: _isShowingDescription,
-                  )
-                  : const Padding(
-                    padding: EdgeInsets.all(10),
-                    child: EmptyListPlaceholder(
-                      icon: Icons.close_rounded, 
-                      title: 'No transactions yet', 
-                      subtitle: 'Add transactions and they will appear here'
-                    )
-                  );
-                }
-              ),
-              CustomListTile(
-                title: 'All Transactions',
-                trailing: const Icon(Icons.arrow_right_rounded),
-                onTap: () => _showAllTransactions(),
+              const SizedBox(width: 48),
+              IconButton(
+                onPressed: () => _showSettings(), 
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.white,
+                ),
+                icon: const Icon(Icons.settings_outlined)
               ),
             ],
-          )
-        ),
-      ],
+          ),
+          // total balance
+          StreamBuilder(
+            stream: widget.db.watchTotalBalance(), 
+            builder: (context, snapshot) {
+              final totalBalance = snapshot.data ?? 0;
+              return Container(
+                alignment: Alignment.center,
+                width: double.infinity,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15)
+                ),
+                child: Text(
+                  '${totalBalance.toString()} ${_currentCurrency.symbol}', 
+                  style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+                ),
+              );
+            }
+          ),
+          // last 3 transactions
+          const Padding(
+            padding: EdgeInsets.fromLTRB(10, 10, 10, 0),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text('Transactions', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            )
+          ),
+          Material(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              children: [
+                StreamBuilder(
+                  stream: widget.db.watchAllTransactionItems(),
+                  builder: (context, snapshot) {
+                    final items = snapshot.data ?? [];
+                    final lastThreeItems = items.take(3).toList();
+                    return items.isNotEmpty
+                    ? buildTransactionList(
+                      context: context, 
+                      shrinkWrap: true,
+                      items: lastThreeItems, 
+                      categoriesById: _categoriesById,
+                      currentCurrency: _currentCurrency, 
+                      showTransactionDetails: _showTransactionDetails,
+                      shouldInsertDate: false,
+                      showDescription: _isShowingDescription,
+                    )
+                    : const Padding(
+                      padding: EdgeInsets.all(10),
+                      child: EmptyListPlaceholder(
+                        icon: Icons.close_rounded, 
+                        title: 'No transactions yet', 
+                        subtitle: 'Add transactions and they will appear here'
+                      )
+                    );
+                  }
+                ),
+                CustomListTile(
+                  title: 'All Transactions',
+                  trailing: const Icon(Icons.arrow_right_rounded),
+                  onTap: () => _showAllTransactions(),
+                ),
+              ],
+            )
+          ),
+        ],
+      )
     );
   }
 }

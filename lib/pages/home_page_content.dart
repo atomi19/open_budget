@@ -7,6 +7,7 @@ import 'package:open_budget/widgets/build_transactions_list.dart';
 import 'package:open_budget/widgets/custom_list_tile.dart';
 import 'package:open_budget/widgets/custom_modal_bottom_sheet.dart';
 import 'package:open_budget/widgets/custom_text_field.dart';
+import 'package:open_budget/widgets/date_time_picker.dart';
 import 'package:open_budget/widgets/empty_list_placeholder.dart';
 import 'package:open_budget/widgets/show_snack_bar.dart';
 
@@ -257,10 +258,221 @@ class _HomePageContentState extends State<HomePageContent> {
     );
   }
 
+  // change transaction category modalBottomSheet
+  void _showCategories({
+    required bool isIncome,
+    required Transaction item,
+    }) {
+    showCustomModalBottomSheet(
+      context: context, 
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 10,
+        children: [
+          // header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.white
+                ),
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close)
+              ),
+              Text(
+                isIncome
+                ? 'Change category'
+                : 'Change category',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(width: 48),
+            ],
+          ),
+          // categories
+          Expanded(
+            child: ListView(
+              children: [
+                StreamBuilder(
+                  stream: widget.db.watchIncomeOrExpenseCategories(isIncome),
+                  builder: (context, snapshot) {
+                    final items = snapshot.data ?? [];
+                    return items.isEmpty
+                    ? const Padding(
+                      padding: EdgeInsets.all(10),
+                      child: EmptyListPlaceholder(
+                        icon: Icons.close_rounded, 
+                        title: 'No categories yet', 
+                        subtitle: 'Create category first'
+                      )
+                    )
+                    : ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: items.length,
+                      itemBuilder: (context, index) {
+                        final category = items[index];
+
+                        return Column(
+                          children: [
+                            ListTile(
+                              tileColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15)
+                              ),
+                              leading: Icon(IconData(category.iconCodePoint, fontFamily: 'MaterialIcons'), color: Colors.blue,),
+                              title: Text(category.name),
+                              trailing: category.id == item.categoryId
+                                ? const Icon(Icons.done_rounded)
+                                : null,
+                              onTap: () {
+                                // if user selects same category as current transaction category just return
+                                if(item.categoryId == category.id) return;
+                                // update transaction category
+                                widget.db.updateTransactionCategoryId(item.id, category.id);
+                                Navigator.of(context).popUntil((route) => route.isFirst);
+                              },
+                            ),
+                            const SizedBox(height: 5),
+                          ],
+                        );
+                      }
+                    );
+                  }
+                ),
+              ],
+            ),
+          )
+        ],
+      )
+    );
+  }
+
+  // amount editing modalBottomSheet
+  void _showAmountEditingSheet({
+    required bool isIncome,
+    required Transaction item
+  }) {
+    final TextEditingController editAmountController = TextEditingController();
+
+    showCustomModalBottomSheet(
+      context: context, 
+      child: Wrap(
+        runSpacing: 10,
+        children: [
+          // header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // close
+              IconButton(
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.white
+                ),
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close)
+              ),
+              const Text(
+                'Edit',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              // update amount button
+              IconButton(
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.white
+                ),
+                onPressed: () {
+                  final newAmount = isIncome
+                    ? editAmountController.text
+                    : '-${editAmountController.text}';
+
+                  double? amount = double.tryParse(newAmount);
+
+                  if(amount == null) {
+                    showSnackBar(
+                      context: context, 
+                      content: const Text('Enter valid amount')
+                    );
+                  } else {
+                    widget.db.updateAmount(item.id, amount);
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                  }
+                }, 
+                icon: const Icon(Icons.done_rounded)
+              ),
+            ],
+          ),
+          // amount editing textfield
+          CustomTextField(
+            controller: editAmountController, 
+            prefix: isIncome
+              ? const Text('+ ')
+              : const Text('- '),
+            hintText: isIncome
+              ? 'Edit income...'
+              : 'Edit expense...'
+          ),
+        ],
+      )
+    );
+  }
+
+  // edit date picker 
+  void _showEditDatePicker(Transaction item) async {
+    final oldDate = item.dateAndTime;
+
+    // show date picker 
+    DateTime? newDate = await pickDate(
+      context: context,
+      currentDate: oldDate,
+    );
+
+    if(newDate != null) {
+      newDate = DateTime(
+        newDate.year,
+        newDate.month,
+        newDate.day,
+        oldDate.hour,
+        oldDate.minute,
+      );
+      // update in db
+      widget.db.updateDateAndTime(item.id, newDate);
+      if(!mounted) return;
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
+  }
+
+  // edit time picker
+  void _showEditTimePicker(Transaction item) async {
+    final oldDate = item.dateAndTime;
+
+    // show time picker
+    final newTime = await pickTime(
+      context: context,
+      initialTime: TimeOfDay(hour: oldDate.hour, minute: oldDate.minute),
+    );
+
+    if(newTime != null) {
+      final newDate = DateTime(
+        oldDate.year,
+        oldDate.month,
+        oldDate.day,
+        newTime.hour,
+        newTime.minute,
+      );
+      // update in db
+      widget.db.updateDateAndTime(item.id, newDate);
+      if(!mounted) return;
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
+  }
+
   // transaction details modalBottomSheet
   void _showTransactionDetails(Transaction item) {
     final TextEditingController transactionDescriptionController = TextEditingController();
     transactionDescriptionController.text = item.description;
+    bool isIncome = item.amount > 0
+      ? true
+      : false;
 
     showCustomModalBottomSheet(
       context: context, 
@@ -295,28 +507,43 @@ class _HomePageContentState extends State<HomePageContent> {
               ),
             ],
           ),
-          // transaction itself
-          Align(
-            alignment: Alignment.center,
-            child: Text(
-              item.amount % 1 == 0
-                ? '${item.amount.toInt().toString()} ${_currentCurrency.symbol}'
-                : '${item.amount.toString()} ${_currentCurrency.symbol}', 
-              style: TextStyle(
-                fontSize: 40, 
-                fontWeight: FontWeight.bold,
-                color: item.amount > 0
-                  ? Colors.green
-                  : Colors.black,
-              )),
+          // amount
+          GestureDetector(
+            child: Align(
+              alignment: Alignment.center,
+              child: Text(
+                item.amount % 1 == 0
+                  ? '${item.amount.toInt().toString()} ${_currentCurrency.symbol}'
+                  : '${item.amount.toString()} ${_currentCurrency.symbol}', 
+                style: TextStyle(
+                  fontSize: 40, 
+                  fontWeight: FontWeight.bold,
+                  color: isIncome
+                    ? Colors.green
+                    : Colors.black,
+                ),
+              ),
+            ),
+            // editing modalBottomSheet
+            onTap: () => _showAmountEditingSheet(isIncome: isIncome, item: item),
           ),
-          // date and time in dd-mm-yyyy hh:mm format
+          // date in dd-mm-yyyy format
           CustomListTile(
             title: 'Date',
             trailing: Text(
-              '${item.dateAndTime.day.toString().padLeft(2, '0')}-${item.dateAndTime.month.toString().padLeft(2, '0')}-${item.dateAndTime.year} ${item.dateAndTime.hour.toString().padLeft(2, '0')}:${item.dateAndTime.minute.toString().padLeft(2, '0')}',
+              '${item.dateAndTime.day.toString().padLeft(2, '0')}-${item.dateAndTime.month.toString().padLeft(2, '0')}-${item.dateAndTime.year}',
               style: const TextStyle(fontSize: 15),
             ),
+            onTap: () => _showEditDatePicker(item),
+          ),
+          // time in hh:mm format
+          CustomListTile(
+            title: 'Time',
+            trailing: Text(
+              '${item.dateAndTime.hour.toString().padLeft(2, '0')}:${item.dateAndTime.minute.toString().padLeft(2, '0')}',
+              style: const TextStyle(fontSize: 15),
+            ),
+            onTap: () => _showEditTimePicker(item),
           ),
           // category
           CustomListTile(
@@ -325,6 +552,7 @@ class _HomePageContentState extends State<HomePageContent> {
               _categoriesById[item.categoryId]?.name ?? 'Unknown Category',
               style: const TextStyle(fontSize: 15),
             ),
+            onTap: () => _showCategories(isIncome: isIncome, item: item),
           ),
           // description inside transaction details
           // if user changed description it will update

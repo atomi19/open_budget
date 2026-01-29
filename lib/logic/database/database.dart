@@ -64,6 +64,33 @@ class AppDatabase extends _$AppDatabase {
     return (delete(transactions)..where((transaction) => transaction.id.equals(id))).go();
   }
 
+  // update amaount
+  Future<int> updateAmount(int id, double newAmount) async {
+    return (update(transactions)
+      ..where(((transaction) => transaction.id.equals(id))))
+        .write(TransactionsCompanion(amount: Value(newAmount)
+      )
+    );
+  }
+
+  // update transaction date 
+  Future<int> updateDateAndTime(int id, DateTime newDate) async {
+    return (update(transactions)
+      ..where(((transaction) => transaction.id.equals(id))))
+        .write(TransactionsCompanion(dateAndTime: Value(newDate)
+      )
+    );
+  }
+
+  // update transaction category id 
+  Future<int> updateTransactionCategoryId(int id, int newCategoryId) {
+    return (update(transactions)
+      ..where(((transaction) => transaction.id.equals(id))))
+        .write(TransactionsCompanion(categoryId: Value(newCategoryId)
+      )
+    );
+  }
+
   // update (edit) transaction description
   Future<int> updateDescription(int id, String newDescription) async {
     return (update(transactions)

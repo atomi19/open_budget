@@ -120,9 +120,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
             child: ListView(
               children: [
                 StreamBuilder(
-                  stream: isIncome
-                  ? widget.db.watchIncomeOrExpenseCategories(isIncome)
-                  : widget.db.watchIncomeOrExpenseCategories(isIncome),
+                  stream: widget.db.watchIncomeOrExpenseCategories(isIncome),
                   builder: (context, snapshot) {
                     final items =snapshot.data ?? [];
                     return items.isEmpty
@@ -161,7 +159,6 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                     );
                   }
                 ),
-                const SizedBox(height: 10),
                 SubmitButton(
                   onTap: () => _showCategoryCreationSheet(isIncome: isIncome), 
                   text: 'Create category'
@@ -318,7 +315,9 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
             : 'Date',
           trailing: const Icon(Icons.arrow_drop_down_rounded),
           onTap: ()async {
-            final selectedDate = await pickDate(context);
+            final selectedDate = await pickDate(
+              context: context,
+            );
             setState(() {
               _selectedDate = selectedDate;
             });
@@ -331,7 +330,9 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
             : 'Time',
           trailing: const Icon(Icons.arrow_drop_down_rounded),
           onTap: () async {
-            final selectedTime = await pickTime(context);
+            final selectedTime = await pickTime(
+              context: context,
+            );
             setState(() {
               _selectedTime = selectedTime;
             });

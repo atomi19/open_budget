@@ -20,7 +20,7 @@ class Categories extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text()();
   BoolColumn get isIncome => boolean()(); // true - income, false - expense
-  IntColumn get iconCodePoint => integer()();
+  TextColumn get iconName => text()(); // store icon as String key 
 }
 
 // db
@@ -158,13 +158,13 @@ class AppDatabase extends _$AppDatabase {
   Future<int> addCategory({
     required String name,
     required bool isIncome,
-    required int iconCodePoint,
+    required String iconName,
   }) {
     return into(categories).insert(
       CategoriesCompanion.insert(
         name: name, 
         isIncome: isIncome, 
-        iconCodePoint: iconCodePoint,
+        iconName: iconName,
       )
     );
   } 

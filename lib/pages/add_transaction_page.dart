@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/logic/handle_data_submit.dart';
+import 'package:open_budget/logic/icons_manager.dart';
 import 'package:open_budget/widgets/custom_list_tile.dart';
 import 'package:open_budget/widgets/custom_modal_bottom_sheet.dart';
 import 'package:open_budget/widgets/custom_text_field.dart';
@@ -46,44 +47,6 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
   Future _findCategoryById(int id) async {
     _selectedCategory = await widget.db.getCategoryById(id);
   }
-
-  // icons for custom categories
-  final _categoryIcons = [
-    Icons.restaurant_outlined,
-    Icons.local_cafe_outlined,
-    Icons.local_grocery_store_outlined,
-    Icons.fastfood_outlined,
-
-    Icons.directions_car_outlined,
-    Icons.directions_bus_outlined,
-    Icons.train_outlined,
-    Icons.flight_outlined,
-
-    Icons.home_outlined,
-    Icons.lightbulb_outlined,
-    Icons.water_drop_outlined,
-    Icons.wifi_outlined,
-
-    Icons.shopping_cart_outlined,
-    Icons.shopping_bag_outlined,
-    Icons.checkroom_outlined,
-    Icons.watch_outlined,
-
-    Icons.work_outlined,
-    Icons.account_balance_outlined,
-    Icons.credit_card_outlined,
-    Icons.receipt_long_outlined,
-
-    Icons.trending_up_outlined,
-    Icons.favorite_outlined,
-    Icons.local_hospital_outlined,
-    Icons.fitness_center_outlined,
-
-    Icons.pets_outlined,
-    Icons.school_outlined,
-    Icons.card_giftcard_outlined,
-    Icons.movie_outlined,
-  ];
 
   // list income or expense categories
   void _showCategories({
@@ -144,7 +107,10 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(15)
                               ),
-                              leading: Icon(IconData(item.iconCodePoint, fontFamily: 'MaterialIcons'), color: Colors.blue,),
+                              leading: Icon(
+                                IconsManager.getIconByName(item.iconName),
+                                color: Colors.blue,
+                              ),
                               title: Text(item.name),
                               trailing: IconButton(
                                 onPressed: () => widget.db.deleteCategory(item.id),
@@ -176,7 +142,8 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     required bool isIncome,
   }) {
     final TextEditingController categoryNameController = TextEditingController();
-    IconData? selectedIcon;
+    String? selectedIcon;
+
     showCustomModalBottomSheet(
       context: context, 
       child: StatefulBuilder(
@@ -227,7 +194,9 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                         ),
                         title: const Text('Icon'),
                         trailing: selectedIcon != null
-                        ? Icon(selectedIcon)
+                        ? Icon(
+                          IconsManager.getIconByName(selectedIcon!)
+                        )
                         : const Icon(Icons.arrow_drop_down_rounded),
                         childrenPadding: const EdgeInsets.all(10),
                         children: [
@@ -235,7 +204,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                             height: 150,
                             child: GridView.builder(
                               shrinkWrap: true,
-                              itemCount: _categoryIcons.length,
+                              itemCount: IconsManager.keys.length,
                               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 4,
                                 mainAxisSpacing: 2,
@@ -245,10 +214,10 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                                 return IconButton(
                                   onPressed: () {
                                     setState(() {
-                                      selectedIcon = _categoryIcons[index];
+                                      selectedIcon = IconsManager.keys[index];
                                     });
                                   },
-                                  icon: Icon(_categoryIcons[index]),
+                                  icon: Icon(IconsManager.getIconByName(IconsManager.keys[index])),
                                   iconSize: 25,
                                   padding: EdgeInsets.zero,
                                 );
@@ -267,7 +236,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                             await widget.db.addCategory(
                               name: categoryNameController.text,
                               isIncome: isIncome,
-                              iconCodePoint: selectedIcon!.codePoint,
+                              iconName: selectedIcon!
                             );
                           } else {
                             showSnackBar(

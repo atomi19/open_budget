@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:open_budget/logic/currencies.dart';
 import 'package:open_budget/logic/database/database.dart';
+import 'package:open_budget/logic/icons_manager.dart';
 import 'package:open_budget/widgets/custom_list_tile.dart';
 
 const List<String> _months = [
@@ -38,6 +39,8 @@ Widget buildTransactionList({
       bool showDate = false;
       final item = items[index];
       final previousItem = index > 0 ? items[index-1] : null;
+      final category = categoriesById[item.categoryId];
+      final iconNameKey = category?.iconName;
 
       // check if this is required to insert date (each day) between transactions
       if(shouldInsertDate) {
@@ -68,11 +71,7 @@ Widget buildTransactionList({
           CustomListTile(
             // category icon
             leading: Icon(
-              IconData(
-                // use category icon or fallback to question mark if for example category not found
-                categoriesById[item.categoryId]?.iconCodePoint ?? 0xf0555, 
-                fontFamily: 'MaterialIcons',
-              ),
+              IconsManager.getIconByName(iconNameKey),
               color: Colors.blue,
             ),
             // category name

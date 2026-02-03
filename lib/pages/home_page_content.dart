@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:open_budget/logic/app_settings.dart';
 import 'package:open_budget/logic/currencies.dart';
 import 'package:open_budget/logic/database/database.dart';
+import 'package:open_budget/logic/icons_manager.dart';
 import 'package:open_budget/widgets/build_transactions_list.dart';
 import 'package:open_budget/widgets/custom_list_tile.dart';
 import 'package:open_budget/widgets/custom_modal_bottom_sheet.dart';
@@ -320,7 +321,10 @@ class _HomePageContentState extends State<HomePageContent> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(15)
                               ),
-                              leading: Icon(IconData(category.iconCodePoint, fontFamily: 'MaterialIcons'), color: Colors.blue,),
+                              leading: Icon(
+                                IconsManager.categoryIcons[category.iconName],
+                                color: Colors.blue,
+                              ),
                               title: Text(category.name),
                               trailing: category.id == item.categoryId
                                 ? const Icon(Icons.done_rounded)
@@ -471,7 +475,8 @@ class _HomePageContentState extends State<HomePageContent> {
   void _showTransactionDetails(Transaction item) {
     final TextEditingController transactionDescriptionController = TextEditingController();
     transactionDescriptionController.text = item.description;
-    final transactionCategory = _categoriesById[item.categoryId];
+    final category = _categoriesById[item.categoryId];
+    final iconNameKey = category?.iconName;
     bool isIncome = item.amount > 0
       ? true
       : false;
@@ -599,7 +604,7 @@ class _HomePageContentState extends State<HomePageContent> {
           // category
           CustomListTile(
             leading: Icon(
-              IconData(transactionCategory!.iconCodePoint, fontFamily: 'MaterialIcons'),
+              IconsManager.getIconByName(iconNameKey),
               color: Colors.black54,
             ),
             title: 'Category', 

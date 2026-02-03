@@ -9,6 +9,7 @@ import 'package:open_budget/widgets/custom_modal_bottom_sheet.dart';
 import 'package:open_budget/widgets/custom_text_field.dart';
 import 'package:open_budget/widgets/date_time_picker.dart';
 import 'package:open_budget/widgets/empty_list_placeholder.dart';
+import 'package:open_budget/widgets/section_header.dart';
 import 'package:open_budget/widgets/show_snack_bar.dart';
 
 enum _TransactionsListType {
@@ -470,14 +471,17 @@ class _HomePageContentState extends State<HomePageContent> {
   void _showTransactionDetails(Transaction item) {
     final TextEditingController transactionDescriptionController = TextEditingController();
     transactionDescriptionController.text = item.description;
+    final transactionCategory = _categoriesById[item.categoryId];
     bool isIncome = item.amount > 0
       ? true
       : false;
 
     showCustomModalBottomSheet(
       context: context, 
-      child: Wrap(
-        runSpacing: 10,
+      isScrollControlled: true,
+      borderRadius: 0,
+      child: Column(
+        spacing: 10,
         children: [
           // header
           Row(
@@ -507,6 +511,7 @@ class _HomePageContentState extends State<HomePageContent> {
               ),
             ],
           ),
+          // transaction details
           // amount
           GestureDetector(
             child: Align(
@@ -527,30 +532,93 @@ class _HomePageContentState extends State<HomePageContent> {
             // editing modalBottomSheet
             onTap: () => _showAmountEditingSheet(isIncome: isIncome, item: item),
           ),
-          // date in dd-mm-yyyy format
-          CustomListTile(
-            title: 'Date',
-            trailing: Text(
-              '${item.dateAndTime.day.toString().padLeft(2, '0')}-${item.dateAndTime.month.toString().padLeft(2, '0')}-${item.dateAndTime.year}',
-              style: const TextStyle(fontSize: 15),
-            ),
-            onTap: () => _showEditDatePicker(item),
+          const SectionHeader(title: 'Date & Time'),
+          Column(
+            children: [
+              // date in dd-mm-yyyy format
+              CustomListTile(
+                leading: const Icon(
+                  Icons.calendar_today,
+                  color: Colors.black54,
+                ),
+                title: 'Date',
+                customBorder: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(15),
+                    bottom: Radius.zero,
+                  )
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${item.dateAndTime.day.toString().padLeft(2, '0')}-${item.dateAndTime.month.toString().padLeft(2, '0')}-${item.dateAndTime.year}',
+                      style: const TextStyle(fontSize: 15),
+                    ),
+                    const SizedBox(width: 5),
+                    const Icon(Icons.chevron_right),
+                  ],
+                ),
+                onTap: () => _showEditDatePicker(item),
+              ),
+              Divider(
+                height: 1,
+                color: Colors.grey.shade200,
+              ),
+              // time in hh:mm format
+              CustomListTile(
+                leading: const Icon(
+                  Icons.access_time,
+                  color: Colors.black54,
+                ),
+                title: 'Time',
+                customBorder: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.zero,
+                    bottom: Radius.circular(15)
+                  )
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${item.dateAndTime.hour.toString().padLeft(2, '0')}:${item.dateAndTime.minute.toString().padLeft(2, '0')}',
+                      style: const TextStyle(fontSize: 15),
+                    ),
+                    const SizedBox(width: 5),
+                    const Icon(Icons.chevron_right),
+                  ],
+                ),
+                onTap: () => _showEditTimePicker(item),
+              ),
+            ],
           ),
-          // time in hh:mm format
-          CustomListTile(
-            title: 'Time',
-            trailing: Text(
-              '${item.dateAndTime.hour.toString().padLeft(2, '0')}:${item.dateAndTime.minute.toString().padLeft(2, '0')}',
-              style: const TextStyle(fontSize: 15),
-            ),
-            onTap: () => _showEditTimePicker(item),
+          const SectionHeader(
+            title: 'Details'
           ),
           // category
           CustomListTile(
+            leading: Icon(
+              IconData(transactionCategory!.iconCodePoint, fontFamily: 'MaterialIcons'),
+              color: Colors.black54,
+            ),
             title: 'Category', 
-            trailing: Text(
-              _categoriesById[item.categoryId]?.name ?? 'Unknown Category',
-              style: const TextStyle(fontSize: 15),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: 175,
+                  child: Text(
+                    _categoriesById[item.categoryId]?.name ?? 'Unknown Category',
+                    style: const TextStyle(fontSize: 15),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.right,
+                  ),
+                ),
+                const SizedBox(width: 5),
+                const Icon(Icons.chevron_right),
+              ],
             ),
             onTap: () => _showCategories(isIncome: isIncome, item: item),
           ),
@@ -806,12 +874,8 @@ class _HomePageContentState extends State<HomePageContent> {
             }
           ),
           // last 3 transactions
-          const Padding(
-            padding: EdgeInsets.fromLTRB(10, 10, 10, 0),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text('Transactions', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            )
+          const SectionHeader(
+            title: 'Transactions'
           ),
           Material(
             color: Colors.white,

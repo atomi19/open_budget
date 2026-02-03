@@ -211,6 +211,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                       // category name
                       CustomTextField(
                         controller: categoryNameController,
+                        maxLines: 1,
                         hintText: 'Enter category name...'
                       ),
                       const SizedBox(height: 10),
@@ -313,7 +314,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           title: _selectedDate != null
             ? '${_selectedDate!.day.toString().padLeft(2, '0')}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.year}'
             : 'Date',
-          trailing: const Icon(Icons.arrow_drop_down_rounded),
+          trailing: const Icon(Icons.chevron_right),
           onTap: ()async {
             final selectedDate = await pickDate(
               context: context,
@@ -328,7 +329,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           title: _selectedTime != null
             ? _selectedTime!.format(context)
             : 'Time',
-          trailing: const Icon(Icons.arrow_drop_down_rounded),
+          trailing: const Icon(Icons.chevron_right),
           onTap: () async {
             final selectedTime = await pickTime(
               context: context,
@@ -341,7 +342,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
         // category
         CustomListTile(
           title: _selectedCategory?.name ?? 'Category',
-          trailing: const Icon(Icons.arrow_drop_down_rounded),
+          trailing: const Icon(Icons.chevron_right),
           onTap: () => _showCategories(
             isIncome: isIncome,
             onTap: (id) async {

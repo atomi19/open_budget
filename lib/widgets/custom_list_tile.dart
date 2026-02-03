@@ -7,6 +7,7 @@ class CustomListTile extends StatelessWidget {
   final Widget? trailing;
   final Widget? subtitle;
   final VoidCallback? onTap;
+  final RoundedRectangleBorder? customBorder;
 
   const CustomListTile({
     super.key,
@@ -15,16 +16,18 @@ class CustomListTile extends StatelessWidget {
     required this.title,
     this.trailing,
     this.subtitle,
-    this.onTap
+    this.onTap,
+    this.customBorder,
   });
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
       tileColor: tileColor ?? Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15)
-      ),
+      shape: customBorder ??
+        RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15)
+        ),
       leading: leading,
       title: Text(
         title,

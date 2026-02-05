@@ -5,6 +5,7 @@ import 'package:open_budget/logic/currencies.dart';
 import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/logic/icons_manager.dart';
 import 'package:open_budget/widgets/build_transactions_list.dart';
+import 'package:open_budget/widgets/custom_header.dart';
 import 'package:open_budget/widgets/custom_list_tile.dart';
 import 'package:open_budget/widgets/custom_modal_bottom_sheet.dart';
 import 'package:open_budget/widgets/custom_text_field.dart';
@@ -273,24 +274,15 @@ class _HomePageContentState extends State<HomePageContent> {
         spacing: 10,
         children: [
           // header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.white
-                ),
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close)
+          CustomHeader(
+            startWidget: IconButton(
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.white
               ),
-              Text(
-                isIncome
-                ? 'Change category'
-                : 'Change category',
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(width: 48),
-            ],
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(Icons.close)
+            ),
+            title: 'Change category', 
           ),
           // categories
           Expanded(
@@ -366,46 +358,40 @@ class _HomePageContentState extends State<HomePageContent> {
         runSpacing: 10,
         children: [
           // header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // close
-              IconButton(
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.white
-                ),
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close)
+          CustomHeader(
+            // close button
+            startWidget: IconButton(
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.white
               ),
-              const Text(
-                'Edit',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(Icons.close)
+            ),
+            title: 'Edit', 
+            // update amount (confirm) button
+            endWidget: IconButton(
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.white
               ),
-              // update amount button
-              IconButton(
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.white
-                ),
-                onPressed: () {
-                  final newAmount = isIncome
-                    ? editAmountController.text
-                    : '-${editAmountController.text}';
+              onPressed: () {
+                final newAmount = isIncome
+                  ? editAmountController.text
+                  : '-${editAmountController.text}';
 
-                  double? amount = double.tryParse(newAmount);
+                double? amount = double.tryParse(newAmount);
 
-                  if(amount == null) {
-                    showSnackBar(
-                      context: context, 
-                      content: const Text('Enter valid amount')
-                    );
-                  } else {
-                    widget.db.updateAmount(item.id, amount);
-                    Navigator.of(context).popUntil((route) => route.isFirst);
-                  }
-                }, 
-                icon: const Icon(Icons.done_rounded)
-              ),
-            ],
+                if(amount == null) {
+                  showSnackBar(
+                    context: context, 
+                    content: const Text('Enter valid amount')
+                  );
+                } else {
+                  widget.db.updateAmount(item.id, amount);
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                }
+              }, 
+              icon: const Icon(Icons.done_rounded)
+            ),
           ),
           // amount editing textfield
           CustomTextField(
@@ -490,32 +476,26 @@ class _HomePageContentState extends State<HomePageContent> {
         spacing: 10,
         children: [
           // header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // close
-              IconButton(
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.white
-                ),
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close)
+          CustomHeader(
+            // close button
+            startWidget: IconButton(
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.white
               ),
-              const Text(
-                'Details',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(Icons.close)
+            ),
+            title: 'Details', 
+            // delete transaction button
+            endWidget: IconButton(
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.white
               ),
-              // delete transaction
-              IconButton(
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.white
-                ),
-                onPressed: () {
-                  _showDeleteConfirmation(item.id);
-                }, 
-                icon: const Icon(Icons.delete_outlined)
-              ),
-            ],
+              onPressed: () {
+                _showDeleteConfirmation(item.id);
+              }, 
+              icon: const Icon(Icons.delete_outlined)
+            ),
           ),
           // transaction details
           // amount
@@ -737,22 +717,15 @@ class _HomePageContentState extends State<HomePageContent> {
           return Column(
             children: [
               // header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.white
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close)
+              CustomHeader(
+                startWidget: IconButton(
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white
                   ),
-                  const Text(
-                    'Settings',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(width: 48),
-                ],
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close)
+                ), 
+                title: 'Settings', 
               ),
               const SizedBox(height: 10),
               CustomListTile(
@@ -858,22 +831,15 @@ class _HomePageContentState extends State<HomePageContent> {
             spacing: 10,
             children: [
               // header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.white
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close)
+              CustomHeader(
+                startWidget: IconButton(
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white
                   ),
-                  const Text(
-                    'Categories',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(width: 48),
-                ],
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close)
+                ),
+                title: 'Categories', 
               ),
               // body
               Row(
@@ -1050,24 +1016,17 @@ class _HomePageContentState extends State<HomePageContent> {
           return Column(
             children: [
               // header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.white
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close)
+              CustomHeader(
+                startWidget: IconButton(
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white
                   ),
-                  Text(
-                    isIncome
-                    ? 'Create income category'
-                    : 'Create expense category',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(width: 48),
-                ],
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close)
+                ),
+                title: isIncome
+                  ? 'Create income category'
+                  : 'Create expense category',
               ),
               Flexible(
                 child: SingleChildScrollView(

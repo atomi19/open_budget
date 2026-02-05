@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/logic/handle_data_submit.dart';
 import 'package:open_budget/logic/icons_manager.dart';
+import 'package:open_budget/widgets/custom_header.dart';
 import 'package:open_budget/widgets/custom_list_tile.dart';
 import 'package:open_budget/widgets/custom_modal_bottom_sheet.dart';
 import 'package:open_budget/widgets/custom_text_field.dart';
@@ -60,24 +61,18 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
         spacing: 10,
         children: [
           // header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.white
-                ),
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close)
+          CustomHeader(
+            // close button
+            startWidget: IconButton(
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.white
               ),
-              Text(
-                isIncome
-                ? 'Select income category'
-                : 'Select expense category',
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(width: 48),
-            ],
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(Icons.close)
+            ),
+            title: isIncome
+              ? 'Select income category'
+              : 'Select expense category',
           ),
           Expanded(
             child: ListView(
@@ -112,10 +107,6 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                                 color: Colors.blue,
                               ),
                               title: Text(item.name),
-                              trailing: IconButton(
-                                onPressed: () => widget.db.deleteCategory(item.id),
-                                icon: const Icon(Icons.delete_outlined)
-                              ),
                               onTap: () => onTap(item.id),
                             ),
                             const SizedBox(height: 5),

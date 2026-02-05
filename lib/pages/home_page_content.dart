@@ -12,6 +12,7 @@ import 'package:open_budget/widgets/date_time_picker.dart';
 import 'package:open_budget/widgets/empty_list_placeholder.dart';
 import 'package:open_budget/widgets/section_header.dart';
 import 'package:open_budget/widgets/show_snack_bar.dart';
+import 'package:open_budget/widgets/submit_button.dart';
 
 enum _TransactionsListType {
   incomes,
@@ -729,10 +730,11 @@ class _HomePageContentState extends State<HomePageContent> {
   void _showSettings() {
     showCustomModalBottomSheet(
       context: context, 
+      isScrollControlled: true,
+      borderRadius: 0,
       child: StatefulBuilder(
         builder: (context, StateSetter modalSetState) {
-          return Wrap(
-            runSpacing: 10,
+          return Column(
             children: [
               // header
               Row(
@@ -752,44 +754,48 @@ class _HomePageContentState extends State<HomePageContent> {
                   const SizedBox(width: 48),
                 ],
               ),
-              Column(
-                children: [
-                  CustomListTile(
-                    title: 'Show transaction description',             
-                    trailing: Switch(
-                      value: _isShowingDescription, 
-                      activeThumbColor: Colors.white,
-                      inactiveThumbColor: Colors.grey.shade200,
-                      activeTrackColor: Colors.blue,
-                      inactiveTrackColor: Colors.grey.shade500,
-                      trackOutlineColor: WidgetStateProperty.resolveWith(
-                        (Set<WidgetState> states) {
-                          return Colors.transparent;
-                        }
-                      ),
-                      onChanged: (bool value) {
-                        setState(() {
-                          setState(() {
-                            _isShowingDescription = value;
-                          });
-                          modalSetState(() {
-                            _isShowingDescription = value;
-                          });
-                          AppSettings.switchTransactionDescription(value);
-                          _loadDescriptionState();
-                        });
-                      }
-                    ),
-                  ),
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Padding(
-                      padding: EdgeInsets.fromLTRB(10, 5, 10, 10),
-                      child: Text('Display the description below each transaction', style: TextStyle(fontSize: 13),),
-                    ),
-                  )
-                ],
+              const SizedBox(height: 10),
+              CustomListTile(
+                title: 'Categories',
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _showCategoriesManager(),
               ),
+              const SizedBox(height: 20),
+              CustomListTile(
+                title: 'Show transaction description',             
+                trailing: Switch(
+                  value: _isShowingDescription, 
+                  activeThumbColor: Colors.white,
+                  inactiveThumbColor: Colors.grey.shade200,
+                  activeTrackColor: Colors.blue,
+                  inactiveTrackColor: Colors.grey.shade500,
+                  trackOutlineColor: WidgetStateProperty.resolveWith(
+                    (Set<WidgetState> states) {
+                      return Colors.transparent;
+                    }
+                  ),
+                  onChanged: (bool value) {
+                    setState(() {
+                      setState(() {
+                        _isShowingDescription = value;
+                      });
+                      modalSetState(() {
+                        _isShowingDescription = value;
+                      });
+                      AppSettings.switchTransactionDescription(value);
+                      _loadDescriptionState();
+                    });
+                  }
+                ),
+              ),
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(10, 5, 10, 10),
+                  child: Text('Display the description below each transaction', style: TextStyle(fontSize: 13),),
+                ),
+              ),
+              const SizedBox(height: 20),
               // currency expansion tile setting
               ExpansionTile(
                 backgroundColor: Colors.white,
@@ -835,6 +841,319 @@ class _HomePageContentState extends State<HomePageContent> {
           );
         }
       ),
+    );
+  }
+
+  // categories manager
+  void _showCategoriesManager() {
+    bool isIncome = true;
+
+    showCustomModalBottomSheet(
+      context: context, 
+      isScrollControlled: true,
+      borderRadius: 0,
+      child: StatefulBuilder(
+        builder: (context, setState) {
+          return Column(
+            spacing: 10,
+            children: [
+              // header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.white
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close)
+                  ),
+                  const Text(
+                    'Categories',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(width: 48),
+                ],
+              ),
+              // body
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: FilledButton(
+                      style: FilledButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        backgroundColor: isIncome
+                          ? Colors.blue
+                          : Colors.grey,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 20
+                        )
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          isIncome = true;
+                        });
+                      },
+                      child: const Text('Income categories')
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: FilledButton(
+                      style: FilledButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        backgroundColor: isIncome
+                          ? Colors.grey
+                          : Colors.blue,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 20
+                        )
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          isIncome = false;
+                        });
+                      },
+                      child: const Text('Expense categories')
+                    ),
+                  )
+                ],
+              ),
+              // income or expense categories
+              Expanded(
+                child: ListView(
+                  children: [
+                    StreamBuilder(
+                      stream: widget.db.watchIncomeOrExpenseCategories(isIncome),
+                      builder: (context, snapshot) {
+                        final items =snapshot.data ?? [];
+                        return items.isEmpty
+                        ? const Padding(
+                          padding: EdgeInsets.all(10),
+                          child: EmptyListPlaceholder(
+                            icon: Icons.close_rounded, 
+                            title: 'No categories yet', 
+                            subtitle: 'Create category first'
+                          )
+                        )
+                        : ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: items.length,
+                          itemBuilder: (context, index) {
+                            final item = items[index];
+                            return Column(
+                              children: [
+                                ListTile(
+                                  tileColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(15)
+                                  ),
+                                  leading: Icon(
+                                    IconsManager.getIconByName(item.iconName),
+                                    color: Colors.blue,
+                                  ),
+                                  title: Text(item.name),
+                                  trailing: IconButton(
+                                    onPressed: () => _showCategoryDeletetionPrompt(item.id),
+                                    icon: const Icon(Icons.delete_outlined)
+                                  ),
+                                  //onTap: () => onTap(item.id),
+                                ),
+                                const SizedBox(height: 5),
+                              ],
+                            );
+                          }
+                        );
+                      }
+                    ),
+                  ],
+                ),
+              ),
+              // create category button
+              FilledButton(
+                onPressed: () => _showCategoryCreationSheet(isIncome: isIncome), 
+                child: const Text('Create category')
+              ),
+            ],
+          );
+        }
+      ),
+    );
+  }
+
+  // category deletion AlertDialog
+  void _showCategoryDeletetionPrompt(int categoryId) {
+    showDialog(
+      context: context, 
+      builder: (context) => AlertDialog(
+        title: const Text('Delete category?'),
+        content: const Text('Transactions will stay, but without a category.'),
+        actions: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.all(15),
+
+                    backgroundColor: Colors.grey.shade200,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    )
+                  ),
+                  onPressed: () => Navigator.pop(context), 
+                  child: const Text('Cancel', style: TextStyle(fontSize: 15)),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.all(15),
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.red.shade100,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: () {
+                    widget.db.deleteCategory(categoryId);
+                    Navigator.pop(context);
+                  }, 
+                  child: const Text('Delete', style: TextStyle(fontSize: 15, color: Colors.white)),
+                ),
+              )
+            ],
+          )
+        ],
+      )
+    );
+  }
+
+  // category creation modalBottomSheet
+  void _showCategoryCreationSheet({
+    required bool isIncome,
+  }) {
+    final TextEditingController categoryNameController = TextEditingController();
+    String? selectedIcon;
+
+    showCustomModalBottomSheet(
+      context: context, 
+      child: StatefulBuilder(
+        builder: (context, StateSetter setState) {
+          return Column(
+            children: [
+              // header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.white
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close)
+                  ),
+                  Text(
+                    isIncome
+                    ? 'Create income category'
+                    : 'Create expense category',
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(width: 48),
+                ],
+              ),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 10),
+                      // category name
+                      CustomTextField(
+                        controller: categoryNameController,
+                        maxLines: 1,
+                        hintText: 'Enter category name...'
+                      ),
+                      const SizedBox(height: 10),
+                      // expansion tile with icons for custom categories 
+                      ExpansionTile(
+                        backgroundColor: Colors.white,
+                        collapsedBackgroundColor: Colors.white,
+                        collapsedShape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15)
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        title: const Text('Icon'),
+                        trailing: selectedIcon != null
+                        ? Icon(
+                          IconsManager.getIconByName(selectedIcon!)
+                        )
+                        : const Icon(Icons.arrow_drop_down_rounded),
+                        childrenPadding: const EdgeInsets.all(10),
+                        children: [
+                          SizedBox(
+                            height: 150,
+                            child: GridView.builder(
+                              shrinkWrap: true,
+                              itemCount: IconsManager.keys.length,
+                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 4,
+                                mainAxisSpacing: 2,
+                                crossAxisSpacing: 2,
+                              ), 
+                              itemBuilder: (context, index) {
+                                return IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      selectedIcon = IconsManager.keys[index];
+                                    });
+                                  },
+                                  icon: Icon(IconsManager.getIconByName(IconsManager.keys[index])),
+                                  iconSize: 25,
+                                  padding: EdgeInsets.zero,
+                                );
+                              }
+                            )
+                          )
+                        ]
+                      ),
+                      const SizedBox(height: 10),
+                      // submit button
+                      SubmitButton(
+                        onTap: () async {
+                          if(categoryNameController.text.trim().isNotEmpty &&
+                            selectedIcon != null) {
+                            Navigator.pop(context);
+                            await widget.db.addCategory(
+                              name: categoryNameController.text,
+                              isIncome: isIncome,
+                              iconName: selectedIcon!
+                            );
+                          } else {
+                            showSnackBar(
+                              context: context, 
+                              content: const Text('Enter category name'),
+                            );
+                          }
+                        }, 
+                        text: 'Create'
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            ],
+          );
+        }
+      )
     );
   }
 

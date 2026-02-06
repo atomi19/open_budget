@@ -20,7 +20,6 @@ void showCustomModalBottomSheet({
     builder: (context) {
       return SafeArea(
         child: Padding(
-          //padding: EdgeInsets.all(padding ?? 10),
           padding: EdgeInsets.only(
             left: padding ?? 10,
             top: padding ?? 10,

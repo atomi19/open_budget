@@ -143,6 +143,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
               : '- '
           ),
           maxLines: 1,
+          textInputType: TextInputType.number,
         ),
         // date 
         CustomListTile(
@@ -195,6 +196,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           hintText: 'Enter description...',
           minLines: 1,
           maxLines: 5,
+          textInputType: TextInputType.multiline,
         ),
         // save button
         SubmitButton(

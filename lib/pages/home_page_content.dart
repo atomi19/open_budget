@@ -401,7 +401,8 @@ class _HomePageContentState extends State<HomePageContent> {
               : const Text('- '),
             hintText: isIncome
               ? 'Edit income...'
-              : 'Edit expense...'
+              : 'Edit expense...',
+            textInputType: TextInputType.number,
           ),
         ],
       )
@@ -622,6 +623,7 @@ class _HomePageContentState extends State<HomePageContent> {
               hintText: 'Enter description...',
               minLines: 5,
               maxLines: 5,
+              textInputType: TextInputType.multiline,
             ),
           ),
         ],

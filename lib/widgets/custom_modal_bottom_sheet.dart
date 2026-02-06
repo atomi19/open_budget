@@ -18,9 +18,17 @@ void showCustomModalBottomSheet({
       borderRadius: BorderRadiusGeometry.vertical(top: Radius.circular(borderRadius ?? 15))
     ),
     builder: (context) {
-      return Padding(
-        padding: EdgeInsets.all(padding ?? 10),
-        child: child,
+      return SafeArea(
+        child: Padding(
+          //padding: EdgeInsets.all(padding ?? 10),
+          padding: EdgeInsets.only(
+            left: padding ?? 10,
+            top: padding ?? 10,
+            right: padding ?? 10,
+            bottom: MediaQuery.of(context).viewInsets.bottom +10,
+          ),
+          child: child,
+        )
       );
     }
   );

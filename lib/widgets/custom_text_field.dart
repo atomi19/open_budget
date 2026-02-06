@@ -10,6 +10,7 @@ class CustomTextField extends StatelessWidget {
   final Widget? prefix;
   final Widget? prefixIcon;
   final void Function(String)? onChanged;
+  final TextInputType? textInputType;
 
   const CustomTextField({
     super.key,
@@ -22,6 +23,7 @@ class CustomTextField extends StatelessWidget {
     this.prefix,
     this.prefixIcon,
     this.onChanged,
+    this.textInputType,
   });
   
   @override
@@ -30,6 +32,7 @@ class CustomTextField extends StatelessWidget {
       controller: controller,
       minLines: minLines,
       maxLines: maxLines,
+      keyboardType: textInputType ?? TextInputType.text,
       decoration: InputDecoration(
         isDense: isDense ?? false,
         prefix: prefix,

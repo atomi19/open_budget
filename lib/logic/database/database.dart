@@ -116,7 +116,9 @@ class AppDatabase extends _$AppDatabase {
     final query = select(transactions).addColumns([transactions.amount.sum()]);
     return query.watchSingle().map((row) {
       final totalBalance = row.read(transactions.amount.sum()) ?? 0;
-      return totalBalance % 1 == 0 ? totalBalance.toInt().toString() : totalBalance.toString();
+      return totalBalance % 1 == 0 
+        ? totalBalance.toInt().toString() 
+        : totalBalance.toStringAsFixed(2); // limit to 2 decimals
     });
   }
 

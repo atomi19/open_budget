@@ -930,7 +930,7 @@ class _HomePageContentState extends State<HomePageContent> {
                                     onPressed: () => _showCategoryDeletetionPrompt(item.id),
                                     icon: const Icon(Icons.delete_outlined)
                                   ),
-                                  //onTap: () => onTap(item.id),
+                                  onTap: () => _showCategoryEditingSheet(item),
                                 ),
                                 const SizedBox(height: 5),
                               ],
@@ -1111,6 +1111,101 @@ class _HomePageContentState extends State<HomePageContent> {
                   ),
                 ),
               )
+            ],
+          );
+        }
+      )
+    );
+  }
+
+  // edit category name and icon modal bottom sheet
+  void _showCategoryEditingSheet(Category category) {
+    String? selectedIcon = category.iconName;
+    final controller = TextEditingController(text: category.name);
+    
+    showCustomModalBottomSheet(
+      context: context, 
+      child: StatefulBuilder(
+        builder: (context, setState) {
+          return Column(
+            spacing: 10,
+            children: [
+              // header
+              CustomHeader(
+                startWidget: IconButton(
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close)
+                ),
+                title: 'Edit',
+                // confirm category changes button
+                endWidget: IconButton(
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white
+                  ),
+                  onPressed: () {
+                    final categoryName = controller.text.trim();
+
+                    if(categoryName.isEmpty || selectedIcon == null) return;
+
+                    // update in db
+                    widget.db.updateCategoryName(category.id, categoryName);
+                    widget.db.updateCategoryIcon(category.id, selectedIcon!);
+
+                    Navigator.pop(context);
+                  }, 
+                  icon: const Icon(Icons.done_rounded)
+                ),
+              ),
+              // edit name text field
+              CustomTextField(
+                controller: controller, 
+                hintText: 'Edit category name'
+              ),
+              // edit icon
+              ExpansionTile(
+                backgroundColor: Colors.white,
+                collapsedBackgroundColor: Colors.white,
+                collapsedShape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15)
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                title: const Text('Icon'),
+                trailing: selectedIcon != null
+                  ? Icon(IconsManager.getIconByName(selectedIcon!))
+                  : const Icon(Icons.arrow_drop_down_rounded),
+                childrenPadding: const EdgeInsets.all(10),
+                children: [
+                  SizedBox(
+                    height: 150,
+                    child: GridView.builder(
+                      shrinkWrap: true,
+                      itemCount: IconsManager.keys.length,
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 4,
+                        mainAxisSpacing: 2,
+                        crossAxisSpacing: 2,
+                      ), 
+                      itemBuilder: (context, index) {
+                        return IconButton(
+                          onPressed: () {
+                            setState(() {
+                              selectedIcon = IconsManager.keys[index];
+                            });
+                          },
+                          icon: Icon(IconsManager.getIconByName(IconsManager.keys[index])),
+                          iconSize: 25,
+                          padding: EdgeInsets.zero,
+                        );
+                      }
+                    )
+                  )
+                ]
+              ),
             ],
           );
         }

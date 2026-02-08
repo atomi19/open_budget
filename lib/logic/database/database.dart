@@ -181,6 +181,24 @@ class AppDatabase extends _$AppDatabase {
     return (select(categories)..where((c) => c.id.equals(id))).getSingleOrNull();
   }
 
+  // update category name
+  Future<int> updateCategoryName(int id, String newName) async {
+    return (update(categories)
+      ..where(((c) => c.id.equals(id))))
+        .write(CategoriesCompanion(name: Value(newName)
+      )
+    );
+  }
+
+  // update category icon
+  Future<int> updateCategoryIcon(int id, String newIcon) async {
+    return (update(categories)
+      ..where(((c) => c.id.equals(id))))
+        .write(CategoriesCompanion(iconName: Value(newIcon)
+      )
+    );
+  }
+
   static QueryExecutor _openConnection() {
     return driftDatabase(
       name: 'open_budget_db',

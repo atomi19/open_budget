@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:open_budget/logic/app_settings.dart';
 import 'package:open_budget/logic/currencies.dart';
 import 'package:open_budget/logic/database/database.dart';
+import 'package:open_budget/logic/format_number.dart';
 import 'package:open_budget/logic/icons_manager.dart';
 import 'package:open_budget/widgets/build_transactions_list.dart';
 import 'package:open_budget/widgets/custom_header.dart';
@@ -1289,14 +1290,84 @@ class _HomePageContentState extends State<HomePageContent> {
                     );
                   }
                 ),
+                Divider(
+                  height: 1,
+                  color: Colors.grey.shade200,
+                ),
+                // all transactions listtile
                 CustomListTile(
                   title: 'All Transactions',
                   trailing: const Icon(Icons.arrow_right_rounded),
+                  customBorder: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.zero,
+                      bottom: Radius.circular(15)
+                    )
+                  ),
                   onTap: () => _showAllTransactions(),
                 ),
               ],
             )
           ),
+          // summary 
+          const SectionHeader(
+            title: 'Summary'
+          ),
+          Material(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            child: Column(
+              children: [
+                StreamBuilder(
+                  stream: widget.db.watchTotalIncome(), 
+                  builder: (context, snapshot) {
+                    final income = snapshot.data ?? 0;
+                    final formattedIncome = formatNumber(income);
+
+                    return CustomListTile(
+                      leading: const Icon(
+                        Icons.download_outlined,
+                        color: Colors.blue,
+                      ),
+                      title: 'Income',
+                      trailing: Text(
+                        '+$formattedIncome ${_currentCurrency.symbol}',
+                        style: const TextStyle(
+                          fontSize: 15,
+                          color: Colors.green
+                        ),
+                      ),
+                    );
+                  }
+                ),
+                Divider(
+                  height: 1,
+                  color: Colors.grey.shade200,
+                ),
+                StreamBuilder(
+                  stream: widget.db.watchTotalExpense(), 
+                  builder: (context, snapshot) {
+                    final expense = snapshot.data ?? 0;
+                    final formattedExpense = formatNumber(expense);
+
+                    return CustomListTile(
+                      leading: const Icon(
+                        Icons.upload_outlined,
+                        color: Colors.blue,
+                      ),
+                      title: 'Expense',
+                      trailing: Text(
+                        '$formattedExpense ${_currentCurrency.symbol}',
+                        style: const TextStyle(
+                          fontSize: 15
+                        ),
+                      ),
+                    );
+                  }
+                ),
+              ],
+            ),
+          )
         ],
       )
     );

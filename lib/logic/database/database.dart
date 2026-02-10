@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:flutter/material.dart' hide Table;
+import 'package:open_budget/logic/format_number.dart';
 import 'package:path_provider/path_provider.dart';
 
 part 'database.g.dart';
@@ -116,10 +117,26 @@ class AppDatabase extends _$AppDatabase {
     final query = select(transactions).addColumns([transactions.amount.sum()]);
     return query.watchSingle().map((row) {
       final totalBalance = row.read(transactions.amount.sum()) ?? 0;
-      return totalBalance % 1 == 0 
-        ? totalBalance.toInt().toString() 
-        : totalBalance.toStringAsFixed(2); // limit to 2 decimals
+      return formatNumber(totalBalance);
     });
+  }
+
+  // watch total income
+  Stream<double> watchTotalIncome() {
+    return (select(transactions)
+      ..where((t) => t.amount.isBiggerThanValue(0))
+    ).watch()
+      .map((rows) => rows.fold(0, (sum, t) => sum + t.amount)
+    );
+  }
+
+  // watch total expense
+  Stream<double> watchTotalExpense() {
+    return (select(transactions)
+      ..where((t) => t.amount.isSmallerThanValue(0))
+    ).watch()
+      .map((rows) => rows.fold(0, (sum, t) => sum + t.amount)
+    );
   }
 
   // search transactions

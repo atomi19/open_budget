@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:open_budget/logic/currencies.dart';
 import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/logic/icons_manager.dart';
+import 'package:open_budget/widgets/custom_icon.dart';
 import 'package:open_budget/widgets/custom_list_tile.dart';
 
 const List<String> _months = [
@@ -70,10 +71,7 @@ Widget buildTransactionList({
           // transaction ListTile
           CustomListTile(
             // category icon
-            leading: Icon(
-              IconsManager.getIconByName(iconNameKey),
-              color: Colors.blue,
-            ),
+            leading: CustomIcon(icon: IconsManager.getIconByName(iconNameKey)),
             // category name
             title: categoriesById[item.categoryId]?.name ?? 'Unknown Category',
             // description

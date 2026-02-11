@@ -4,6 +4,7 @@ import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/logic/handle_data_submit.dart';
 import 'package:open_budget/logic/icons_manager.dart';
 import 'package:open_budget/widgets/custom_header.dart';
+import 'package:open_budget/widgets/custom_icon.dart';
 import 'package:open_budget/widgets/custom_list_tile.dart';
 import 'package:open_budget/widgets/custom_modal_bottom_sheet.dart';
 import 'package:open_budget/widgets/custom_text_field.dart';
@@ -102,10 +103,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(15)
                               ),
-                              leading: Icon(
-                                IconsManager.getIconByName(item.iconName),
-                                color: Colors.blue,
-                              ),
+                              leading: CustomIcon(icon: IconsManager.getIconByName(item.iconName)),
                               title: Text(item.name),
                               onTap: () => onTap(item.id),
                             ),

@@ -7,6 +7,7 @@ import 'package:open_budget/logic/format_number.dart';
 import 'package:open_budget/logic/icons_manager.dart';
 import 'package:open_budget/widgets/build_transactions_list.dart';
 import 'package:open_budget/widgets/custom_header.dart';
+import 'package:open_budget/widgets/custom_icon.dart';
 import 'package:open_budget/widgets/custom_list_tile.dart';
 import 'package:open_budget/widgets/custom_modal_bottom_sheet.dart';
 import 'package:open_budget/widgets/custom_text_field.dart';
@@ -315,10 +316,7 @@ class _HomePageContentState extends State<HomePageContent> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(15)
                               ),
-                              leading: Icon(
-                                IconsManager.categoryIcons[category.iconName],
-                                color: Colors.blue,
-                              ),
+                              leading: CustomIcon(icon: IconsManager.categoryIcons[category.iconName]!),
                               title: Text(category.name),
                               trailing: category.id == item.categoryId
                                 ? const Icon(Icons.done_rounded)
@@ -922,10 +920,7 @@ class _HomePageContentState extends State<HomePageContent> {
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(15)
                                   ),
-                                  leading: Icon(
-                                    IconsManager.getIconByName(item.iconName),
-                                    color: Colors.blue,
-                                  ),
+                                  leading: CustomIcon(icon: IconsManager.getIconByName(item.iconName)),
                                   title: Text(item.name),
                                   trailing: IconButton(
                                     onPressed: () => _showCategoryDeletetionPrompt(item.id),
@@ -1325,10 +1320,7 @@ class _HomePageContentState extends State<HomePageContent> {
                     final formattedIncome = formatNumber(income);
 
                     return CustomListTile(
-                      leading: const Icon(
-                        Icons.download_outlined,
-                        color: Colors.blue,
-                      ),
+                      leading: const CustomIcon(icon: Icons.download_outlined),
                       title: 'Income',
                       trailing: Text(
                         '+$formattedIncome ${_currentCurrency.symbol}',
@@ -1351,10 +1343,7 @@ class _HomePageContentState extends State<HomePageContent> {
                     final formattedExpense = formatNumber(expense);
 
                     return CustomListTile(
-                      leading: const Icon(
-                        Icons.upload_outlined,
-                        color: Colors.blue,
-                      ),
+                      leading: const CustomIcon(icon: Icons.upload_outlined),
                       title: 'Expense',
                       trailing: Text(
                         '$formattedExpense ${_currentCurrency.symbol}',

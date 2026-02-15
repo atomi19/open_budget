@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:open_budget/pages/add_transaction_page.dart';
 import 'package:open_budget/pages/home_page_content.dart';
 import 'package:open_budget/logic/database/database.dart';
+import 'package:open_budget/pages/statistics_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -21,6 +22,7 @@ class _HomePageState extends State<HomePage> {
     List<Widget> tabs =[
       HomePageContent(db: db),
       AddTransactionPage(db: db),
+      StatisticsPage(db: db),
     ];
 
     return Scaffold(
@@ -47,12 +49,17 @@ class _HomePageState extends State<HomePage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
             activeIcon: Icon(Icons.home),
-            label: 'Home'
+            label: 'Home',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.add),
             activeIcon: Icon(Icons.add_circle),
-            label: 'Add Transaction'
+            label: 'Add Transaction',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.data_usage),
+            activeIcon: Icon(Icons.data_usage_outlined),
+            label: 'Statistics',
           ),
         ]
       ),

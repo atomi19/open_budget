@@ -160,6 +160,35 @@ class AppDatabase extends _$AppDatabase {
     ).watch();
   }
 
+  // statistics daos
+  // sort categories from highest to lowest expenses or incomes
+  Stream<List<MapEntry<Category, double>>> sortCategoriesByTotalAmount({
+    required bool isIncome,
+    }) {
+    final totalAmount = transactions.amount.sum();
+    final absTotalAmount = totalAmount.abs();
+
+    final query = select(categories).join([
+      leftOuterJoin(
+        transactions, 
+        transactions.categoryId.equalsExp(categories.id)
+      )
+    ])
+      ..where(categories.isIncome.equals(isIncome)) // true = income, false = expense
+      ..addColumns([totalAmount])
+      ..groupBy([categories.id])
+      ..orderBy([OrderingTerm(expression: absTotalAmount, mode: OrderingMode.desc)]);
+
+
+    return query.watch().map((rows) {
+      return rows.map((row) {
+        final category = row.readTable(categories);
+        final total = row.read(totalAmount) ?? 0;
+
+        return MapEntry(category, total);
+      }).toList();
+    });
+  }
 
   // categories daos
 

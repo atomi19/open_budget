@@ -4,6 +4,7 @@ import 'package:open_budget/logic/format_number.dart';
 import 'package:open_budget/widgets/custom_header.dart';
 import 'package:open_budget/widgets/custom_list_tile.dart';
 import 'package:open_budget/widgets/custom_modal_bottom_sheet.dart';
+import 'package:open_budget/widgets/empty_list_placeholder.dart';
 import 'package:open_budget/widgets/section_header.dart';
 
 class StatisticsPage extends StatefulWidget {
@@ -43,9 +44,6 @@ class _StatisticsPage extends State<StatisticsPage> {
                 bool isFirst = index == 0
                   ? true 
                   : false;
-                
-                // do not display categories with total amount 0
-                if(category.value == 0) return null;
 
                 return _buildCategory(
                   isFirst: isFirst, 
@@ -59,21 +57,31 @@ class _StatisticsPage extends State<StatisticsPage> {
               height: 1,
               color: Colors.grey.shade200,
             ),
-            CustomListTile(
-              customBorder: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.zero,
-                  bottom: Radius.circular(15),
-                )
+            sortedCategories.isEmpty
+              ? EmptyListPlaceholder(
+                icon: Icons.receipt_long, 
+                title: isIncome 
+                  ? 'No top incomes'
+                  : 'No top expenses', 
+                subtitle: isIncome
+                ? 'Add incomes and they will appear here'
+                : 'Add expenses and they will appear here'
+              )
+              : CustomListTile(
+                customBorder: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.zero,
+                    bottom: Radius.circular(15),
+                  )
+                ),
+                title: 'See All',
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _showAllCategoriesRanking(
+                  context: context, 
+                  isIncome: isIncome,
+                  categories: sortedCategories
+                ),
               ),
-              title: 'See All',
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => _showAllCategoriesRanking(
-                context: context, 
-                isIncome: isIncome,
-                categories: sortedCategories
-              ),
-            ),
           ],
         );
       }

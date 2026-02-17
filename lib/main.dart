@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:open_budget/logic/currency_manager.dart';
 import 'package:open_budget/pages/home_page.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await CurrencyManager.loadCurrency();
   runApp(const MainApp());
 }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:open_budget/logic/currency_manager.dart';
 import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/logic/format_number.dart';
 import 'package:open_budget/widgets/custom_header.dart';
@@ -157,7 +158,7 @@ class _StatisticsPage extends State<StatisticsPage> {
       ),
       title: title,
       trailing: Text(
-        formatNumber(value),
+        '${formatNumber(value)} ${CurrencyManager.currentCurrency!.symbol}',
         style: const TextStyle(fontSize: 15),
       ),
     );

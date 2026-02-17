@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:open_budget/logic/app_settings.dart';
 import 'package:open_budget/logic/currencies.dart';
+import 'package:open_budget/logic/currency_manager.dart';
 import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/logic/format_number.dart';
 import 'package:open_budget/logic/icons_manager.dart';
@@ -35,8 +36,8 @@ class HomePageContent extends StatefulWidget {
 }
 
 class _HomePageContentState extends State<HomePageContent> {
-  // settings
-  Currency _currentCurrency = Currency.currencies.first;
+  Currency _currentCurrency = CurrencyManager.currentCurrency!;
+
   bool _isShowingDescription = false;
 
   // filter for income, all and expense transactions
@@ -51,13 +52,8 @@ class _HomePageContentState extends State<HomePageContent> {
   void initState() {
     super.initState();
     _loadCategories();
-    _loadCurrency();
+    _currentCurrency = CurrencyManager.currentCurrency!;
     _loadDescriptionState();
-  }
-
-  // load currency from shared_preferences
-  Future<void> _loadCurrency() async {
-    _currentCurrency = await AppSettings.getSelectedCurrency() ?? Currency.currencies.first;
   }
 
   // load description preview state from shared_preferences
@@ -798,11 +794,11 @@ class _HomePageContentState extends State<HomePageContent> {
                               color: Colors.grey
                             ),
                           ),
-                          onTap: () {
+                          onTap: () async {
                             Navigator.pop(context);
-                            setState(() {                              
-                              AppSettings.setCurrency(currencyItem.code); // save selected currency
-                              _loadCurrency(); // load selected currency
+                            await CurrencyManager.setCurrency(currencyItem);
+                            setState(() {
+                              _currentCurrency = CurrencyManager.currentCurrency!;
                             });
                           }
                         );

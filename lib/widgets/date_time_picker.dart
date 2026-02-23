@@ -70,3 +70,34 @@ Future<TimeOfDay?> pickTime({
     }
   );
 }
+
+Future<DateTimeRange?> pickDateRange({
+  required BuildContext context,
+}) {
+  return showDateRangePicker(
+    context: context, 
+    firstDate: DateTime(2000), 
+    lastDate: DateTime.now(),
+    builder: (context, child) {
+      return Theme(
+        data: Theme.of(context).copyWith(
+          datePickerTheme: DatePickerThemeData(
+            rangeSelectionBackgroundColor: Colors.grey.shade200
+          ),
+          colorScheme: const ColorScheme.light(
+            primary: Colors.blue, // selected day bg color
+            onPrimary: Colors.white, // selected day text color
+            onSurface: Colors.black, // not selected day text color
+          ),
+          textButtonTheme: TextButtonThemeData(
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.black,
+              backgroundColor: Colors.grey.shade200,
+            )
+          ),
+        ), 
+        child: child!
+      );
+    }
+  );
+}

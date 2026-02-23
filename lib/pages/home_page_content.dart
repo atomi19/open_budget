@@ -1288,7 +1288,7 @@ class _HomePageContentState extends State<HomePageContent> {
                 // all transactions listtile
                 CustomListTile(
                   title: 'All Transactions',
-                  trailing: const Icon(Icons.arrow_right_rounded),
+                  trailing: const Icon(Icons.chevron_right),
                   customBorder: const RoundedRectangleBorder(
                     borderRadius: BorderRadius.vertical(
                       top: Radius.zero,

@@ -164,6 +164,8 @@ class AppDatabase extends _$AppDatabase {
   // sort categories from highest to lowest expenses or incomes
   Stream<List<MapEntry<Category, double>>> sortCategoriesByTotalAmount({
     required bool isIncome,
+    required DateTime startDate,
+    required DateTime endDate,
     }) {
     final totalAmount = transactions.amount.sum();
     final absTotalAmount = totalAmount.abs();
@@ -171,7 +173,11 @@ class AppDatabase extends _$AppDatabase {
     final query = select(categories).join([
       leftOuterJoin(
         transactions, 
-        transactions.categoryId.equalsExp(categories.id)
+        // filter all transactions with category id we need 
+        transactions.categoryId.equalsExp(categories.id) &
+        // date range (from start to end date)
+        transactions.dateAndTime.isBiggerOrEqualValue(startDate) &
+        transactions.dateAndTime.isSmallerOrEqualValue(endDate),
       )
     ])
       ..where(categories.isIncome.equals(isIncome)) // true = income, false = expense

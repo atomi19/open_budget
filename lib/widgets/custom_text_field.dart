@@ -38,13 +38,13 @@ class CustomTextField extends StatelessWidget {
         prefix: prefix,
         prefixIcon: prefixIcon,
         filled: true,
-        fillColor: backgroundColor ?? Colors.white,
-        hoverColor: backgroundColor ?? Colors.white,
+        fillColor: Theme.of(context).colorScheme.primaryContainer,
+        hoverColor: Theme.of(context).colorScheme.primaryContainer,
         hintText: hintText,
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15),
           borderSide: const BorderSide(
-            color: Colors.white,
+            color: Colors.transparent,
             width: 1
           )
         ),

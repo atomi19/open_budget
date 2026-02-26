@@ -57,6 +57,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
   }) {
     showCustomModalBottomSheet(
       context: context, 
+      backgroundColor: Theme.of(context).colorScheme.surface,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         spacing: 10,
@@ -66,7 +67,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
             // close button
             startWidget: IconButton(
               style: IconButton.styleFrom(
-                backgroundColor: Colors.white
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
               ),
               onPressed: () => Navigator.pop(context),
               icon: const Icon(Icons.close)
@@ -83,9 +84,10 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                   builder: (context, snapshot) {
                     final items =snapshot.data ?? [];
                     return items.isEmpty
-                    ? const Padding(
-                      padding: EdgeInsets.all(10),
+                    ? Padding(
+                      padding: const EdgeInsets.all(10),
                       child: EmptyListPlaceholder(
+                        color: Theme.of(context).colorScheme.surface,
                         icon: Icons.close_rounded, 
                         title: 'No categories yet', 
                         subtitle: 'Create category first'
@@ -99,7 +101,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                         return Column(
                           children: [
                             ListTile(
-                              tileColor: Colors.white,
+                              tileColor: Theme.of(context).colorScheme.primaryContainer,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(15)
                               ),
@@ -145,10 +147,11 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
         ),
         // date 
         CustomListTile(
+          tileColor: Theme.of(context).colorScheme.primaryContainer,
           title: _selectedDate != null
             ? '${_selectedDate!.day.toString().padLeft(2, '0')}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.year}'
             : 'Date',
-          trailing: const Icon(Icons.chevron_right),
+          trailing: const CustomIcon(icon: Icons.chevron_right),
           onTap: ()async {
             final selectedDate = await pickDate(
               context: context,
@@ -160,10 +163,11 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
         ),
         // time 
         CustomListTile(
+          tileColor: Theme.of(context).colorScheme.primaryContainer,
           title: _selectedTime != null
             ? _selectedTime!.format(context)
             : 'Time',
-          trailing: const Icon(Icons.chevron_right),
+          trailing: const CustomIcon(icon: Icons.chevron_right),
           onTap: () async {
             final selectedTime = await pickTime(
               context: context,
@@ -175,8 +179,9 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
         ),
         // category
         CustomListTile(
+          tileColor: Theme.of(context).colorScheme.primaryContainer,
           title: _selectedCategory?.name ?? 'Category',
-          trailing: const Icon(Icons.chevron_right),
+          trailing: const CustomIcon(icon: Icons.chevron_right),
           onTap: () => _showCategories(
             isIncome: isIncome,
             onTap: (id) async {
@@ -219,7 +224,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade200,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: Column(
         spacing: 10,
         children: [
@@ -227,7 +232,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           Container(
             padding: const EdgeInsets.all(5),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.primaryContainer,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
@@ -249,11 +254,12 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                   },
                   child: Text(
                     'Income',
-                    style: TextStyle(color: _transactionPageIndex == 0
-                    ? Colors.white
-                    : Colors.black
+                    style: TextStyle(
+                      color: _transactionPageIndex == 0
+                        ? Theme.of(context).colorScheme.secondary
+                        : Theme.of(context).colorScheme.onPrimary
                     ),
-                  )
+                  ),
                 ),
                 TextButton(
                   style: TextButton.styleFrom(
@@ -268,12 +274,13 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                     }
                   },
                   child: Text(
-                    'Expense', 
-                    style: TextStyle(color: _transactionPageIndex ==1
-                    ? Colors.white
-                    : Colors.black
-                    )
-                  )
+                    'Expense',
+                    style: TextStyle(
+                      color: _transactionPageIndex == 1
+                        ? Theme.of(context).colorScheme.secondary
+                        : Theme.of(context).colorScheme.onPrimary
+                    ),
+                  ),
                 ),
               ],
             ),

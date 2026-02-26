@@ -3,6 +3,7 @@ import 'package:open_budget/logic/currency_manager.dart';
 import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/logic/format_number.dart';
 import 'package:open_budget/widgets/custom_header.dart';
+import 'package:open_budget/widgets/custom_icon.dart';
 import 'package:open_budget/widgets/custom_list_tile.dart';
 import 'package:open_budget/widgets/custom_modal_bottom_sheet.dart';
 import 'package:open_budget/widgets/date_time_picker.dart';
@@ -65,10 +66,11 @@ class _StatisticsPage extends State<StatisticsPage> {
             ),
             Divider(
               height: 1,
-              color: Colors.grey.shade200,
+              color: Theme.of(context).colorScheme.surface,
             ),
             sortedCategories.isEmpty
               ? EmptyListPlaceholder(
+                color: Theme.of(context).colorScheme.primaryContainer,
                 icon: Icons.receipt_long, 
                 title: isIncome 
                   ? 'No top incomes'
@@ -78,6 +80,7 @@ class _StatisticsPage extends State<StatisticsPage> {
                 : 'Add expenses and they will appear here'
               )
               : CustomListTile(
+                tileColor: Theme.of(context).colorScheme.primaryContainer,
                 customBorder: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.vertical(
                     top: Radius.zero,
@@ -106,13 +109,14 @@ class _StatisticsPage extends State<StatisticsPage> {
     }) {
     showCustomModalBottomSheet(
       context: context, 
+      backgroundColor: Theme.of(context).colorScheme.surface,
       child: Wrap(
         runSpacing: 10,
         children: [
           CustomHeader(
             startWidget: IconButton(
               style: IconButton.styleFrom(
-                backgroundColor: Colors.white
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
               ),
               onPressed: () => Navigator.pop(context),
               icon: const Icon(Icons.close)
@@ -153,6 +157,7 @@ class _StatisticsPage extends State<StatisticsPage> {
     required double value,
   }) {
     return CustomListTile(
+      tileColor: Theme.of(context).colorScheme.primaryContainer,
       customBorder: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: isFirst 
@@ -163,7 +168,7 @@ class _StatisticsPage extends State<StatisticsPage> {
       ),
       leading: Text(
         '${index+1}.',
-        style: const TextStyle(fontSize: 15, color: Colors.black54),
+        style: TextStyle(fontSize: 15, color: Theme.of(context).colorScheme.onPrimary),
       ),
       title: title,
       trailing: Text(
@@ -177,6 +182,7 @@ class _StatisticsPage extends State<StatisticsPage> {
   void _showPeriodMenuSheet() {
     showCustomModalBottomSheet(
       context: context, 
+      backgroundColor: Theme.of(context).colorScheme.surface,
       child: Wrap(
         runSpacing: 10,
         children: [
@@ -184,7 +190,7 @@ class _StatisticsPage extends State<StatisticsPage> {
           CustomHeader(
             startWidget: IconButton(
               style: IconButton.styleFrom(
-                backgroundColor: Colors.white
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
               ),
               onPressed: () => Navigator.pop(context),
               icon: const Icon(Icons.close)
@@ -193,7 +199,8 @@ class _StatisticsPage extends State<StatisticsPage> {
           ),
           // all time
           CustomListTile(
-            leading: const Icon(Icons.all_inclusive),
+            tileColor: Theme.of(context).colorScheme.primaryContainer,
+            leading: const CustomIcon(icon: Icons.all_inclusive,),
             title: 'All Time',
             onTap: () {
               setState(() {
@@ -206,7 +213,8 @@ class _StatisticsPage extends State<StatisticsPage> {
           ),
           // this month
           CustomListTile(
-            leading: const Icon(Icons.calendar_today),
+            tileColor: Theme.of(context).colorScheme.primaryContainer,
+            leading: const CustomIcon(icon: Icons.calendar_today),
             title: 'This Month',
             onTap: () {
               final now = DateTime.now();
@@ -220,7 +228,8 @@ class _StatisticsPage extends State<StatisticsPage> {
           ),
           // previous month
           CustomListTile(
-            leading: const Icon(Icons.calendar_month),
+            tileColor: Theme.of(context).colorScheme.primaryContainer,
+            leading: const CustomIcon(icon:Icons.calendar_month),
             title: 'Previous Month',
             onTap: () {
               final now = DateTime.now();
@@ -234,7 +243,8 @@ class _StatisticsPage extends State<StatisticsPage> {
           ),
           // custom period
           CustomListTile(
-            leading: const Icon(Icons.tune),
+            tileColor: Theme.of(context).colorScheme.primaryContainer,
+            leading: const CustomIcon(icon: Icons.tune),
             title: 'Custom Period',
             trailing: const Icon(Icons.chevron_right),
             onTap: () async {
@@ -276,43 +286,45 @@ class _StatisticsPage extends State<StatisticsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey.shade200,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            const SizedBox(height: 10),
-            // period button
-            FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: Colors.blue,
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          const SizedBox(height: 10),
+          // period button
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.blue,
+            ),
+            onPressed: () => _showPeriodMenuSheet(), 
+            child: Text(
+              periodButtonLabel,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.secondary,
               ),
-              onPressed: () => _showPeriodMenuSheet(), 
-              child: Text(periodButtonLabel),
             ),
-            const SizedBox(height: 10),
-            // top income categories section
-            const SectionHeader(
-              title: 'Top Income Categories'
-            ),
-            const SizedBox(height: 10),
-            _buildCategoriesRankingList(
-              db: widget.db,
-              isIncome: true,
-            ),
-            const SizedBox(height: 10),
-            // top expense categories section
-            const SectionHeader(
-              title: 'Top Expense Categories'
-            ),
-            const SizedBox(height: 10),
-            _buildCategoriesRankingList(
-              db: widget.db, 
-              isIncome: false,
-            ),
-          ],
-        ),
-      )
+          ),
+          const SizedBox(height: 10),
+          // top income categories section
+          const SectionHeader(
+            title: 'Top Income Categories'
+          ),
+          const SizedBox(height: 10),
+          _buildCategoriesRankingList(
+            db: widget.db,
+            isIncome: true,
+          ),
+          const SizedBox(height: 10),
+          // top expense categories section
+          const SectionHeader(
+            title: 'Top Expense Categories'
+          ),
+          const SizedBox(height: 10),
+          _buildCategoriesRankingList(
+            db: widget.db, 
+            isIncome: false,
+          ),
+        ],
+      ),
     );
   }
 }

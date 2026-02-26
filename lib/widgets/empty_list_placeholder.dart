@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 class EmptyListPlaceholder extends StatelessWidget {
+  final Color color;
   final IconData icon;
   final String title;
   final String subtitle;
 
   const EmptyListPlaceholder({
     super.key,
+    required this.color,
     required this.icon,
     required this.title,
     required this.subtitle
@@ -16,7 +18,7 @@ class EmptyListPlaceholder extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: color,
         borderRadius: BorderRadius.circular(15),
       ),
       padding: const EdgeInsets.all(10),

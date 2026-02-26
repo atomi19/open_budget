@@ -7,6 +7,7 @@ import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/logic/format_number.dart';
 import 'package:open_budget/logic/icons_manager.dart';
 import 'package:open_budget/widgets/build_transactions_list.dart';
+import 'package:open_budget/widgets/custom_filled_button.dart';
 import 'package:open_budget/widgets/custom_header.dart';
 import 'package:open_budget/widgets/custom_icon.dart';
 import 'package:open_budget/widgets/custom_list_tile.dart';
@@ -26,10 +27,12 @@ enum _TransactionsListType {
 
 class HomePageContent extends StatefulWidget {
   final AppDatabase db;
+  final Function(ThemeMode) setTheme;
 
   const HomePageContent({
     super.key,
     required this.db,
+    required this.setTheme,
   });
   @override
   State<HomePageContent> createState() => _HomePageContentState();
@@ -91,7 +94,7 @@ class _HomePageContentState extends State<HomePageContent> {
     showCustomModalBottomSheet(
       context: context, 
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       borderRadius: 0,
       padding: 0,
       child: StatefulBuilder(
@@ -104,13 +107,13 @@ class _HomePageContentState extends State<HomePageContent> {
                 // header with searching field
                 ? Row(
                   children: [
+                    // search text field
                     Expanded(
                       child: CustomTextField(
                         controller: searchTransactionController, 
                         maxLines: 1,
                         isDense: true,
-                        backgroundColor: Colors.grey.shade200,
-                        prefixIcon: const Icon(Icons.search_outlined),
+                        prefixIcon: const CustomIcon(icon: Icons.search_outlined),
                         hintText: 'Search transactions...',
                         onChanged: (String query) {
                           setState(() {
@@ -120,9 +123,10 @@ class _HomePageContentState extends State<HomePageContent> {
                       ),
                     ),
                     const SizedBox(width: 10),
+                    // switch to default header icon button
                     IconButton(
                       style: IconButton.styleFrom(
-                        backgroundColor: Colors.grey.shade200,
+                        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                       ),
                       onPressed: () {
                         setState(() {
@@ -166,7 +170,7 @@ class _HomePageContentState extends State<HomePageContent> {
                 margin: const EdgeInsets.all(5),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(15),
-                  color: Colors.grey.shade200,
+                  color: Theme.of(context).colorScheme.primaryContainer,
                 ),
                 child:Row(
                   children: _TransactionsListType.values.map((type) {
@@ -181,7 +185,7 @@ class _HomePageContentState extends State<HomePageContent> {
                         style: TextButton.styleFrom(
                           backgroundColor: isSelected
                           ? Colors.blue
-                          : Colors.grey.shade200,
+                          : Theme.of(context).colorScheme.primaryContainer,
                         ),
                         onPressed: () {
                           setState(() {
@@ -192,8 +196,8 @@ class _HomePageContentState extends State<HomePageContent> {
                           label,
                           style: TextStyle(
                             color: isSelected
-                              ? Colors.white
-                              : Colors.black
+                              ? Theme.of(context).colorScheme.secondary
+                              : Theme.of(context).colorScheme.onPrimary
                           ),
                         )
                       ),
@@ -211,13 +215,15 @@ class _HomePageContentState extends State<HomePageContent> {
                     final items = snapshot.data ?? [];
                     final filteredItems = _filterTransactions(items);
                     return items.isEmpty
-                    ? const EmptyListPlaceholder(
+                    ? EmptyListPlaceholder(
+                        color: Theme.of(context).colorScheme.surface,
                         icon: Icons.search_off_outlined, 
                         title: 'No results found', 
                         subtitle: 'Try to search by category or amount'
                       )
                     : buildTransactionList(
                       context: context, 
+                      tileColor: Theme.of(context).colorScheme.surface,
                       shrinkWrap: false,
                       items: filteredItems, 
                       categoriesById: _categoriesById,
@@ -235,13 +241,15 @@ class _HomePageContentState extends State<HomePageContent> {
                     final items = snapshot.data ?? [];
                     final filteredItems = _filterTransactions(items);
                     return filteredItems.isEmpty
-                    ? const EmptyListPlaceholder(
+                    ? EmptyListPlaceholder(
+                        color: Theme.of(context).colorScheme.surface,
                         icon: Icons.close_rounded, 
                         title: 'No transactions yet', 
                         subtitle: 'Add transactions and they will appear here'
                       )
                     : buildTransactionList(
                       context: context, 
+                      tileColor: Theme.of(context).colorScheme.surface,
                       shrinkWrap: false,
                       items: filteredItems, 
                       categoriesById: _categoriesById,
@@ -266,7 +274,8 @@ class _HomePageContentState extends State<HomePageContent> {
     required Transaction item,
     }) {
     showCustomModalBottomSheet(
-      context: context, 
+      context: context,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         spacing: 10,
@@ -275,7 +284,7 @@ class _HomePageContentState extends State<HomePageContent> {
           CustomHeader(
             startWidget: IconButton(
               style: IconButton.styleFrom(
-                backgroundColor: Colors.white
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
               ),
               onPressed: () => Navigator.pop(context),
               icon: const Icon(Icons.close)
@@ -291,9 +300,10 @@ class _HomePageContentState extends State<HomePageContent> {
                   builder: (context, snapshot) {
                     final items = snapshot.data ?? [];
                     return items.isEmpty
-                    ? const Padding(
-                      padding: EdgeInsets.all(10),
+                    ? Padding(
+                      padding: const EdgeInsets.all(10),
                       child: EmptyListPlaceholder(
+                        color: Theme.of(context).colorScheme.surface,
                         icon: Icons.close_rounded, 
                         title: 'No categories yet', 
                         subtitle: 'Create category first'
@@ -308,14 +318,14 @@ class _HomePageContentState extends State<HomePageContent> {
                         return Column(
                           children: [
                             ListTile(
-                              tileColor: Colors.white,
+                              tileColor: Theme.of(context).colorScheme.primaryContainer,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(15)
                               ),
                               leading: CustomIcon(icon: IconsManager.categoryIcons[category.iconName]!),
                               title: Text(category.name),
                               trailing: category.id == item.categoryId
-                                ? const Icon(Icons.done_rounded)
+                                ? const CustomIcon(icon: Icons.done_rounded)
                                 : null,
                               onTap: () {
                                 // if user selects same category as current transaction category just return
@@ -349,6 +359,7 @@ class _HomePageContentState extends State<HomePageContent> {
 
     showCustomModalBottomSheet(
       context: context, 
+      backgroundColor: Theme.of(context).colorScheme.surface,
       child: Wrap(
         runSpacing: 10,
         children: [
@@ -357,7 +368,7 @@ class _HomePageContentState extends State<HomePageContent> {
             // close button
             startWidget: IconButton(
               style: IconButton.styleFrom(
-                backgroundColor: Colors.white
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
               ),
               onPressed: () => Navigator.pop(context),
               icon: const Icon(Icons.close)
@@ -366,7 +377,7 @@ class _HomePageContentState extends State<HomePageContent> {
             // update amount (confirm) button
             endWidget: IconButton(
               style: IconButton.styleFrom(
-                backgroundColor: Colors.white
+                backgroundColor: Theme.of(context).colorScheme.primary,
               ),
               onPressed: () {
                 final newAmount = isIncome
@@ -385,7 +396,7 @@ class _HomePageContentState extends State<HomePageContent> {
                   Navigator.of(context).popUntil((route) => route.isFirst);
                 }
               }, 
-              icon: const Icon(Icons.done_rounded)
+              icon: Icon(Icons.done_rounded, color: Theme.of(context).colorScheme.primaryContainer)
             ),
           ),
           // amount editing textfield
@@ -468,6 +479,7 @@ class _HomePageContentState extends State<HomePageContent> {
       context: context, 
       isScrollControlled: true,
       borderRadius: 0,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       child: Column(
         spacing: 10,
         children: [
@@ -476,7 +488,7 @@ class _HomePageContentState extends State<HomePageContent> {
             // close button
             startWidget: IconButton(
               style: IconButton.styleFrom(
-                backgroundColor: Colors.white
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
               ),
               onPressed: () => Navigator.pop(context),
               icon: const Icon(Icons.close)
@@ -485,7 +497,7 @@ class _HomePageContentState extends State<HomePageContent> {
             // delete transaction button
             endWidget: IconButton(
               style: IconButton.styleFrom(
-                backgroundColor: Colors.white
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
               ),
               onPressed: () {
                 _showDeleteConfirmation(item.id);
@@ -507,7 +519,7 @@ class _HomePageContentState extends State<HomePageContent> {
                   fontWeight: FontWeight.bold,
                   color: isIncome
                     ? Colors.green
-                    : Colors.black,
+                    : Theme.of(context).colorScheme.onPrimary,
                 ),
               ),
             ),
@@ -519,10 +531,8 @@ class _HomePageContentState extends State<HomePageContent> {
             children: [
               // date in dd-mm-yyyy format
               CustomListTile(
-                leading: const Icon(
-                  Icons.calendar_today,
-                  color: Colors.black54,
-                ),
+                tileColor: Theme.of(context).colorScheme.primaryContainer,
+                leading: const CustomIcon(icon: Icons.calendar_today,),
                 title: 'Date',
                 customBorder: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.vertical(
@@ -538,21 +548,19 @@ class _HomePageContentState extends State<HomePageContent> {
                       style: const TextStyle(fontSize: 15),
                     ),
                     const SizedBox(width: 5),
-                    const Icon(Icons.chevron_right),
+                    const CustomIcon(icon: Icons.chevron_right)
                   ],
                 ),
                 onTap: () => _showEditDatePicker(item),
               ),
               Divider(
                 height: 1,
-                color: Colors.grey.shade200,
+                color: Theme.of(context).colorScheme.surface,
               ),
               // time in hh:mm format
               CustomListTile(
-                leading: const Icon(
-                  Icons.access_time,
-                  color: Colors.black54,
-                ),
+                tileColor: Theme.of(context).colorScheme.primaryContainer,
+                leading: const CustomIcon(icon: Icons.access_time),
                 title: 'Time',
                 customBorder: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.vertical(
@@ -568,7 +576,7 @@ class _HomePageContentState extends State<HomePageContent> {
                       style: const TextStyle(fontSize: 15),
                     ),
                     const SizedBox(width: 5),
-                    const Icon(Icons.chevron_right),
+                    const CustomIcon(icon: Icons.chevron_right)
                   ],
                 ),
                 onTap: () => _showEditTimePicker(item),
@@ -580,10 +588,8 @@ class _HomePageContentState extends State<HomePageContent> {
           ),
           // category
           CustomListTile(
-            leading: Icon(
-              IconsManager.getIconByName(iconNameKey),
-              color: Colors.black54,
-            ),
+            tileColor: Theme.of(context).colorScheme.primaryContainer,
+            leading: CustomIcon(icon: IconsManager.getIconByName(iconNameKey)),
             title: 'Category', 
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
@@ -599,7 +605,7 @@ class _HomePageContentState extends State<HomePageContent> {
                   ),
                 ),
                 const SizedBox(width: 5),
-                const Icon(Icons.chevron_right),
+                const CustomIcon(icon: Icons.chevron_right),
               ],
             ),
             onTap: () => _showCategories(isIncome: isIncome, item: item),
@@ -641,14 +647,13 @@ class _HomePageContentState extends State<HomePageContent> {
                 child: TextButton(
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.all(15),
-
-                    backgroundColor: Colors.grey.shade200,
+                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     )
                   ),
                   onPressed: () => Navigator.pop(context), 
-                  child: const Text('Cancel', style: TextStyle(fontSize: 15)),
+                  child: Text('Cancel', style: TextStyle(fontSize: 15, color: Theme.of(context).colorScheme.onPrimary)),
                 ),
               ),
               const SizedBox(width: 10),
@@ -673,16 +678,19 @@ class _HomePageContentState extends State<HomePageContent> {
                       content: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Transaction deleted'),
+                          Text(
+                            'Transaction deleted',
+                            style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+                          ),
                           TextButton(
                             style: TextButton.styleFrom(
-                              backgroundColor: Colors.white,
+                              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                             ),
                             onPressed: () {
                               shouldDelete = false;
                               messenger.hideCurrentSnackBar();
                             },
-                            child: const Text('Undo', style: TextStyle(color: Colors.black)),
+                            child: Text('Undo', style: TextStyle(color: Theme.of(context).colorScheme.onPrimary)),
                           ),
                         ],
                       ),
@@ -709,6 +717,7 @@ class _HomePageContentState extends State<HomePageContent> {
       context: context, 
       isScrollControlled: true,
       borderRadius: 0,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       child: StatefulBuilder(
         builder: (context, StateSetter modalSetState) {
           return Column(
@@ -717,21 +726,61 @@ class _HomePageContentState extends State<HomePageContent> {
               CustomHeader(
                 startWidget: IconButton(
                   style: IconButton.styleFrom(
-                    backgroundColor: Colors.white
+                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                   ),
                   onPressed: () => Navigator.pop(context),
                   icon: const Icon(Icons.close)
                 ), 
                 title: 'Settings', 
               ),
+              // theme
+              const SectionHeader(
+                title: 'Appearance'
+              ),
+              const SizedBox(height: 10),
+              Center(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 10,
+                  children: [
+                    CustomFilledButton(
+                      child: Text('Light', style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),),
+                      onPressed: () {
+                        widget.setTheme(ThemeMode.light);
+                        Navigator.pop(context);
+                      }
+                    ),
+                    CustomFilledButton(
+                      child: Text('System', style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),),
+                      onPressed: () {
+                        widget.setTheme(ThemeMode.system);
+                        Navigator.pop(context);
+                      }
+                    ),
+                    CustomFilledButton(
+                      child: Text('Dark', style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),),
+                      onPressed: () {
+                        widget.setTheme(ThemeMode.dark);
+                        Navigator.pop(context);
+                      }
+                    ),
+                  ],
+                ),
+              ),
+              const SectionHeader(
+                title: 'Preferences'
+              ),
+              // categories manager
               const SizedBox(height: 10),
               CustomListTile(
+                tileColor: Theme.of(context).colorScheme.primaryContainer,
                 title: 'Categories',
-                trailing: const Icon(Icons.chevron_right),
+                trailing: const CustomIcon(icon: Icons.chevron_right),
                 onTap: () => _showCategoriesManager(),
               ),
               const SizedBox(height: 20),
               CustomListTile(
+                tileColor: Theme.of(context).colorScheme.primaryContainer,
                 title: 'Show transaction description',             
                 trailing: Switch(
                   value: _isShowingDescription, 
@@ -768,8 +817,8 @@ class _HomePageContentState extends State<HomePageContent> {
               const SizedBox(height: 20),
               // currency expansion tile setting
               ExpansionTile(
-                backgroundColor: Colors.white,
-                collapsedBackgroundColor: Colors.white,
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                collapsedBackgroundColor: Theme.of(context).colorScheme.primaryContainer,
                 collapsedShape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15)
                 ),
@@ -777,7 +826,7 @@ class _HomePageContentState extends State<HomePageContent> {
                   borderRadius: BorderRadius.circular(15),
                 ),
                 title: const Text('Currency'),
-                trailing: const Icon(Icons.arrow_drop_down_rounded),
+                trailing: const CustomIcon(icon: Icons.arrow_drop_down_rounded),
                 children: [
                   SizedBox(
                     height: 250,
@@ -786,6 +835,7 @@ class _HomePageContentState extends State<HomePageContent> {
                       itemBuilder: (context, index) {
                         final currencyItem = Currency.currencies[index]; 
                         return CustomListTile(
+                          tileColor: Theme.of(context).colorScheme.primaryContainer,
                           title: currencyItem.name, 
                           trailing: Text(
                             currencyItem.code,
@@ -822,6 +872,7 @@ class _HomePageContentState extends State<HomePageContent> {
       context: context, 
       isScrollControlled: true,
       borderRadius: 0,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       child: StatefulBuilder(
         builder: (context, setState) {
           return Column(
@@ -831,7 +882,7 @@ class _HomePageContentState extends State<HomePageContent> {
               CustomHeader(
                 startWidget: IconButton(
                   style: IconButton.styleFrom(
-                    backgroundColor: Colors.white
+                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                   ),
                   onPressed: () => Navigator.pop(context),
                   icon: const Icon(Icons.close)
@@ -850,7 +901,7 @@ class _HomePageContentState extends State<HomePageContent> {
                         ),
                         backgroundColor: isIncome
                           ? Colors.blue
-                          : Colors.grey,
+                          : Theme.of(context).colorScheme.primaryContainer,
                         padding: const EdgeInsets.symmetric(
                           vertical: 20
                         )
@@ -860,7 +911,14 @@ class _HomePageContentState extends State<HomePageContent> {
                           isIncome = true;
                         });
                       },
-                      child: const Text('Income categories')
+                      child:Text(
+                        'Income categories',
+                        style: TextStyle(
+                          color: isIncome 
+                            ? Theme.of(context).colorScheme.secondary
+                            : Theme.of(context).colorScheme.onPrimary
+                        ),
+                      )
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -871,7 +929,7 @@ class _HomePageContentState extends State<HomePageContent> {
                           borderRadius: BorderRadius.circular(15),
                         ),
                         backgroundColor: isIncome
-                          ? Colors.grey
+                          ? Theme.of(context).colorScheme.primaryContainer
                           : Colors.blue,
                         padding: const EdgeInsets.symmetric(
                           vertical: 20
@@ -882,7 +940,14 @@ class _HomePageContentState extends State<HomePageContent> {
                           isIncome = false;
                         });
                       },
-                      child: const Text('Expense categories')
+                      child: Text(
+                        'Expense categories',
+                        style: TextStyle(
+                          color: isIncome 
+                            ? Theme.of(context).colorScheme.onPrimary
+                            : Theme.of(context).colorScheme.secondary
+                        ),
+                      )
                     ),
                   )
                 ],
@@ -896,9 +961,10 @@ class _HomePageContentState extends State<HomePageContent> {
                       builder: (context, snapshot) {
                         final items =snapshot.data ?? [];
                         return items.isEmpty
-                        ? const Padding(
-                          padding: EdgeInsets.all(10),
+                        ? Padding(
+                          padding: const EdgeInsets.all(10),
                           child: EmptyListPlaceholder(
+                            color: Theme.of(context).colorScheme.surface,
                             icon: Icons.close_rounded, 
                             title: 'No categories yet', 
                             subtitle: 'Create category first'
@@ -912,7 +978,7 @@ class _HomePageContentState extends State<HomePageContent> {
                             return Column(
                               children: [
                                 ListTile(
-                                  tileColor: Colors.white,
+                                  tileColor: Theme.of(context).colorScheme.primaryContainer,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(15)
                                   ),
@@ -937,7 +1003,10 @@ class _HomePageContentState extends State<HomePageContent> {
               // create category button
               FilledButton(
                 onPressed: () => _showCategoryCreationSheet(isIncome: isIncome), 
-                child: const Text('Create category')
+                child: Text(
+                  'Create category',
+                  style: TextStyle(color: Theme.of(context).colorScheme.secondary),
+                )
               ),
             ],
           );
@@ -951,6 +1020,7 @@ class _HomePageContentState extends State<HomePageContent> {
     showDialog(
       context: context, 
       builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).colorScheme.surface,
         title: const Text('Delete category?'),
         content: const Text('Transactions will stay, but without a category.'),
         actions: [
@@ -962,13 +1032,15 @@ class _HomePageContentState extends State<HomePageContent> {
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.all(15),
 
-                    backgroundColor: Colors.grey.shade200,
+                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     )
                   ),
                   onPressed: () => Navigator.pop(context), 
-                  child: const Text('Cancel', style: TextStyle(fontSize: 15)),
+                  child: Text('Cancel', style: TextStyle(
+                    fontSize: 15, color: Theme.of(context).colorScheme.onPrimary,
+                  )),
                 ),
               ),
               const SizedBox(width: 10),
@@ -1005,6 +1077,7 @@ class _HomePageContentState extends State<HomePageContent> {
 
     showCustomModalBottomSheet(
       context: context, 
+      backgroundColor: Theme.of(context).colorScheme.surface,
       child: StatefulBuilder(
         builder: (context, StateSetter setState) {
           return Column(
@@ -1013,7 +1086,7 @@ class _HomePageContentState extends State<HomePageContent> {
               CustomHeader(
                 startWidget: IconButton(
                   style: IconButton.styleFrom(
-                    backgroundColor: Colors.white
+                    backgroundColor: Theme.of(context).colorScheme.primaryContainer
                   ),
                   onPressed: () => Navigator.pop(context),
                   icon: const Icon(Icons.close)
@@ -1036,8 +1109,8 @@ class _HomePageContentState extends State<HomePageContent> {
                       const SizedBox(height: 10),
                       // expansion tile with icons for custom categories 
                       ExpansionTile(
-                        backgroundColor: Colors.white,
-                        collapsedBackgroundColor: Colors.white,
+                        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                        collapsedBackgroundColor: Theme.of(context).colorScheme.primaryContainer,
                         collapsedShape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15)
                         ),
@@ -1046,10 +1119,8 @@ class _HomePageContentState extends State<HomePageContent> {
                         ),
                         title: const Text('Icon'),
                         trailing: selectedIcon != null
-                        ? Icon(
-                          IconsManager.getIconByName(selectedIcon!)
-                        )
-                        : const Icon(Icons.arrow_drop_down_rounded),
+                        ? CustomIcon(icon: IconsManager.getIconByName(selectedIcon!))
+                        : const CustomIcon(icon: Icons.arrow_drop_down_rounded),
                         childrenPadding: const EdgeInsets.all(10),
                         children: [
                           SizedBox(
@@ -1069,7 +1140,7 @@ class _HomePageContentState extends State<HomePageContent> {
                                       selectedIcon = IconsManager.keys[index];
                                     });
                                   },
-                                  icon: Icon(IconsManager.getIconByName(IconsManager.keys[index])),
+                                  icon: CustomIcon(icon: IconsManager.getIconByName(IconsManager.keys[index])),
                                   iconSize: 25,
                                   padding: EdgeInsets.zero,
                                 );
@@ -1117,6 +1188,7 @@ class _HomePageContentState extends State<HomePageContent> {
     
     showCustomModalBottomSheet(
       context: context, 
+      backgroundColor: Theme.of(context).colorScheme.surface,
       child: StatefulBuilder(
         builder: (context, setState) {
           return Column(
@@ -1126,7 +1198,7 @@ class _HomePageContentState extends State<HomePageContent> {
               CustomHeader(
                 startWidget: IconButton(
                   style: IconButton.styleFrom(
-                    backgroundColor: Colors.white
+                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                   ),
                   onPressed: () => Navigator.pop(context),
                   icon: const Icon(Icons.close)
@@ -1135,7 +1207,7 @@ class _HomePageContentState extends State<HomePageContent> {
                 // confirm category changes button
                 endWidget: IconButton(
                   style: IconButton.styleFrom(
-                    backgroundColor: Colors.white
+                    backgroundColor: Theme.of(context).colorScheme.primary,
                   ),
                   onPressed: () {
                     final categoryName = controller.text.trim();
@@ -1148,7 +1220,7 @@ class _HomePageContentState extends State<HomePageContent> {
 
                     Navigator.pop(context);
                   }, 
-                  icon: const Icon(Icons.done_rounded)
+                  icon: Icon(Icons.done_rounded, color: Theme.of(context).colorScheme.primaryContainer)
                 ),
               ),
               // edit name text field
@@ -1158,8 +1230,8 @@ class _HomePageContentState extends State<HomePageContent> {
               ),
               // edit icon
               ExpansionTile(
-                backgroundColor: Colors.white,
-                collapsedBackgroundColor: Colors.white,
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                collapsedBackgroundColor: Theme.of(context).colorScheme.primaryContainer,
                 collapsedShape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15)
                 ),
@@ -1168,8 +1240,8 @@ class _HomePageContentState extends State<HomePageContent> {
                 ),
                 title: const Text('Icon'),
                 trailing: selectedIcon != null
-                  ? Icon(IconsManager.getIconByName(selectedIcon!))
-                  : const Icon(Icons.arrow_drop_down_rounded),
+                  ? CustomIcon(icon: IconsManager.getIconByName(selectedIcon!))
+                  : const CustomIcon(icon: Icons.arrow_drop_down_rounded),
                 childrenPadding: const EdgeInsets.all(10),
                 children: [
                   SizedBox(
@@ -1189,7 +1261,7 @@ class _HomePageContentState extends State<HomePageContent> {
                               selectedIcon = IconsManager.keys[index];
                             });
                           },
-                          icon: Icon(IconsManager.getIconByName(IconsManager.keys[index])),
+                          icon: CustomIcon(icon: IconsManager.getIconByName(IconsManager.keys[index])),
                           iconSize: 25,
                           padding: EdgeInsets.zero,
                         );
@@ -1219,7 +1291,7 @@ class _HomePageContentState extends State<HomePageContent> {
               IconButton(
                 onPressed: () => _showSettings(), 
                 style: IconButton.styleFrom(
-                  backgroundColor: Colors.white,
+                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                 ),
                 icon: const Icon(Icons.settings_outlined)
               ),
@@ -1235,7 +1307,7 @@ class _HomePageContentState extends State<HomePageContent> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(15)
                 ),
                 child: Text(
@@ -1250,7 +1322,7 @@ class _HomePageContentState extends State<HomePageContent> {
             title: 'Transactions'
           ),
           Material(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.primaryContainer,
             borderRadius: BorderRadius.circular(15),
             clipBehavior: Clip.antiAlias,
             child: Column(
@@ -1263,6 +1335,7 @@ class _HomePageContentState extends State<HomePageContent> {
                     return items.isNotEmpty
                     ? buildTransactionList(
                       context: context, 
+                      tileColor: Theme.of(context).colorScheme.primaryContainer,
                       shrinkWrap: true,
                       items: lastThreeItems, 
                       categoriesById: _categoriesById,
@@ -1271,9 +1344,10 @@ class _HomePageContentState extends State<HomePageContent> {
                       shouldInsertDate: false,
                       showDescription: _isShowingDescription,
                     )
-                    : const Padding(
-                      padding: EdgeInsets.all(10),
+                    : Padding(
+                      padding: const EdgeInsets.all(10),
                       child: EmptyListPlaceholder(
+                        color: Theme.of(context).colorScheme.primaryContainer,
                         icon: Icons.close_rounded, 
                         title: 'No transactions yet', 
                         subtitle: 'Add transactions and they will appear here'
@@ -1283,12 +1357,13 @@ class _HomePageContentState extends State<HomePageContent> {
                 ),
                 Divider(
                   height: 1,
-                  color: Colors.grey.shade200,
+                  color: Theme.of(context).colorScheme.surface,
                 ),
                 // all transactions listtile
                 CustomListTile(
+                  tileColor: Theme.of(context).colorScheme.primaryContainer,
                   title: 'All Transactions',
-                  trailing: const Icon(Icons.chevron_right),
+                  trailing: const CustomIcon(icon: Icons.chevron_right),
                   customBorder: const RoundedRectangleBorder(
                     borderRadius: BorderRadius.vertical(
                       top: Radius.zero,
@@ -1305,7 +1380,7 @@ class _HomePageContentState extends State<HomePageContent> {
             title: 'Summary'
           ),
           Material(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.primaryContainer,
             borderRadius: BorderRadius.circular(15),
             child: Column(
               children: [
@@ -1316,6 +1391,7 @@ class _HomePageContentState extends State<HomePageContent> {
                     final formattedIncome = formatNumber(income);
 
                     return CustomListTile(
+                      tileColor: Theme.of(context).colorScheme.primaryContainer,
                       leading: const CustomIcon(icon: Icons.download_outlined),
                       title: 'Income',
                       trailing: Text(
@@ -1330,7 +1406,7 @@ class _HomePageContentState extends State<HomePageContent> {
                 ),
                 Divider(
                   height: 1,
-                  color: Colors.grey.shade200,
+                  color: Theme.of(context).colorScheme.surface,
                 ),
                 StreamBuilder(
                   stream: widget.db.watchTotalExpense(), 
@@ -1339,6 +1415,7 @@ class _HomePageContentState extends State<HomePageContent> {
                     final formattedExpense = formatNumber(expense);
 
                     return CustomListTile(
+                      tileColor: Theme.of(context).colorScheme.primaryContainer,
                       leading: const CustomIcon(icon: Icons.upload_outlined),
                       title: 'Expense',
                       trailing: Text(

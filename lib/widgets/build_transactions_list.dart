@@ -25,6 +25,7 @@ const List<String> _months = [
 
 Widget buildTransactionList({
   required BuildContext context,
+  required Color tileColor,
   required bool shrinkWrap,
   required List<Transaction> items,
   required Map<int, Category> categoriesById,
@@ -70,6 +71,7 @@ Widget buildTransactionList({
             ),
           // transaction ListTile
           CustomListTile(
+            tileColor: tileColor,
             // category icon
             leading: CustomIcon(icon: IconsManager.getIconByName(iconNameKey)),
             // category name
@@ -93,7 +95,7 @@ Widget buildTransactionList({
               style: TextStyle(
                 color: item.amount > 0
                 ? Colors.green
-                : Colors.black,
+                : Theme.of(context).colorScheme.onPrimary,
                 fontSize: 15
               ),
             ),

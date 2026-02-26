@@ -1,10 +1,34 @@
 // small app settings that are saved into shared_preferences
+import 'package:flutter/material.dart';
 import 'package:open_budget/logic/currencies.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppSettings {
+  static const _themeKey = 'theme';
   static const _currencyKey = 'currency';
   static const _showTransactionDescriptionKey = 'show_transaction_description';
+
+  static Future<void> setTheme(String theme) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_themeKey, theme);
+  }
+
+  static Future<ThemeMode?> getTheme() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? theme = prefs.getString(_themeKey);
+ 
+    if(theme == null) return null;
+
+    if(theme == 'light') {
+      return ThemeMode.light;
+    }
+
+    if(theme == 'dark') {
+      return ThemeMode.dark;
+    }
+
+    return ThemeMode.system;
+  }
 
   // save currency code in shared_preferences
   static Future<void> setCurrency(String currencyCode) async {

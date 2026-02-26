@@ -16,17 +16,18 @@ Future<DateTime?> pickDate({
       return Theme(
         data: Theme.of(context).copyWith(
           datePickerTheme: DatePickerThemeData(
+            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           ),
-          colorScheme: const ColorScheme.light(
+          colorScheme: ColorScheme.light(
             primary: Colors.blue,
             onPrimary: Colors.white,
-            onSurface: Colors.black,
+            onSurface: Theme.of(context).colorScheme.onPrimary,  // text color
           ),
           textButtonTheme: TextButtonThemeData(
             style: TextButton.styleFrom(
-              foregroundColor: Colors.black,
-              backgroundColor: Colors.grey.shade200,
+              foregroundColor: Theme.of(context).colorScheme.onPrimary, // text color
+              backgroundColor: Theme.of(context).colorScheme.surface, // button bg color
             ),
           ),
         ), 
@@ -48,20 +49,23 @@ Future<TimeOfDay?> pickTime({
       return Theme(
         data: Theme.of(context).copyWith(
           timePickerTheme: TimePickerThemeData(
+            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+            hourMinuteColor: Theme.of(context).colorScheme.surface, // hour/minute squares bg color
+            hourMinuteTextColor: Theme.of(context).colorScheme.onPrimary,
           ),
           colorScheme: ColorScheme.light(
-            primary: Colors.grey.shade50, // selected hour/minute bg color
-            onPrimary: Colors.black, // selected hour/minute text color
-            onSurface: Colors.black, // not selected hour/minute text color
+            primary: Theme.of(context).colorScheme.surface, // selected hour/minute bg color
+            onPrimary: Theme.of(context).colorScheme.surface, // selected hour/minute text color
+            onSurface: Theme.of(context).colorScheme.surface, // not selected hour/minute text color
           ),
-          dialogTheme: const DialogThemeData(
-            backgroundColor: Colors.white,
+          dialogTheme: DialogThemeData(
+            backgroundColor: Theme.of(context).colorScheme.surface,
           ),
           textButtonTheme: TextButtonThemeData(
             style: TextButton.styleFrom(
-              foregroundColor: Colors.black,
-              backgroundColor: Colors.grey.shade200,
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
+              backgroundColor: Theme.of(context).colorScheme.surface,
             )
           )
         ), 
@@ -82,17 +86,23 @@ Future<DateTimeRange?> pickDateRange({
       return Theme(
         data: Theme.of(context).copyWith(
           datePickerTheme: DatePickerThemeData(
-            rangeSelectionBackgroundColor: Colors.grey.shade200
+            backgroundColor: Theme.of(context).colorScheme.secondary,
+            rangeSelectionBackgroundColor: Theme.of(context).colorScheme.primaryContainer,
           ),
-          colorScheme: const ColorScheme.light(
+          colorScheme: ColorScheme.light(
             primary: Colors.blue, // selected day bg color
-            onPrimary: Colors.white, // selected day text color
-            onSurface: Colors.black, // not selected day text color
+            onPrimary: Theme.of(context).colorScheme.secondary, // selected day text color
+            onSurface: Theme.of(context).colorScheme.onPrimary, // not selected day text color
+          ),
+          iconButtonTheme: IconButtonThemeData(
+            style: IconButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.onPrimary
+            )
           ),
           textButtonTheme: TextButtonThemeData(
             style: TextButton.styleFrom(
-              foregroundColor: Colors.black,
-              backgroundColor: Colors.grey.shade200,
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
             )
           ),
         ), 

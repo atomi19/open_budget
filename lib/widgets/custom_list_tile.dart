@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class CustomListTile extends StatelessWidget {
-  final Color? tileColor;
+  final Color tileColor;
   final Widget? leading;
   final String title;
   final Widget? trailing;
@@ -11,7 +11,7 @@ class CustomListTile extends StatelessWidget {
 
   const CustomListTile({
     super.key,
-    this.tileColor,
+    required this.tileColor,
     this.leading,
     required this.title,
     this.trailing,
@@ -23,7 +23,7 @@ class CustomListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      tileColor: tileColor ?? Colors.white,
+      tileColor: tileColor,
       shape: customBorder ??
         RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15)

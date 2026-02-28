@@ -7,7 +7,6 @@ import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/logic/format_number.dart';
 import 'package:open_budget/logic/icons_manager.dart';
 import 'package:open_budget/widgets/build_transactions_list.dart';
-import 'package:open_budget/widgets/custom_filled_button.dart';
 import 'package:open_budget/widgets/custom_header.dart';
 import 'package:open_budget/widgets/custom_icon.dart';
 import 'package:open_budget/widgets/custom_list_tile.dart';
@@ -704,15 +703,47 @@ class _HomePageContentState extends State<HomePageContent> {
     );
   }
 
+  // light/system/dark button
+  Widget _buildThemeSelectionButton({
+    required ThemeMode? theme,
+    required ThemeMode newTheme,
+    required String label,
+  }) {
+    return FilledButton(
+      style: FilledButton.styleFrom(
+        backgroundColor: theme == newTheme
+          // active theme
+          ? Colors.blue
+          // inactive theme
+          : Theme.of(context).colorScheme.primaryContainer
+      ),
+      onPressed: () {
+        widget.setTheme(newTheme); // set new theme
+        Navigator.pop(context);
+      },
+      child: Text(
+        label,
+        style: TextStyle(
+          color: theme == newTheme
+          ? Theme.of(context).colorScheme.secondary
+          : Theme.of(context).colorScheme.onPrimary,
+        ),
+      )
+    );
+  }
+
   // settings modalBottomSheet
-  void _showSettings() {
+  void _showSettings() async {
+    final theme = await AppSettings.getTheme();
+
+    if(!mounted) return;
     showCustomModalBottomSheet(
       context: context, 
       isScrollControlled: true,
       borderRadius: 0,
       backgroundColor: Theme.of(context).colorScheme.surface,
       child: StatefulBuilder(
-        builder: (context, StateSetter modalSetState) {
+        builder: (context, StateSetter setState) {
           return Column(
             children: [
               // header
@@ -736,26 +767,20 @@ class _HomePageContentState extends State<HomePageContent> {
                   mainAxisSize: MainAxisSize.min,
                   spacing: 10,
                   children: [
-                    CustomFilledButton(
-                      child: Text('Light', style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),),
-                      onPressed: () {
-                        widget.setTheme(ThemeMode.light);
-                        Navigator.pop(context);
-                      }
+                    _buildThemeSelectionButton(
+                      theme: theme, 
+                      newTheme: ThemeMode.light,
+                      label: 'Light',
                     ),
-                    CustomFilledButton(
-                      child: Text('System', style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),),
-                      onPressed: () {
-                        widget.setTheme(ThemeMode.system);
-                        Navigator.pop(context);
-                      }
+                    _buildThemeSelectionButton(
+                      theme: theme, 
+                      newTheme: ThemeMode.system,
+                      label: 'System',
                     ),
-                    CustomFilledButton(
-                      child: Text('Dark', style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),),
-                      onPressed: () {
-                        widget.setTheme(ThemeMode.dark);
-                        Navigator.pop(context);
-                      }
+                    _buildThemeSelectionButton(
+                      theme: theme, 
+                      newTheme: ThemeMode.dark,
+                      label: 'Dark',
                     ),
                   ],
                 ),
@@ -791,7 +816,7 @@ class _HomePageContentState extends State<HomePageContent> {
                       setState(() {
                         _isShowingDescription = value;
                       });
-                      modalSetState(() {
+                      setState(() {
                         _isShowingDescription = value;
                       });
                       AppSettings.switchTransactionDescription(value);

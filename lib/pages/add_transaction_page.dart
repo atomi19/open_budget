@@ -76,6 +76,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
               ? 'Select income category'
               : 'Select expense category',
           ),
+          // categories list
           Expanded(
             child: ListView(
               children: [
@@ -84,33 +85,23 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                   builder: (context, snapshot) {
                     final items =snapshot.data ?? [];
                     return items.isEmpty
-                    ? Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: EmptyListPlaceholder(
+                    ? EmptyListPlaceholder(
                         color: Theme.of(context).colorScheme.surface,
                         icon: Icons.close_rounded, 
                         title: 'No categories yet', 
                         subtitle: 'Create category first'
-                      )
                     )
-                    : ListView.builder(
+                    : ListView.separated(
                       shrinkWrap: true,
                       itemCount: items.length,
+                      separatorBuilder: (context, index) => const SizedBox(height: 5),
                       itemBuilder: (context, index) {
                         final item = items[index];
-                        return Column(
-                          children: [
-                            ListTile(
-                              tileColor: Theme.of(context).colorScheme.primaryContainer,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15)
-                              ),
-                              leading: CustomIcon(icon: IconsManager.getIconByName(item.iconName)),
-                              title: Text(item.name),
-                              onTap: () => onTap(item.id),
-                            ),
-                            const SizedBox(height: 5),
-                          ],
+                        return CustomListTile(
+                          tileColor: Theme.of(context).colorScheme.primaryContainer, 
+                          leading: CustomIcon(icon: IconsManager.getIconByName(item.iconName)),
+                          title: item.name,
+                          onTap: () => onTap(item.id),
                         );
                       }
                     );
@@ -137,11 +128,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           hintText: isIncome
             ? 'Enter income...'
             : 'Enter expense...',
-          prefix: Text(
-            isIncome
-              ? '+ '
-              : '- '
-          ),
+          prefix: Text(isIncome ? '+ ': '- '),
           maxLines: 1,
           textInputType: TextInputType.number,
         ),
@@ -152,13 +139,9 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
             ? '${_selectedDate!.day.toString().padLeft(2, '0')}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.year}'
             : 'Date',
           trailing: const CustomIcon(icon: Icons.chevron_right),
-          onTap: ()async {
-            final selectedDate = await pickDate(
-              context: context,
-            );
-            setState(() {
-              _selectedDate = selectedDate;
-            });
+          onTap: () async {
+            final selectedDate = await pickDate(context: context);
+            setState(() => _selectedDate = selectedDate);
           },
         ),
         // time 
@@ -169,12 +152,8 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
             : 'Time',
           trailing: const CustomIcon(icon: Icons.chevron_right),
           onTap: () async {
-            final selectedTime = await pickTime(
-              context: context,
-            );
-            setState(() {
-              _selectedTime = selectedTime;
-            });
+            final selectedTime = await pickTime(context: context);
+            setState(() => _selectedTime = selectedTime);
           },
         ),
         // category
@@ -221,6 +200,37 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     );
   }
 
+  Widget _switchButton({
+    required bool isIncome,
+    required int pageIndex,
+  }) {
+    int currentPageIndex = isIncome
+      ? 0
+      : 1;
+
+    return TextButton(
+      style: TextButton.styleFrom(
+        backgroundColor: pageIndex == currentPageIndex
+          ? Colors.blue
+          : Colors.transparent,
+      ),
+      onPressed: () {
+        if(_transactionPageIndex != currentPageIndex) {
+          _resetData();
+          setState(() => _transactionPageIndex = currentPageIndex);
+        }
+      }, 
+      child: Text(
+        isIncome ? 'Income' : 'Expense',
+        style: TextStyle(
+          color: pageIndex == currentPageIndex
+            ? Theme.of(context).colorScheme.secondary
+            : Theme.of(context).colorScheme.onPrimary
+        ),
+      )
+    );
+  } 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -240,47 +250,15 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
               mainAxisSize: MainAxisSize.min,
               spacing: 5,
               children: [
-                TextButton(
-                  style: TextButton.styleFrom(
-                    backgroundColor: _transactionPageIndex == 0
-                    ? Colors.blue
-                    : Colors.transparent
-                  ),
-                  onPressed: () {
-                    if(_transactionPageIndex != 0)  {
-                      _resetData();
-                      setState(() => _transactionPageIndex = 0);
-                    }
-                  },
-                  child: Text(
-                    'Income',
-                    style: TextStyle(
-                      color: _transactionPageIndex == 0
-                        ? Theme.of(context).colorScheme.secondary
-                        : Theme.of(context).colorScheme.onPrimary
-                    ),
-                  ),
+                // income text button
+                _switchButton(
+                  isIncome: true, 
+                  pageIndex: _transactionPageIndex,
                 ),
-                TextButton(
-                  style: TextButton.styleFrom(
-                    backgroundColor: _transactionPageIndex == 1
-                    ? Colors.blue
-                    : Colors.transparent
-                  ),
-                  onPressed: () {
-                    if(_transactionPageIndex != 1) {
-                      _resetData();
-                      setState(() => _transactionPageIndex = 1);
-                    }
-                  },
-                  child: Text(
-                    'Expense',
-                    style: TextStyle(
-                      color: _transactionPageIndex == 1
-                        ? Theme.of(context).colorScheme.secondary
-                        : Theme.of(context).colorScheme.onPrimary
-                    ),
-                  ),
+                // expense text button
+                _switchButton(
+                  isIncome: false, 
+                  pageIndex: _transactionPageIndex,
                 ),
               ],
             ),

@@ -309,34 +309,27 @@ class _HomePageContentState extends State<HomePageContent> {
                         subtitle: 'Create category first'
                       )
                     )
-                    : ListView.builder(
+                    : ListView.separated(
                       shrinkWrap: true,
                       itemCount: items.length,
+                      separatorBuilder: (context, index) => const SizedBox(height: 5),
                       itemBuilder: (context, index) {
                         final category = items[index];
 
-                        return Column(
-                          children: [
-                            ListTile(
-                              tileColor: Theme.of(context).colorScheme.primaryContainer,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15)
-                              ),
-                              leading: CustomIcon(icon: IconsManager.categoryIcons[category.iconName]!),
-                              title: Text(category.name),
-                              trailing: category.id == item.categoryId
-                                ? const CustomIcon(icon: Icons.done_rounded)
-                                : null,
-                              onTap: () {
-                                // if user selects same category as current transaction category just return
-                                if(item.categoryId == category.id) return;
-                                // update transaction category
-                                widget.db.updateTransactionCategoryId(item.id, category.id);
-                                Navigator.of(context).popUntil((route) => route.isFirst);
-                              },
-                            ),
-                            const SizedBox(height: 5),
-                          ],
+                        return CustomListTile(
+                          tileColor: Theme.of(context).colorScheme.primaryContainer, 
+                          leading: CustomIcon(icon: IconsManager.categoryIcons[category.iconName]!),
+                          title: category.name,
+                          trailing: category.id == item.categoryId
+                            ? const CustomIcon(icon: Icons.done_rounded)
+                            : null,
+                          onTap: () {
+                            // if user selects same category as current transaction category just return
+                            if(item.categoryId == category.id) return;
+                            // update transaction category
+                            widget.db.updateTransactionCategoryId(item.id, category.id);
+                            Navigator.of(context).popUntil((route) => route.isFirst);
+                          },
                         );
                       }
                     );
@@ -970,28 +963,22 @@ class _HomePageContentState extends State<HomePageContent> {
                             subtitle: 'Create category first'
                           )
                         )
-                        : ListView.builder(
+                        : ListView.separated(
                           shrinkWrap: true,
                           itemCount: items.length,
+                          separatorBuilder: (context, index) => const SizedBox(height: 5),
                           itemBuilder: (context, index) {
                             final item = items[index];
-                            return Column(
-                              children: [
-                                ListTile(
-                                  tileColor: Theme.of(context).colorScheme.primaryContainer,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15)
-                                  ),
-                                  leading: CustomIcon(icon: IconsManager.getIconByName(item.iconName)),
-                                  title: Text(item.name),
-                                  trailing: IconButton(
-                                    onPressed: () => _showCategoryDeletetionPrompt(item.id),
-                                    icon: const Icon(Icons.delete_outlined)
-                                  ),
-                                  onTap: () => _showCategoryEditingSheet(item),
-                                ),
-                                const SizedBox(height: 5),
-                              ],
+
+                            return CustomListTile(
+                              tileColor: Theme.of(context).colorScheme.primaryContainer,
+                              leading: CustomIcon(icon: IconsManager.getIconByName(item.iconName)),
+                              title: item.name,
+                              trailing: IconButton(
+                                onPressed: () => _showCategoryDeletetionPrompt(item.id),
+                                icon: const Icon(Icons.delete_outlined)
+                              ),
+                              onTap: () => _showCategoryEditingSheet(item),
                             );
                           }
                         );

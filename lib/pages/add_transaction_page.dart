@@ -78,36 +78,32 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           ),
           // categories list
           Expanded(
-            child: ListView(
-              children: [
-                StreamBuilder(
-                  stream: widget.db.watchIncomeOrExpenseCategories(isIncome),
-                  builder: (context, snapshot) {
-                    final items =snapshot.data ?? [];
-                    return items.isEmpty
-                    ? EmptyListPlaceholder(
-                        color: Theme.of(context).colorScheme.surface,
-                        icon: Icons.close_rounded, 
-                        title: 'No categories yet', 
-                        subtitle: 'Create category first'
-                    )
-                    : ListView.separated(
-                      shrinkWrap: true,
-                      itemCount: items.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 5),
-                      itemBuilder: (context, index) {
-                        final item = items[index];
-                        return CustomListTile(
-                          tileColor: Theme.of(context).colorScheme.primaryContainer, 
-                          leading: CustomIcon(icon: IconsManager.getIconByName(item.iconName)),
-                          title: item.name,
-                          onTap: () => onTap(item.id),
-                        );
-                      }
+            child: StreamBuilder(
+              stream: widget.db.watchIncomeOrExpenseCategories(isIncome),
+              builder: (context, snapshot) {
+                final items =snapshot.data ?? [];
+                return items.isEmpty
+                ? EmptyListPlaceholder(
+                    color: Theme.of(context).colorScheme.surface,
+                    icon: Icons.close_rounded, 
+                    title: 'No categories yet', 
+                    subtitle: 'Create category first'
+                )
+                : ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: items.length,
+                  separatorBuilder: (context, index) => const SizedBox(height: 5),
+                  itemBuilder: (context, index) {
+                    final item = items[index];
+                    return CustomListTile(
+                      tileColor: Theme.of(context).colorScheme.primaryContainer, 
+                      leading: CustomIcon(icon: IconsManager.getIconByName(item.iconName)),
+                      title: item.name,
+                      onTap: () => onTap(item.id),
                     );
                   }
-                ),
-              ],
+                );
+              }
             ),
           )
         ],

@@ -183,8 +183,9 @@ class _StatisticsPage extends State<StatisticsPage> {
     showCustomModalBottomSheet(
       context: context, 
       backgroundColor: Theme.of(context).colorScheme.surface,
-      child: Wrap(
-        runSpacing: 10,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 10,
         children: [
           // header
           CustomHeader(
@@ -197,88 +198,98 @@ class _StatisticsPage extends State<StatisticsPage> {
             ),
             title: 'Period',
           ),
-          // all time
-          CustomListTile(
-            tileColor: Theme.of(context).colorScheme.primaryContainer,
-            leading: const CustomIcon(icon: Icons.all_inclusive,),
-            title: 'All Time',
-            onTap: () {
-              setState(() {
-                periodButtonLabel = 'All Time';
-                startDate = DateTime(2000);
-                endDate = DateTime.now();
-              });
-              Navigator.pop(context);
-            },
-          ),
-          // this month
-          CustomListTile(
-            tileColor: Theme.of(context).colorScheme.primaryContainer,
-            leading: const CustomIcon(icon: Icons.calendar_today),
-            title: 'This Month',
-            onTap: () {
-              final now = DateTime.now();
-              setState(() {
-                periodButtonLabel = 'This Month';
-                startDate = DateTime(now.year, now.month, 1); // first day of this month
-                endDate = DateTime(now.year, now.month + 1, 0); // first day of next month
-              });
-              Navigator.pop(context);
-            },
-          ),
-          // previous month
-          CustomListTile(
-            tileColor: Theme.of(context).colorScheme.primaryContainer,
-            leading: const CustomIcon(icon:Icons.calendar_month),
-            title: 'Previous Month',
-            onTap: () {
-              final now = DateTime.now();
-              setState(() {
-                periodButtonLabel = 'Previous Month';
-                startDate = DateTime(now.year, now.month - 1, 1); // first day of previous month
-                endDate = DateTime(now.year, now.month, 0); // first day of this month
-              });
-              Navigator.pop(context);
-            },
-          ),
-          // custom period
-          CustomListTile(
-            tileColor: Theme.of(context).colorScheme.primaryContainer,
-            leading: const CustomIcon(icon: Icons.tune),
-            title: 'Custom Period',
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () async {
-              Navigator.pop(context);
-              final dateRange = await pickDateRange(context: context);
+          // statistic period options
+          Flexible(
+            child: SingleChildScrollView(
+              child: Column(
+                spacing: 5,
+                children: [
+                  // all time
+                  CustomListTile(
+                    tileColor: Theme.of(context).colorScheme.primaryContainer,
+                    leading: const CustomIcon(icon: Icons.all_inclusive,),
+                    title: 'All Time',
+                    onTap: () {
+                      setState(() {
+                        periodButtonLabel = 'All Time';
+                        startDate = DateTime(2000);
+                        endDate = DateTime.now();
+                      });
+                      Navigator.pop(context);
+                    },
+                  ),
+                  // this month
+                  CustomListTile(
+                    tileColor: Theme.of(context).colorScheme.primaryContainer,
+                    leading: const CustomIcon(icon: Icons.calendar_today),
+                    title: 'This Month',
+                    onTap: () {
+                      final now = DateTime.now();
+                      setState(() {
+                        periodButtonLabel = 'This Month';
+                        startDate = DateTime(now.year, now.month, 1); // first day of this month
+                        endDate = DateTime(now.year, now.month + 1, 0); // first day of next month
+                      });
+                      Navigator.pop(context);
+                    },
+                  ),
+                  // previous month
+                  CustomListTile(
+                    tileColor: Theme.of(context).colorScheme.primaryContainer,
+                    leading: const CustomIcon(icon:Icons.calendar_month),
+                    title: 'Previous Month',
+                    onTap: () {
+                      final now = DateTime.now();
+                      setState(() {
+                        periodButtonLabel = 'Previous Month';
+                        startDate = DateTime(now.year, now.month - 1, 1); // first day of previous month
+                        endDate = DateTime(now.year, now.month, 0); // first day of this month
+                      });
+                      Navigator.pop(context);
+                    },
+                  ),
+                  // custom period
+                  CustomListTile(
+                    tileColor: Theme.of(context).colorScheme.primaryContainer,
+                    leading: const CustomIcon(icon: Icons.tune),
+                    title: 'Custom Period',
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () async {
+                      Navigator.pop(context);
+                      final dateRange = await pickDateRange(context: context);
 
-              if(dateRange != null) {
-                setState(() {
-                  // label in period button
-                  // format dd.mm.yyyy - dd.mm.yyyy
-                  periodButtonLabel = 
-                    '${dateRange.start.day.toString().padLeft(2, '0')}.'
-                    '${dateRange.start.month.toString().padLeft(2, '0')}.'
-                    '${dateRange.start.year} - '
-                    '${dateRange.end.day.toString().padLeft(2, '0')}.'
-                    '${dateRange.end.month.toString().padLeft(2, '0')}.'
-                    '${dateRange.end.year}';
+                      if(dateRange != null) {
+                        setState(() {
+                          // label in period button
+                          // format dd.mm.yyyy - dd.mm.yyyy
+                          periodButtonLabel = 
+                            '${dateRange.start.day.toString().padLeft(2, '0')}.'
+                            '${dateRange.start.month.toString().padLeft(2, '0')}.'
+                            '${dateRange.start.year} - '
+                            '${dateRange.end.day.toString().padLeft(2, '0')}.'
+                            '${dateRange.end.month.toString().padLeft(2, '0')}.'
+                            '${dateRange.end.year}';
 
-                  // start date
-                  startDate = dateRange.start; 
-                  // end date including last day
-                  endDate = DateTime(
-                    dateRange.end.year,
-                    dateRange.end.month,
-                    dateRange.end.day,
-                    23,
-                    59,
-                    59,
-                    999,
-                  );
-                });
-              }
-            },
-          ),
+                          // start date
+                          startDate = dateRange.start; 
+                          // end date including last day
+                          endDate = DateTime(
+                            dateRange.end.year,
+                            dateRange.end.month,
+                            dateRange.end.day,
+                            23,
+                            59,
+                            59,
+                            999,
+                          );
+                        });
+                      }
+                    },
+                  ),
+                ],
+              ),
+            )
+          )
         ],
       )
     );

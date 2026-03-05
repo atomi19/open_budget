@@ -892,101 +892,107 @@ class _HomePageContentState extends State<HomePageContent> {
       backgroundColor: Theme.of(context).colorScheme.surface,
       child: StatefulBuilder(
         builder: (context, StateSetter setState) {
-          return Column(
-            children: [
-              // header
-              CustomHeader(
-                startWidget: IconButton(
-                  style: IconButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+          return SizedBox(
+            height: MediaQuery.of(context).size.height,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  // header
+                  CustomHeader(
+                    startWidget: IconButton(
+                      style: IconButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close)
+                    ), 
+                    title: 'Settings', 
                   ),
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close)
-                ), 
-                title: 'Settings', 
-              ),
-              // theme
-              const SectionHeader(
-                title: 'Appearance'
-              ),
-              const SizedBox(height: 10),
-              Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  spacing: 10,
-                  children: [
-                    _buildThemeSelectionButton(
-                      theme: theme, 
-                      newTheme: ThemeMode.light,
-                      label: 'Light',
-                    ),
-                    _buildThemeSelectionButton(
-                      theme: theme, 
-                      newTheme: ThemeMode.system,
-                      label: 'System',
-                    ),
-                    _buildThemeSelectionButton(
-                      theme: theme, 
-                      newTheme: ThemeMode.dark,
-                      label: 'Dark',
-                    ),
-                  ],
-                ),
-              ),
-              const SectionHeader(
-                title: 'Preferences'
-              ),
-              // categories manager
-              const SizedBox(height: 10),
-              CustomListTile(
-                tileColor: Theme.of(context).colorScheme.primaryContainer,
-                title: 'Categories',
-                trailing: const CustomIcon(icon: Icons.chevron_right),
-                onTap: () => _showCategoriesManager(),
-              ),
-              const SizedBox(height: 20),
-              CustomListTile(
-                tileColor: Theme.of(context).colorScheme.primaryContainer,
-                title: 'Show transaction description',             
-                trailing: Switch(
-                  value: _isShowingDescription, 
-                  activeThumbColor: Colors.white,
-                  inactiveThumbColor: Colors.grey.shade200,
-                  activeTrackColor: Colors.blue,
-                  inactiveTrackColor: Colors.grey.shade500,
-                  trackOutlineColor: WidgetStateProperty.resolveWith(
-                    (Set<WidgetState> states) {
-                      return Colors.transparent;
-                    }
+                  // theme
+                  const SectionHeader(
+                    title: 'Appearance'
                   ),
-                  onChanged: (bool value) {
-                    setState(() {
-                      setState(() {
-                        _isShowingDescription = value;
-                      });
-                      setState(() {
-                        _isShowingDescription = value;
-                      });
-                      AppSettings.switchTransactionDescription(value);
-                      _loadDescriptionState();
-                    });
-                  }
-                ),
+                  const SizedBox(height: 10),
+                  Center(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: 10,
+                      children: [
+                        _buildThemeSelectionButton(
+                          theme: theme, 
+                          newTheme: ThemeMode.light,
+                          label: 'Light',
+                        ),
+                        _buildThemeSelectionButton(
+                          theme: theme, 
+                          newTheme: ThemeMode.system,
+                          label: 'System',
+                        ),
+                        _buildThemeSelectionButton(
+                          theme: theme, 
+                          newTheme: ThemeMode.dark,
+                          label: 'Dark',
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SectionHeader(
+                    title: 'Preferences'
+                  ),
+                  // categories manager
+                  const SizedBox(height: 10),
+                  CustomListTile(
+                    tileColor: Theme.of(context).colorScheme.primaryContainer,
+                    title: 'Categories',
+                    trailing: const CustomIcon(icon: Icons.chevron_right),
+                    onTap: () => _showCategoriesManager(),
+                  ),
+                  const SizedBox(height: 20),
+                  CustomListTile(
+                    tileColor: Theme.of(context).colorScheme.primaryContainer,
+                    title: 'Show transaction description',             
+                    trailing: Switch(
+                      value: _isShowingDescription, 
+                      activeThumbColor: Colors.white,
+                      inactiveThumbColor: Colors.grey.shade200,
+                      activeTrackColor: Colors.blue,
+                      inactiveTrackColor: Colors.grey.shade500,
+                      trackOutlineColor: WidgetStateProperty.resolveWith(
+                        (Set<WidgetState> states) {
+                          return Colors.transparent;
+                        }
+                      ),
+                      onChanged: (bool value) {
+                        setState(() {
+                          setState(() {
+                            _isShowingDescription = value;
+                          });
+                          setState(() {
+                            _isShowingDescription = value;
+                          });
+                          AppSettings.switchTransactionDescription(value);
+                          _loadDescriptionState();
+                        });
+                      }
+                    ),
+                  ),
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(10, 5, 10, 10),
+                      child: Text('Display the description below each transaction', style: TextStyle(fontSize: 13),),
+                    ),
+                  ),
+                  CustomListTile(
+                    tileColor: Theme.of(context).colorScheme.primaryContainer, 
+                    title: 'Currency',
+                    trailing: const CustomIcon(icon: Icons.chevron_right),
+                    onTap: () => _showCurrencySelectionSheet(),
+                  ),
+                ],
               ),
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(10, 5, 10, 10),
-                  child: Text('Display the description below each transaction', style: TextStyle(fontSize: 13),),
-                ),
-              ),
-              CustomListTile(
-                tileColor: Theme.of(context).colorScheme.primaryContainer, 
-                title: 'Currency',
-                trailing: const CustomIcon(icon: Icons.chevron_right),
-                onTap: () => _showCurrencySelectionSheet(),
-              ),
-            ],
+            ),
           );
         }
       ),
@@ -1083,44 +1089,40 @@ class _HomePageContentState extends State<HomePageContent> {
               ),
               // income or expense categories
               Expanded(
-                child: ListView(
-                  children: [
-                    StreamBuilder(
-                      stream: widget.db.watchIncomeOrExpenseCategories(isIncome),
-                      builder: (context, snapshot) {
-                        final items =snapshot.data ?? [];
-                        return items.isEmpty
-                        ? Padding(
-                          padding: const EdgeInsets.all(10),
-                          child: EmptyListPlaceholder(
-                            color: Theme.of(context).colorScheme.surface,
-                            icon: Icons.close_rounded, 
-                            title: 'No categories yet', 
-                            subtitle: 'Create category first'
-                          )
-                        )
-                        : ListView.separated(
-                          shrinkWrap: true,
-                          itemCount: items.length,
-                          separatorBuilder: (context, index) => const SizedBox(height: 5),
-                          itemBuilder: (context, index) {
-                            final item = items[index];
+                child: StreamBuilder(
+                  stream: widget.db.watchIncomeOrExpenseCategories(isIncome),
+                  builder: (context, snapshot) {
+                    final items =snapshot.data ?? [];
+                    return items.isEmpty
+                    ? Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: EmptyListPlaceholder(
+                        color: Theme.of(context).colorScheme.surface,
+                        icon: Icons.close_rounded, 
+                        title: 'No categories yet', 
+                        subtitle: 'Create category first'
+                      )
+                    )
+                    : ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: items.length,
+                      separatorBuilder: (context, index) => const SizedBox(height: 5),
+                      itemBuilder: (context, index) {
+                        final item = items[index];
 
-                            return CustomListTile(
-                              tileColor: Theme.of(context).colorScheme.primaryContainer,
-                              leading: CustomIcon(icon: IconsManager.getIconByName(item.iconName)),
-                              title: item.name,
-                              trailing: IconButton(
-                                onPressed: () => _showCategoryDeletetionPrompt(item.id),
-                                icon: const Icon(Icons.delete_outlined)
-                              ),
-                              onTap: () => _showCategoryEditingSheet(item),
-                            );
-                          }
+                        return CustomListTile(
+                          tileColor: Theme.of(context).colorScheme.primaryContainer,
+                          leading: CustomIcon(icon: IconsManager.getIconByName(item.iconName)),
+                          title: item.name,
+                          trailing: IconButton(
+                            onPressed: () => _showCategoryDeletetionPrompt(item.id),
+                            icon: const Icon(Icons.delete_outlined)
+                          ),
+                          onTap: () => _showCategoryEditingSheet(item),
                         );
                       }
-                    ),
-                  ],
+                    );
+                  }
                 ),
               ),
               // create category button

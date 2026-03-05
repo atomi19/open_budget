@@ -146,7 +146,7 @@ class _HomePageContentState extends State<HomePageContent> {
                     ),
                     //color: Colors.blue,
                     onPressed: () => Navigator.pop(context), 
-                    icon: Icon(Icons.close_outlined, color: Theme.of(context).colorScheme.secondary)
+                    icon: Icon(Icons.close_outlined, color: Theme.of(context).colorScheme.onPrimary)
                   ),
                   title: 'All Transactions',
                   endWidget: IconButton(
@@ -158,7 +158,7 @@ class _HomePageContentState extends State<HomePageContent> {
                         isSearchingTransactions = !isSearchingTransactions;
                       });
                     }, 
-                    icon: Icon(Icons.search_outlined, color: Theme.of(context).colorScheme.secondary)
+                    icon: Icon(Icons.search_outlined, color: Theme.of(context).colorScheme.onPrimary)
                   ),
                 )
               ),

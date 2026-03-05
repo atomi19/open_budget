@@ -139,29 +139,23 @@ class _HomePageContentState extends State<HomePageContent> {
                   ],
                 )
                 // default header when user is not searching transactions
-                : Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      color: Colors.blue,
-                      onPressed: () => Navigator.pop(context), 
-                      icon: const Icon(Icons.close_outlined)
-                    ),
-                    const Text(
-                      'All Transactions',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                    IconButton(
-                      color: Colors.blue,
-                      onPressed: () {
-                        setState(() {
-                          isSearchingTransactions = !isSearchingTransactions;
-                        });
-                      }, 
-                      icon: const Icon(Icons.search_outlined)
-                    ),
-                  ],
-                ),
+                : CustomHeader(
+                  startWidget: IconButton(
+                    color: Colors.blue,
+                    onPressed: () => Navigator.pop(context), 
+                    icon: const Icon(Icons.close_outlined)
+                  ),
+                  title: 'All Transactions',
+                  endWidget: IconButton(
+                    color: Colors.blue,
+                    onPressed: () {
+                      setState(() {
+                        isSearchingTransactions = !isSearchingTransactions;
+                      });
+                    }, 
+                    icon: const Icon(Icons.search_outlined)
+                  ),
+                )
               ),
               // incomes, all, expenses textbuttons
               Container(
@@ -732,6 +726,141 @@ class _HomePageContentState extends State<HomePageContent> {
     );
   }
 
+  // currency selection inside settings
+  void _showCurrencySelectionSheet() {
+    final controller = TextEditingController(text: '');
+    List<Currency> foundCurrencies = [];
+    bool isSearchingCurrencies = false;
+
+    showCustomModalBottomSheet(
+      context: context, 
+      isScrollControlled: true,
+      borderRadius: 0,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      child: StatefulBuilder(
+        builder: (context, setState) {
+          return Column(
+            spacing: 10,
+            children: [
+              // header
+              isSearchingCurrencies
+              // search header
+              ? Row(
+                spacing: 10,
+                children: [
+                  Expanded(
+                    child: CustomTextField(
+                      prefixIcon: const Icon(Icons.search),
+                      controller: controller,
+                      isDense: true,
+                      hintText: 'Find currency...',
+                      maxLines: 1,
+                      onChanged: (String query) {
+                        setState(() {
+                          foundCurrencies = _findCurrency(query);
+                        });
+                      },
+                    ),
+                  ),
+                  IconButton(
+                    style: IconButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        isSearchingCurrencies = false;
+                      });
+                    },
+                    icon: const Icon(Icons.close)
+                  ),
+                ],
+              )
+              // default header
+              : CustomHeader(
+                // close button
+                startWidget: IconButton(
+                  style: IconButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close)
+                ),
+                title: 'Currency',
+                // search button
+                endWidget: IconButton(
+                  onPressed: () {
+                    setState(() {
+                      isSearchingCurrencies = true;
+                    });
+                  }, 
+                  icon: const Icon(Icons.search),
+                ),
+              ),
+              // currencies lists
+              Expanded(
+                child: isSearchingCurrencies
+                // found currencies
+                ? foundCurrencies.isEmpty
+                  // no currencies found
+                  ? EmptyListPlaceholder(
+                    color: Theme.of(context).colorScheme.surface,
+                    icon: Icons.search_off, 
+                    title: 'No currencies found', 
+                    subtitle: 'Try a different search'
+                  )
+                  // found currencies
+                  : _buildCurrenciesList(currencies: foundCurrencies)
+                // all currencies
+                : _buildCurrenciesList(currencies: Currency.currencies)
+              ),
+            ],
+          );
+        },
+      )
+    );
+  }
+
+  // currencies list in settings
+  Widget _buildCurrenciesList({
+    required List<Currency> currencies,
+  }) {
+    return ListView.separated(
+      itemCount: currencies.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 5), 
+      itemBuilder: (context, index) {
+        final currencyItem = currencies[index]; 
+
+        return CustomListTile(
+          tileColor: Theme.of(context).colorScheme.primaryContainer,
+          title: currencyItem.name, 
+          trailing: Text(
+            currencyItem.code,
+            style: const TextStyle(
+              fontSize: 16,
+              color: Colors.grey
+            ),
+          ),
+          onTap: () async {
+            Navigator.pop(context);
+            await CurrencyManager.setCurrency(currencyItem);
+            setState(() {
+              _currentCurrency = CurrencyManager.currentCurrency!;
+            });
+          }
+        );
+      }, 
+    );
+  }
+
+  // find currency
+  List<Currency> _findCurrency(String query) {
+    if(query.trim().isEmpty) return [];
+    final String formattedQuery = query.toLowerCase();
+    final List<Currency> currencies = Currency.currencies;
+    final List<Currency> foundCurrencies = currencies.where((c) => c.name.toLowerCase().contains(formattedQuery)).toList();
+    return foundCurrencies;
+  }
+
   // settings modalBottomSheet
   void _showSettings() async {
     final theme = await AppSettings.getTheme();
@@ -832,48 +961,11 @@ class _HomePageContentState extends State<HomePageContent> {
                   child: Text('Display the description below each transaction', style: TextStyle(fontSize: 13),),
                 ),
               ),
-              const SizedBox(height: 20),
-              // currency expansion tile setting
-              ExpansionTile(
-                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                collapsedBackgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                collapsedShape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15)
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                title: const Text('Currency'),
-                trailing: const CustomIcon(icon: Icons.arrow_drop_down_rounded),
-                children: [
-                  SizedBox(
-                    height: 250,
-                    child: ListView.builder(
-                      itemCount: Currency.currencies.length,
-                      itemBuilder: (context, index) {
-                        final currencyItem = Currency.currencies[index]; 
-                        return CustomListTile(
-                          tileColor: Theme.of(context).colorScheme.primaryContainer,
-                          title: currencyItem.name, 
-                          trailing: Text(
-                            currencyItem.code,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey
-                            ),
-                          ),
-                          onTap: () async {
-                            Navigator.pop(context);
-                            await CurrencyManager.setCurrency(currencyItem);
-                            setState(() {
-                              _currentCurrency = CurrencyManager.currentCurrency!;
-                            });
-                          }
-                        );
-                      }
-                    ),
-                  )
-                ]
+              CustomListTile(
+                tileColor: Theme.of(context).colorScheme.primaryContainer, 
+                title: 'Currency',
+                trailing: const CustomIcon(icon: Icons.chevron_right),
+                onTap: () => _showCurrencySelectionSheet(),
               ),
             ],
           );

@@ -141,19 +141,24 @@ class _HomePageContentState extends State<HomePageContent> {
                 // default header when user is not searching transactions
                 : CustomHeader(
                   startWidget: IconButton(
-                    color: Colors.blue,
+                    style: IconButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                    ),
+                    //color: Colors.blue,
                     onPressed: () => Navigator.pop(context), 
-                    icon: const Icon(Icons.close_outlined)
+                    icon: Icon(Icons.close_outlined, color: Theme.of(context).colorScheme.secondary)
                   ),
                   title: 'All Transactions',
                   endWidget: IconButton(
-                    color: Colors.blue,
+                    style: IconButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                    ),
                     onPressed: () {
                       setState(() {
                         isSearchingTransactions = !isSearchingTransactions;
                       });
                     }, 
-                    icon: const Icon(Icons.search_outlined)
+                    icon: Icon(Icons.search_outlined, color: Theme.of(context).colorScheme.secondary)
                   ),
                 )
               ),
@@ -485,9 +490,7 @@ class _HomePageContentState extends State<HomePageContent> {
               style: IconButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.primaryContainer,
               ),
-              onPressed: () {
-                _showDeleteConfirmation(item.id);
-              }, 
+              onPressed: () => _showDeleteConfirmation(item),
               icon: const Icon(Icons.delete_outlined)
             ),
           ),
@@ -619,7 +622,7 @@ class _HomePageContentState extends State<HomePageContent> {
   }
 
   // delete transaction confirmation AlertDialog
-  void _showDeleteConfirmation(int id) {
+  void _showDeleteConfirmation(Transaction transaction) {
     showDialog(
       context: context, 
       builder: (context) => AlertDialog(
@@ -655,9 +658,10 @@ class _HomePageContentState extends State<HomePageContent> {
                   ),
                   onPressed: () {
                     final messenger = ScaffoldMessenger.of(context);
-                    Navigator.pop(context); // close alertDialog
-                    Navigator.pop(context); // close transaction details modalBottomSheet
-                    bool shouldDelete = true;
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+
+                    final deletedTransaction = transaction;
+                    widget.db.deleteTransaction(deletedTransaction.id);
 
                     showSnackBar(
                       context: context, 
@@ -666,25 +670,40 @@ class _HomePageContentState extends State<HomePageContent> {
                         children: [
                           Text(
                             'Transaction deleted',
-                            style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+                            style: TextStyle(color: Theme.of(context).colorScheme.secondary),
                           ),
                           TextButton(
                             style: TextButton.styleFrom(
-                              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                              backgroundColor: Theme.of(context).colorScheme.surface,
                             ),
                             onPressed: () {
-                              shouldDelete = false;
+                              // date and time
+                              final DateTime dateAndTime = deletedTransaction.dateAndTime;
+
+                              // date
+                              final DateTime date = DateTime(
+                                dateAndTime.year,
+                                dateAndTime.month,
+                                dateAndTime.day,
+                              );
+
+                              // time
+                              final TimeOfDay time = TimeOfDay.fromDateTime(dateAndTime);
+
+                              widget.db.addTransaction(
+                                amount: deletedTransaction.amount, 
+                                description: deletedTransaction.description, 
+                                categoryId: deletedTransaction.categoryId, 
+                                date: date, 
+                                time: time
+                              );
+
                               messenger.hideCurrentSnackBar();
                             },
                             child: Text('Undo', style: TextStyle(color: Theme.of(context).colorScheme.onPrimary)),
                           ),
                         ],
                       ),
-                      onClosed: () {
-                        if(shouldDelete) {
-                          widget.db.deleteTransaction(id);
-                        }
-                      }
                     );
                   }, 
                   child: const Text('Delete', style: TextStyle(fontSize: 15, color: Colors.white)),

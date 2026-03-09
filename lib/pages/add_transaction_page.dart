@@ -4,7 +4,9 @@ import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/logic/handle_data_submit.dart';
 import 'package:open_budget/logic/icons_manager.dart';
 import 'package:open_budget/widgets/custom_header.dart';
+import 'package:open_budget/widgets/custom_header_title.dart';
 import 'package:open_budget/widgets/custom_icon.dart';
+import 'package:open_budget/widgets/custom_icon_button.dart';
 import 'package:open_budget/widgets/custom_list_tile.dart';
 import 'package:open_budget/widgets/custom_modal_bottom_sheet.dart';
 import 'package:open_budget/widgets/custom_text_field.dart';
@@ -60,21 +62,22 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
       backgroundColor: Theme.of(context).colorScheme.surface,
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        spacing: 10,
         children: [
           // header
           CustomHeader(
-            // close button
-            startWidget: IconButton(
-              style: IconButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+            children: [
+              // close button
+              CustomIconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close)
               ),
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.close)
-            ),
-            title: isIncome
-              ? 'Select income category'
-              : 'Select expense category',
+              CustomHeaderTitle(
+                title: isIncome
+                  ? 'Select income category'
+                  : 'Select expense category',
+              ),
+              const SizedBox(width: 48),
+            ],
           ),
           // categories list
           Expanded(
@@ -93,6 +96,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                   shrinkWrap: true,
                   itemCount: items.length,
                   separatorBuilder: (context, index) => const SizedBox(height: 5),
+                  padding:const EdgeInsets.symmetric(horizontal: 15),
                   itemBuilder: (context, index) {
                     final item = items[index];
                     return CustomListTile(
@@ -196,6 +200,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     );
   }
 
+  // income / expense switch button
   Widget _switchButton({
     required bool isIncome,
     required int pageIndex,
@@ -204,11 +209,12 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
       ? 0
       : 1;
 
-    return TextButton(
-      style: TextButton.styleFrom(
+    return FilledButton(
+      style: FilledButton.styleFrom(
         backgroundColor: pageIndex == currentPageIndex
           ? Colors.blue
-          : Colors.transparent,
+          : Theme.of(context).colorScheme.primaryContainer,
+        shape: const StadiumBorder()
       ),
       onPressed: () {
         if(_transactionPageIndex != currentPageIndex) {
@@ -216,13 +222,24 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           setState(() => _transactionPageIndex = currentPageIndex);
         }
       }, 
-      child: Text(
-        isIncome ? 'Income' : 'Expense',
-        style: TextStyle(
-          color: pageIndex == currentPageIndex
-            ? Theme.of(context).colorScheme.secondary
-            : Theme.of(context).colorScheme.onPrimary
-        ),
+      child: Row(
+        children: [
+          pageIndex == currentPageIndex
+            ? Icon(
+              isIncome ? Icons.upload_outlined : Icons.download_outlined,
+              color: Theme.of(context).colorScheme.secondary,
+            )
+            : const SizedBox(),
+          const SizedBox(width: 5),
+          Text(
+            isIncome ? 'Income' : 'Expense',
+            style: TextStyle(
+              color: pageIndex == currentPageIndex
+                ? Theme.of(context).colorScheme.secondary
+                : Theme.of(context).colorScheme.onPrimary
+            ),
+          )
+        ],
       )
     );
   } 
@@ -237,21 +254,21 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           // header
           Container(
             padding: const EdgeInsets.all(5),
-            decoration: BoxDecoration(
+            decoration: ShapeDecoration(
               color: Theme.of(context).colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(20),
+              shape: const StadiumBorder(),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               spacing: 5,
               children: [
-                // income text button
+                // income button
                 _switchButton(
                   isIncome: true, 
                   pageIndex: _transactionPageIndex,
                 ),
-                // expense text button
+                // expense button
                 _switchButton(
                   isIncome: false, 
                   pageIndex: _transactionPageIndex,

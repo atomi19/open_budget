@@ -8,7 +8,9 @@ import 'package:open_budget/logic/format_number.dart';
 import 'package:open_budget/logic/icons_manager.dart';
 import 'package:open_budget/widgets/build_transactions_list.dart';
 import 'package:open_budget/widgets/custom_header.dart';
+import 'package:open_budget/widgets/custom_header_title.dart';
 import 'package:open_budget/widgets/custom_icon.dart';
+import 'package:open_budget/widgets/custom_icon_button.dart';
 import 'package:open_budget/widgets/custom_list_tile.dart';
 import 'package:open_budget/widgets/custom_modal_bottom_sheet.dart';
 import 'package:open_budget/widgets/custom_text_field.dart';
@@ -100,59 +102,48 @@ class _HomePageContentState extends State<HomePageContent> {
         builder: (BuildContext context, StateSetter setState) {
           return Column(
             children: [
-              Padding(
-                padding: const EdgeInsetsGeometry.all(10),
-                child: isSearchingTransactions
-                // header with searching field
-                ? Row(
-                  children: [
-                    // search text field
-                    Expanded(
-                      child: CustomTextField(
-                        controller: searchTransactionController, 
-                        maxLines: 1,
-                        isDense: true,
-                        prefixIcon: const CustomIcon(icon: Icons.search_outlined),
-                        hintText: 'Search transactions...',
-                        onChanged: (String query) {
-                          setState(() {
-                            searchQuery = query.trim();
-                          });
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    // switch to default header icon button
-                    IconButton(
-                      style: IconButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                      ),
-                      onPressed: () {
+              isSearchingTransactions
+              // header with searching field
+              ? CustomHeader(
+                children: [
+                  // search text field
+                  Expanded(
+                    child: CustomTextField(
+                      controller: searchTransactionController, 
+                      maxLines: 1,
+                      isDense: true,
+                      prefixIcon: const CustomIcon(icon: Icons.search_outlined),
+                      hintText: 'Search transactions...',
+                      onChanged: (String query) {
                         setState(() {
-                          isSearchingTransactions = !isSearchingTransactions;
-                          searchTransactionController.clear();
-                          searchQuery = '';
+                          searchQuery = query.trim();
                         });
-                      }, 
-                      icon: const Icon(Icons.close_outlined)
+                      },
                     ),
-                  ],
-                )
-                // default header when user is not searching transactions
-                : CustomHeader(
-                  startWidget: IconButton(
-                    style: IconButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                    ),
-                    //color: Colors.blue,
+                  ),
+                  const SizedBox(width: 10),
+                  // switch to default header icon button
+                  CustomIconButton(
+                    onPressed: () {
+                      setState(() {
+                        isSearchingTransactions = !isSearchingTransactions;
+                        searchTransactionController.clear();
+                        searchQuery = '';
+                      });
+                    }, 
+                    icon: const Icon(Icons.close_outlined)
+                  ),
+                ]
+              )
+              // default header when user is not searching transactions
+              : CustomHeader(
+                children: [
+                  CustomIconButton(
                     onPressed: () => Navigator.pop(context), 
                     icon: Icon(Icons.close_outlined, color: Theme.of(context).colorScheme.onPrimary)
                   ),
-                  title: 'All Transactions',
-                  endWidget: IconButton(
-                    style: IconButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                    ),
+                  const CustomHeaderTitle(title: 'All Transactions'),
+                  CustomIconButton(
                     onPressed: () {
                       setState(() {
                         isSearchingTransactions = !isSearchingTransactions;
@@ -160,7 +151,7 @@ class _HomePageContentState extends State<HomePageContent> {
                     }, 
                     icon: Icon(Icons.search_outlined, color: Theme.of(context).colorScheme.onPrimary)
                   ),
-                )
+                ]
               ),
               // incomes, all, expenses textbuttons
               Container(
@@ -276,18 +267,17 @@ class _HomePageContentState extends State<HomePageContent> {
       backgroundColor: Theme.of(context).colorScheme.surface,
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        spacing: 10,
         children: [
           // header
           CustomHeader(
-            startWidget: IconButton(
-              style: IconButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+            children: [
+              CustomIconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close)
               ),
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.close)
-            ),
-            title: 'Change category', 
+              const CustomHeaderTitle(title: 'Change category'),
+              const SizedBox(width: 48),
+            ]
           ),
           // categories
           Expanded(
@@ -311,6 +301,7 @@ class _HomePageContentState extends State<HomePageContent> {
                       shrinkWrap: true,
                       itemCount: items.length,
                       separatorBuilder: (context, index) => const SizedBox(height: 5),
+                      padding: const EdgeInsets.symmetric(horizontal: 15),
                       itemBuilder: (context, index) {
                         final category = items[index];
 
@@ -352,55 +343,54 @@ class _HomePageContentState extends State<HomePageContent> {
       context: context, 
       backgroundColor: Theme.of(context).colorScheme.surface,
       child: Wrap(
-        runSpacing: 10,
         children: [
           // header
           CustomHeader(
-            // close button
-            startWidget: IconButton(
-              style: IconButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+            children: [
+              // close button
+              CustomIconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close)
               ),
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.close)
-            ),
-            title: 'Edit', 
-            // update amount (confirm) button
-            endWidget: IconButton(
-              style: IconButton.styleFrom(
+              const CustomHeaderTitle(title: 'Edit'),
+              // update amount (confirm) button
+              CustomIconButton(
                 backgroundColor: Theme.of(context).colorScheme.primary,
+                onPressed: () {
+                  final newAmount = isIncome
+                    ? editAmountController.text
+                    : '-${editAmountController.text}';
+
+                  double? amount = double.tryParse(newAmount);
+
+                  if(amount == null) {
+                    showSnackBar(
+                      context: context, 
+                      content: const Text('Enter valid amount')
+                    );
+                  } else {
+                    widget.db.updateAmount(item.id, amount);
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                  }
+                }, 
+                icon: Icon(Icons.done_rounded, color: Theme.of(context).colorScheme.primaryContainer)
               ),
-              onPressed: () {
-                final newAmount = isIncome
-                  ? editAmountController.text
-                  : '-${editAmountController.text}';
-
-                double? amount = double.tryParse(newAmount);
-
-                if(amount == null) {
-                  showSnackBar(
-                    context: context, 
-                    content: const Text('Enter valid amount')
-                  );
-                } else {
-                  widget.db.updateAmount(item.id, amount);
-                  Navigator.of(context).popUntil((route) => route.isFirst);
-                }
-              }, 
-              icon: Icon(Icons.done_rounded, color: Theme.of(context).colorScheme.primaryContainer)
-            ),
+            ]
           ),
           // amount editing textfield
-          CustomTextField(
-            controller: editAmountController, 
-            prefix: isIncome
-              ? const Text('+ ')
-              : const Text('- '),
-            hintText: isIncome
-              ? 'Edit income...'
-              : 'Edit expense...',
-            textInputType: TextInputType.number,
-          ),
+          Padding(
+            padding:const EdgeInsets.symmetric(horizontal: 15),
+            child: CustomTextField(
+              controller: editAmountController, 
+              prefix: isIncome
+                ? const Text('+ ')
+                : const Text('- '),
+              hintText: isIncome
+                ? 'Edit income...'
+                : 'Edit expense...',
+              textInputType: TextInputType.number,
+            ),
+          )
         ],
       )
     );
@@ -472,148 +462,154 @@ class _HomePageContentState extends State<HomePageContent> {
       borderRadius: 0,
       backgroundColor: Theme.of(context).colorScheme.surface,
       child: Column(
-        spacing: 10,
         children: [
           // header
           CustomHeader(
-            // close button
-            startWidget: IconButton(
-              style: IconButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              ),
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.close)
-            ),
-            title: 'Details', 
-            // delete transaction button
-            endWidget: IconButton(
-              style: IconButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              ),
-              onPressed: () => _showDeleteConfirmation(item),
-              icon: const Icon(Icons.delete_outlined)
-            ),
-          ),
-          // transaction details
-          // amount
-          GestureDetector(
-            child: Align(
-              alignment: Alignment.center,
-              child: Text(
-                item.amount % 1 == 0
-                  ? '${item.amount.toInt().toString()} ${_currentCurrency.symbol}'
-                  : '${item.amount.toString()} ${_currentCurrency.symbol}', 
-                style: TextStyle(
-                  fontSize: 40, 
-                  fontWeight: FontWeight.bold,
-                  color: isIncome
-                    ? Colors.green
-                    : Theme.of(context).colorScheme.onPrimary,
-                ),
-              ),
-            ),
-            // editing modalBottomSheet
-            onTap: () => _showAmountEditingSheet(isIncome: isIncome, item: item),
-          ),
-          const SectionHeader(title: 'Date & Time'),
-          Column(
             children: [
-              // date in dd-mm-yyyy format
-              CustomListTile(
-                tileColor: Theme.of(context).colorScheme.primaryContainer,
-                leading: const CustomIcon(icon: Icons.calendar_today,),
-                title: 'Date',
-                customBorder: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(15),
-                    bottom: Radius.zero,
-                  )
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '${item.dateAndTime.day.toString().padLeft(2, '0')}-${item.dateAndTime.month.toString().padLeft(2, '0')}-${item.dateAndTime.year}',
-                      style: const TextStyle(fontSize: 15),
-                    ),
-                    const SizedBox(width: 5),
-                    const CustomIcon(icon: Icons.chevron_right)
-                  ],
-                ),
-                onTap: () => _showEditDatePicker(item),
+              // close button
+              CustomIconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close)
               ),
-              Divider(
-                height: 1,
-                color: Theme.of(context).colorScheme.surface,
+              const CustomHeaderTitle(title: 'Details'),
+              // delete transaction button
+              CustomIconButton(
+                onPressed: () => _showDeleteConfirmation(item),
+                icon: const Icon(Icons.delete_outlined)
               ),
-              // time in hh:mm format
-              CustomListTile(
-                tileColor: Theme.of(context).colorScheme.primaryContainer,
-                leading: const CustomIcon(icon: Icons.access_time),
-                title: 'Time',
-                customBorder: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.zero,
-                    bottom: Radius.circular(15)
-                  )
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '${item.dateAndTime.hour.toString().padLeft(2, '0')}:${item.dateAndTime.minute.toString().padLeft(2, '0')}',
-                      style: const TextStyle(fontSize: 15),
-                    ),
-                    const SizedBox(width: 5),
-                    const CustomIcon(icon: Icons.chevron_right)
-                  ],
-                ),
-                onTap: () => _showEditTimePicker(item),
-              ),
-            ],
+            ]
           ),
-          const SectionHeader(
-            title: 'Details'
-          ),
-          // category
-          CustomListTile(
-            tileColor: Theme.of(context).colorScheme.primaryContainer,
-            leading: CustomIcon(icon: IconsManager.getIconByName(iconNameKey)),
-            title: 'Category', 
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  width: 175,
-                  child: Text(
-                    _categoriesById[item.categoryId]?.name ?? 'Unknown Category',
-                    style: const TextStyle(fontSize: 15),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.right,
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: Column(
+                children: [
+                  // amount
+                  GestureDetector(
+                    child: Align(
+                      alignment: Alignment.center,
+                      child: Text(
+                        item.amount % 1 == 0
+                          ? '${item.amount.toInt().toString()} ${_currentCurrency.symbol}'
+                          : '${item.amount.toString()} ${_currentCurrency.symbol}', 
+                        style: TextStyle(
+                          fontSize: 40, 
+                          fontWeight: FontWeight.bold,
+                          color: isIncome
+                            ? Colors.green
+                            : Theme.of(context).colorScheme.onPrimary,
+                        ),
+                      ),
+                    ),
+                    // editing modalBottomSheet
+                    onTap: () => _showAmountEditingSheet(isIncome: isIncome, item: item),
                   ),
-                ),
-                const SizedBox(width: 5),
-                const CustomIcon(icon: Icons.chevron_right),
-              ],
-            ),
-            onTap: () => _showCategories(isIncome: isIncome, item: item),
-          ),
-          // description inside transaction details
-          // if user changed description it will update
-          // when focus on CustomTextField is lost
-          Focus(
-            onFocusChange: (focus) {
-              if(!focus) {
-                widget.db.updateDescription(item.id, transactionDescriptionController.text);
-              }
-            },
-            child: CustomTextField(
-              controller: transactionDescriptionController, 
-              hintText: 'Enter description...',
-              minLines: 5,
-              maxLines: 5,
-              textInputType: TextInputType.multiline,
+                  const SectionHeader(title: 'Date & Time'),
+                  const SizedBox(height: 10),
+                  Column(
+                    children: [
+                      // date in dd-mm-yyyy format
+                      CustomListTile(
+                        tileColor: Theme.of(context).colorScheme.primaryContainer,
+                        leading: const CustomIcon(icon: Icons.calendar_today,),
+                        title: 'Date',
+                        customBorder: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(15),
+                            bottom: Radius.zero,
+                          )
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '${item.dateAndTime.day.toString().padLeft(2, '0')}-${item.dateAndTime.month.toString().padLeft(2, '0')}-${item.dateAndTime.year}',
+                              style: const TextStyle(fontSize: 15),
+                            ),
+                            const SizedBox(width: 5),
+                            const CustomIcon(icon: Icons.chevron_right)
+                          ],
+                        ),
+                        onTap: () => _showEditDatePicker(item),
+                      ),
+                      Divider(
+                        height: 1,
+                        color: Theme.of(context).colorScheme.surface,
+                      ),
+                      // time in hh:mm format
+                      CustomListTile(
+                        tileColor: Theme.of(context).colorScheme.primaryContainer,
+                        leading: const CustomIcon(icon: Icons.access_time),
+                        title: 'Time',
+                        customBorder: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.zero,
+                            bottom: Radius.circular(15)
+                          )
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '${item.dateAndTime.hour.toString().padLeft(2, '0')}:${item.dateAndTime.minute.toString().padLeft(2, '0')}',
+                              style: const TextStyle(fontSize: 15),
+                            ),
+                            const SizedBox(width: 5),
+                            const CustomIcon(icon: Icons.chevron_right)
+                          ],
+                        ),
+                        onTap: () => _showEditTimePicker(item),
+                      ),
+                    ],
+                  ),
+                  const SectionHeader(
+                    title: 'Details'
+                  ),
+                  const SizedBox(height: 10),
+                  // category
+                  CustomListTile(
+                    tileColor: Theme.of(context).colorScheme.primaryContainer,
+                    leading: CustomIcon(icon: IconsManager.getIconByName(iconNameKey)),
+                    title: 'Category', 
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 175,
+                          child: Text(
+                            _categoriesById[item.categoryId]?.name ?? 'Unknown Category',
+                            style: const TextStyle(fontSize: 15),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.right,
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        const CustomIcon(icon: Icons.chevron_right),
+                      ],
+                    ),
+                    onTap: () => _showCategories(isIncome: isIncome, item: item),
+                  ),
+                  const SizedBox(height: 10),
+                  // description inside transaction details
+                  // if user changed description it will update
+                  // when focus on CustomTextField is lost
+                  Focus(
+                    onFocusChange: (focus) {
+                      if(!focus) {
+                        widget.db.updateDescription(item.id, transactionDescriptionController.text);
+                      }
+                    },
+                    child: CustomTextField(
+                      controller: transactionDescriptionController, 
+                      hintText: 'Enter description...',
+                      minLines: 5,
+                      maxLines: 5,
+                      textInputType: TextInputType.multiline,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -759,13 +755,11 @@ class _HomePageContentState extends State<HomePageContent> {
       child: StatefulBuilder(
         builder: (context, setState) {
           return Column(
-            spacing: 10,
             children: [
               // header
               isSearchingCurrencies
               // search header
-              ? Row(
-                spacing: 10,
+              ? CustomHeader(
                 children: [
                   Expanded(
                     child: CustomTextField(
@@ -781,10 +775,8 @@ class _HomePageContentState extends State<HomePageContent> {
                       },
                     ),
                   ),
-                  IconButton(
-                    style: IconButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                    ),
+                  const SizedBox(width: 10),
+                  CustomIconButton(
                     onPressed: () {
                       setState(() {
                         isSearchingCurrencies = false;
@@ -796,24 +788,23 @@ class _HomePageContentState extends State<HomePageContent> {
               )
               // default header
               : CustomHeader(
-                // close button
-                startWidget: IconButton(
-                  style: IconButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                children: [
+                  // close button
+                  CustomIconButton(
+                    icon: const Icon(Icons.close), 
+                    onPressed: () => Navigator.pop(context),
                   ),
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close)
-                ),
-                title: 'Currency',
-                // search button
-                endWidget: IconButton(
-                  onPressed: () {
-                    setState(() {
-                      isSearchingCurrencies = true;
-                    });
-                  }, 
-                  icon: const Icon(Icons.search),
-                ),
+                  const CustomHeaderTitle(title: 'Currency'),
+                  // search button
+                  CustomIconButton(
+                    icon: const Icon(Icons.search), 
+                    onPressed: () {
+                      setState(() {
+                        isSearchingCurrencies = true;
+                      });
+                    }
+                  ),
+                ],
               ),
               // currencies lists
               Expanded(
@@ -846,6 +837,7 @@ class _HomePageContentState extends State<HomePageContent> {
     return ListView.separated(
       itemCount: currencies.length,
       separatorBuilder: (context, index) => const SizedBox(height: 5), 
+      padding: const EdgeInsets.symmetric(horizontal: 15),
       itemBuilder: (context, index) {
         final currencyItem = currencies[index]; 
 
@@ -894,104 +886,111 @@ class _HomePageContentState extends State<HomePageContent> {
         builder: (context, StateSetter setState) {
           return SizedBox(
             height: MediaQuery.of(context).size.height,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  // header
-                  CustomHeader(
-                    startWidget: IconButton(
-                      style: IconButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                      ),
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                // header
+                CustomHeader(
+                  children: [
+                    CustomIconButton(
                       onPressed: () => Navigator.pop(context),
                       icon: const Icon(Icons.close)
                     ), 
-                    title: 'Settings', 
-                  ),
-                  // theme
-                  const SectionHeader(
-                    title: 'Appearance'
-                  ),
-                  const SizedBox(height: 10),
-                  Center(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      spacing: 10,
+                    const CustomHeaderTitle(title: 'Settings'),
+                    const SizedBox(width: 48),
+                  ],
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding:const EdgeInsets.symmetric(horizontal: 15),
+                    child: Column(
                       children: [
-                        _buildThemeSelectionButton(
-                          theme: theme, 
-                          newTheme: ThemeMode.light,
-                          label: 'Light',
+                        // theme
+                        const SectionHeader(
+                          title: 'Appearance'
                         ),
-                        _buildThemeSelectionButton(
-                          theme: theme, 
-                          newTheme: ThemeMode.system,
-                          label: 'System',
+                        const SizedBox(height: 10),
+                        Center(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            spacing: 10,
+                            children: [
+                              _buildThemeSelectionButton(
+                                theme: theme, 
+                                newTheme: ThemeMode.light,
+                                label: 'Light',
+                              ),
+                              _buildThemeSelectionButton(
+                                theme: theme, 
+                                newTheme: ThemeMode.system,
+                                label: 'System',
+                              ),
+                              _buildThemeSelectionButton(
+                                theme: theme, 
+                                newTheme: ThemeMode.dark,
+                                label: 'Dark',
+                              ),
+                            ],
+                          ),
                         ),
-                        _buildThemeSelectionButton(
-                          theme: theme, 
-                          newTheme: ThemeMode.dark,
-                          label: 'Dark',
+                        const SectionHeader(
+                          title: 'Preferences'
+                        ),
+                        // categories manager
+                        const SizedBox(height: 10),
+                        CustomListTile(
+                          tileColor: Theme.of(context).colorScheme.primaryContainer,
+                          title: 'Categories',
+                          trailing: const CustomIcon(icon: Icons.chevron_right),
+                          onTap: () => _showCategoriesManager(),
+                        ),
+                        const SizedBox(height: 20),
+                        CustomListTile(
+                          tileColor: Theme.of(context).colorScheme.primaryContainer,
+                          title: 'Show transaction description',             
+                          trailing: Switch(
+                            value: _isShowingDescription, 
+                            activeThumbColor: Colors.white,
+                            inactiveThumbColor: Colors.grey.shade200,
+                            activeTrackColor: Colors.blue,
+                            inactiveTrackColor: Colors.grey.shade500,
+                            trackOutlineColor: WidgetStateProperty.resolveWith(
+                              (Set<WidgetState> states) {
+                                return Colors.transparent;
+                              }
+                            ),
+                            onChanged: (bool value) {
+                              setState(() {
+                                setState(() {
+                                  _isShowingDescription = value;
+                                });
+                                setState(() {
+                                  _isShowingDescription = value;
+                                });
+                                AppSettings.switchTransactionDescription(value);
+                                _loadDescriptionState();
+                              });
+                            }
+                          ),
+                        ),
+                        const Align(
+                          alignment: Alignment.centerLeft,
+                          child: Padding(
+                            padding: EdgeInsets.fromLTRB(10, 5, 10, 10),
+                            child: Text('Display the description below each transaction', style: TextStyle(fontSize: 13),),
+                          ),
+                        ),
+                        CustomListTile(
+                          tileColor: Theme.of(context).colorScheme.primaryContainer, 
+                          title: 'Currency',
+                          trailing: const CustomIcon(icon: Icons.chevron_right),
+                          onTap: () => _showCurrencySelectionSheet(),
                         ),
                       ],
                     ),
                   ),
-                  const SectionHeader(
-                    title: 'Preferences'
-                  ),
-                  // categories manager
-                  const SizedBox(height: 10),
-                  CustomListTile(
-                    tileColor: Theme.of(context).colorScheme.primaryContainer,
-                    title: 'Categories',
-                    trailing: const CustomIcon(icon: Icons.chevron_right),
-                    onTap: () => _showCategoriesManager(),
-                  ),
-                  const SizedBox(height: 20),
-                  CustomListTile(
-                    tileColor: Theme.of(context).colorScheme.primaryContainer,
-                    title: 'Show transaction description',             
-                    trailing: Switch(
-                      value: _isShowingDescription, 
-                      activeThumbColor: Colors.white,
-                      inactiveThumbColor: Colors.grey.shade200,
-                      activeTrackColor: Colors.blue,
-                      inactiveTrackColor: Colors.grey.shade500,
-                      trackOutlineColor: WidgetStateProperty.resolveWith(
-                        (Set<WidgetState> states) {
-                          return Colors.transparent;
-                        }
-                      ),
-                      onChanged: (bool value) {
-                        setState(() {
-                          setState(() {
-                            _isShowingDescription = value;
-                          });
-                          setState(() {
-                            _isShowingDescription = value;
-                          });
-                          AppSettings.switchTransactionDescription(value);
-                          _loadDescriptionState();
-                        });
-                      }
-                    ),
-                  ),
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Padding(
-                      padding: EdgeInsets.fromLTRB(10, 5, 10, 10),
-                      child: Text('Display the description below each transaction', style: TextStyle(fontSize: 13),),
-                    ),
-                  ),
-                  CustomListTile(
-                    tileColor: Theme.of(context).colorScheme.primaryContainer, 
-                    title: 'Currency',
-                    trailing: const CustomIcon(icon: Icons.chevron_right),
-                    onTap: () => _showCurrencySelectionSheet(),
-                  ),
-                ],
-              ),
+                )
+              ],
             ),
           );
         }
@@ -1011,81 +1010,83 @@ class _HomePageContentState extends State<HomePageContent> {
       child: StatefulBuilder(
         builder: (context, setState) {
           return Column(
-            spacing: 10,
             children: [
               // header
               CustomHeader(
-                startWidget: IconButton(
-                  style: IconButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                  ),
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close)
-                ),
-                title: 'Categories', 
-              ),
-              // body
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: FilledButton(
-                      style: FilledButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        backgroundColor: isIncome
-                          ? Colors.blue
-                          : Theme.of(context).colorScheme.primaryContainer,
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 20
-                        )
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          isIncome = true;
-                        });
-                      },
-                      child:Text(
-                        'Income categories',
-                        style: TextStyle(
-                          color: isIncome 
-                            ? Theme.of(context).colorScheme.secondary
-                            : Theme.of(context).colorScheme.onPrimary
-                        ),
-                      )
-                    ),
+                  CustomIconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close)
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: FilledButton(
-                      style: FilledButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
+                  const CustomHeaderTitle(title: 'Categories'),
+                  const SizedBox(width: 48),
+                ],
+              ),
+              Container(
+                color: Theme.of(context).colorScheme.surface,
+                padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: FilledButton(
+                        style: FilledButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          backgroundColor: isIncome
+                            ? Colors.blue
+                            : Theme.of(context).colorScheme.primaryContainer,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 20
+                          )
                         ),
-                        backgroundColor: isIncome
-                          ? Theme.of(context).colorScheme.primaryContainer
-                          : Colors.blue,
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 20
+                        onPressed: () {
+                          setState(() {
+                            isIncome = true;
+                          });
+                        },
+                        child:Text(
+                          'Income categories',
+                          style: TextStyle(
+                            color: isIncome 
+                              ? Theme.of(context).colorScheme.secondary
+                              : Theme.of(context).colorScheme.onPrimary
+                          ),
                         )
                       ),
-                      onPressed: () {
-                        setState(() {
-                          isIncome = false;
-                        });
-                      },
-                      child: Text(
-                        'Expense categories',
-                        style: TextStyle(
-                          color: isIncome 
-                            ? Theme.of(context).colorScheme.onPrimary
-                            : Theme.of(context).colorScheme.secondary
-                        ),
-                      )
                     ),
-                  )
-                ],
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: FilledButton(
+                        style: FilledButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          backgroundColor: isIncome
+                            ? Theme.of(context).colorScheme.primaryContainer
+                            : Colors.blue,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 20
+                          )
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            isIncome = false;
+                          });
+                        },
+                        child: Text(
+                          'Expense categories',
+                          style: TextStyle(
+                            color: isIncome 
+                              ? Theme.of(context).colorScheme.onPrimary
+                              : Theme.of(context).colorScheme.secondary
+                          ),
+                        )
+                      ),
+                    )
+                  ],
+                ),
               ),
               // income or expense categories
               Expanded(
@@ -1106,6 +1107,7 @@ class _HomePageContentState extends State<HomePageContent> {
                     : ListView.separated(
                       shrinkWrap: true,
                       itemCount: items.length,
+                      padding: const EdgeInsets.symmetric(horizontal: 15),
                       separatorBuilder: (context, index) => const SizedBox(height: 5),
                       itemBuilder: (context, index) {
                         final item = items[index];
@@ -1209,22 +1211,24 @@ class _HomePageContentState extends State<HomePageContent> {
             children: [
               // header
               CustomHeader(
-                startWidget: IconButton(
-                  style: IconButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primaryContainer
+                children: [
+                  CustomIconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close)
                   ),
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close)
-                ),
-                title: isIncome
-                  ? 'Create income category'
-                  : 'Create expense category',
+                  CustomHeaderTitle(                    
+                    title: isIncome
+                      ? 'Create income category'
+                      : 'Create expense category',
+                  ),
+                  const SizedBox(width: 48),
+                ],
               ),
               Flexible(
                 child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
                   child: Column(
                     children: [
-                      const SizedBox(height: 10),
                       // category name
                       CustomTextField(
                         controller: categoryNameController,
@@ -1298,7 +1302,7 @@ class _HomePageContentState extends State<HomePageContent> {
                     ],
                   ),
                 ),
-              )
+              ),
             ],
           );
         }
@@ -1317,84 +1321,90 @@ class _HomePageContentState extends State<HomePageContent> {
       child: StatefulBuilder(
         builder: (context, setState) {
           return Column(
-            spacing: 10,
             children: [
               // header
               CustomHeader(
-                startWidget: IconButton(
-                  style: IconButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                  ),
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close)
-                ),
-                title: 'Edit',
-                // confirm category changes button
-                endWidget: IconButton(
-                  style: IconButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                  ),
-                  onPressed: () {
-                    final categoryName = controller.text.trim();
-
-                    if(categoryName.isEmpty || selectedIcon == null) return;
-
-                    // update in db
-                    widget.db.updateCategoryName(category.id, categoryName);
-                    widget.db.updateCategoryIcon(category.id, selectedIcon!);
-
-                    Navigator.pop(context);
-                  }, 
-                  icon: Icon(Icons.done_rounded, color: Theme.of(context).colorScheme.primaryContainer)
-                ),
-              ),
-              // edit name text field
-              CustomTextField(
-                controller: controller, 
-                hintText: 'Edit category name'
-              ),
-              // edit icon
-              ExpansionTile(
-                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                collapsedBackgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                collapsedShape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15)
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                title: const Text('Icon'),
-                trailing: selectedIcon != null
-                  ? CustomIcon(icon: IconsManager.getIconByName(selectedIcon!))
-                  : const CustomIcon(icon: Icons.arrow_drop_down_rounded),
-                childrenPadding: const EdgeInsets.all(10),
                 children: [
-                  SizedBox(
-                    height: 150,
-                    child: GridView.builder(
-                      shrinkWrap: true,
-                      itemCount: IconsManager.keys.length,
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 4,
-                        mainAxisSpacing: 2,
-                        crossAxisSpacing: 2,
-                      ), 
-                      itemBuilder: (context, index) {
-                        return IconButton(
-                          onPressed: () {
-                            setState(() {
-                              selectedIcon = IconsManager.keys[index];
-                            });
-                          },
-                          icon: CustomIcon(icon: IconsManager.getIconByName(IconsManager.keys[index])),
-                          iconSize: 25,
-                          padding: EdgeInsets.zero,
-                        );
-                      }
-                    )
-                  )
-                ]
+                  CustomIconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close)
+                  ),
+                  const CustomHeaderTitle(title: 'Edit'),
+                  // confirm category changes button
+                  CustomIconButton(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    onPressed: () {
+                      final categoryName = controller.text.trim();
+
+                      if(categoryName.isEmpty || selectedIcon == null) return;
+
+                      // update in db
+                      widget.db.updateCategoryName(category.id, categoryName);
+                      widget.db.updateCategoryIcon(category.id, selectedIcon!);
+
+                      Navigator.pop(context);
+                    }, 
+                    icon: Icon(Icons.done_rounded, color: Theme.of(context).colorScheme.primaryContainer),
+                  ),
+                ],
               ),
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  child: Column(
+                    children: [
+                      // edit name text field
+                      CustomTextField(
+                        controller: controller, 
+                        hintText: 'Edit category name'
+                      ),
+                      const SizedBox(height: 10),
+                      // edit icon
+                      ExpansionTile(
+                        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                        collapsedBackgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                        collapsedShape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15)
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        title: const Text('Icon'),
+                        trailing: selectedIcon != null
+                          ? CustomIcon(icon: IconsManager.getIconByName(selectedIcon!))
+                          : const CustomIcon(icon: Icons.arrow_drop_down_rounded),
+                        childrenPadding: const EdgeInsets.all(10),
+                        children: [
+                          SizedBox(
+                            height: 150,
+                            child: GridView.builder(
+                              shrinkWrap: true,
+                              itemCount: IconsManager.keys.length,
+                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 4,
+                                mainAxisSpacing: 2,
+                                crossAxisSpacing: 2,
+                              ), 
+                              itemBuilder: (context, index) {
+                                return IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      selectedIcon = IconsManager.keys[index];
+                                    });
+                                  },
+                                  icon: CustomIcon(icon: IconsManager.getIconByName(IconsManager.keys[index])),
+                                  iconSize: 25,
+                                  padding: EdgeInsets.zero,
+                                );
+                              }
+                            )
+                          )
+                        ]
+                      ),
+                    ],
+                  ),
+                ),
+              )
             ],
           );
         }

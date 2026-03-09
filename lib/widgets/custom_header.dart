@@ -3,29 +3,22 @@
 import 'package:flutter/material.dart';
 
 class CustomHeader extends StatelessWidget {
-  final Widget? startWidget;
-  final String title;
-  final Widget? endWidget;
+  final List<Widget> children;
 
   const CustomHeader({
     super.key,
-    this.startWidget,
-    required this.title,
-    this.endWidget,
+    required this.children,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        startWidget ?? const SizedBox(width: 48),
-        Text(
-          title ,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        endWidget ?? const SizedBox(width: 48),
-      ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 15,vertical: 10),
+      color: Theme.of(context).colorScheme.surface,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: children,
+      ),
     );
   }
 }

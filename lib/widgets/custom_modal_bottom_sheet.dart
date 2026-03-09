@@ -13,6 +13,7 @@ void showCustomModalBottomSheet({
   showModalBottomSheet(
     context: context, 
     useSafeArea: true,
+    clipBehavior: Clip.antiAliasWithSaveLayer,
     isScrollControlled: isScrollControlled ?? false,
     backgroundColor: backgroundColor ?? Colors.grey.shade200,
     shape: RoundedRectangleBorder(
@@ -21,9 +22,6 @@ void showCustomModalBottomSheet({
     builder: (context) {
       return Padding(
         padding: EdgeInsets.only(
-          left: padding ?? 10,
-          top: padding ?? 10,
-          right: padding ?? 10,
           bottom: MediaQuery.of(context).viewInsets.bottom +10,
         ),
         child: child,

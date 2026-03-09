@@ -3,7 +3,9 @@ import 'package:open_budget/logic/currency_manager.dart';
 import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/logic/format_number.dart';
 import 'package:open_budget/widgets/custom_header.dart';
+import 'package:open_budget/widgets/custom_header_title.dart';
 import 'package:open_budget/widgets/custom_icon.dart';
+import 'package:open_budget/widgets/custom_icon_button.dart';
 import 'package:open_budget/widgets/custom_list_tile.dart';
 import 'package:open_budget/widgets/custom_modal_bottom_sheet.dart';
 import 'package:open_budget/widgets/date_time_picker.dart';
@@ -111,22 +113,24 @@ class _StatisticsPage extends State<StatisticsPage> {
       context: context, 
       backgroundColor: Theme.of(context).colorScheme.surface,
       child: Wrap(
-        runSpacing: 10,
         children: [
           CustomHeader(
-            startWidget: IconButton(
-              style: IconButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+            children: [
+              CustomIconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close)
               ),
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.close)
-            ),
-            title: isIncome
-              ? 'Top Income Categories'
-              : 'Top Expense Categories'
+              CustomHeaderTitle(                
+                title: isIncome
+                  ? 'Top Income Categories'
+                  : 'Top Expense Categories'
+              ),
+              const SizedBox(width: 48),
+            ],
           ),
           ListView.builder(
             itemCount: categories.length,
+            padding:const EdgeInsets.symmetric(horizontal: 15),
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemBuilder: (context, index) {
@@ -185,22 +189,24 @@ class _StatisticsPage extends State<StatisticsPage> {
       backgroundColor: Theme.of(context).colorScheme.surface,
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        spacing: 10,
         children: [
           // header
           CustomHeader(
-            startWidget: IconButton(
-              style: IconButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+            children: [
+              CustomIconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close)
               ),
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.close)
-            ),
-            title: 'Period',
+              const CustomHeaderTitle(
+                title: 'Period'
+              ),
+              const SizedBox(width: 48),
+            ],
           ),
           // statistic period options
           Flexible(
             child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
               child: Column(
                 spacing: 5,
                 children: [

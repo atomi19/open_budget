@@ -1,5 +1,6 @@
 // main page that contains income and expense screens (switch between them)
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/logic/handle_data_submit.dart';
 import 'package:open_budget/logic/icons_manager.dart';
@@ -182,18 +183,21 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
         ),
         // save button
         SubmitButton(
-          onTap: () => handleDataSubmit(
-            db: widget.db, 
-            displaySnackBar: (content) => showSnackBar(context: context, content: Text(content)),
-            amountStr: isIncome
-            ? _amountController.text // income amount
-            : '-${_amountController.text}', // expense amount
-            selectedDate: _selectedDate, 
-            selectedTime: _selectedTime, 
-            categoryId: _selectedCategoryId, 
-            descriptionController: _descriptionController, 
-            clearInputData: _resetData
-          ),
+          onTap: () {
+            HapticFeedback.lightImpact();
+            handleDataSubmit(
+              db: widget.db, 
+              displaySnackBar: (content) => showSnackBar(context: context, content: Text(content)),
+              amountStr: isIncome
+              ? _amountController.text // income amount
+              : '-${_amountController.text}', // expense amount
+              selectedDate: _selectedDate, 
+              selectedTime: _selectedTime, 
+              categoryId: _selectedCategoryId, 
+              descriptionController: _descriptionController, 
+              clearInputData: _resetData
+            );
+          },
           text: 'Save'
         ),
       ],
@@ -217,6 +221,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
         shape: const StadiumBorder()
       ),
       onPressed: () {
+        HapticFeedback.selectionClick();
         if(_transactionPageIndex != currentPageIndex) {
           _resetData();
           setState(() => _transactionPageIndex = currentPageIndex);

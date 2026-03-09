@@ -1,5 +1,6 @@
 // contains all the content of home page
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:open_budget/logic/app_settings.dart';
 import 'package:open_budget/logic/currencies.dart';
 import 'package:open_budget/logic/currency_manager.dart';
@@ -357,6 +358,8 @@ class _HomePageContentState extends State<HomePageContent> {
               CustomIconButton(
                 backgroundColor: Theme.of(context).colorScheme.primary,
                 onPressed: () {
+                  HapticFeedback.lightImpact();
+
                   final newAmount = isIncome
                     ? editAmountController.text
                     : '-${editAmountController.text}';
@@ -727,6 +730,7 @@ class _HomePageContentState extends State<HomePageContent> {
           : Theme.of(context).colorScheme.primaryContainer
       ),
       onPressed: () {
+        HapticFeedback.selectionClick();
         widget.setTheme(newTheme); // set new theme
         Navigator.pop(context);
       },
@@ -852,6 +856,7 @@ class _HomePageContentState extends State<HomePageContent> {
             ),
           ),
           onTap: () async {
+            HapticFeedback.selectionClick();
             Navigator.pop(context);
             await CurrencyManager.setCurrency(currencyItem);
             setState(() {
@@ -1042,6 +1047,7 @@ class _HomePageContentState extends State<HomePageContent> {
                           )
                         ),
                         onPressed: () {
+                          HapticFeedback.selectionClick();
                           setState(() {
                             isIncome = true;
                           });
@@ -1071,6 +1077,7 @@ class _HomePageContentState extends State<HomePageContent> {
                           )
                         ),
                         onPressed: () {
+                          HapticFeedback.selectionClick();
                           setState(() {
                             isIncome = false;
                           });
@@ -1182,6 +1189,7 @@ class _HomePageContentState extends State<HomePageContent> {
                     ),
                   ),
                   onPressed: () {
+                    HapticFeedback.heavyImpact();
                     widget.db.deleteCategory(categoryId);
                     Navigator.pop(context);
                   }, 
@@ -1334,6 +1342,7 @@ class _HomePageContentState extends State<HomePageContent> {
                   CustomIconButton(
                     backgroundColor: Theme.of(context).colorScheme.primary,
                     onPressed: () {
+                      HapticFeedback.lightImpact();
                       final categoryName = controller.text.trim();
 
                       if(categoryName.isEmpty || selectedIcon == null) return;

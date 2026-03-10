@@ -28,6 +28,7 @@ class AddTransactionPage extends StatefulWidget {
 }
 
 class _AddTransactionPageState extends State<AddTransactionPage> {
+  final PageController _pageViewController = PageController();
   int _transactionPageIndex = 0; // 0 - income page, 1 - spending page
 
   final TextEditingController _amountController = TextEditingController();
@@ -120,87 +121,89 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
   Widget _transactionAddForm({
     required bool isIncome
   }) {
-    return Column(
-      spacing: 10,
-      children: [
-        // amount textfield
-        CustomTextField(
-          controller: _amountController, 
-          hintText: isIncome
-            ? 'Enter income...'
-            : 'Enter expense...',
-          prefix: Text(isIncome ? '+ ': '- '),
-          maxLines: 1,
-          textInputType: TextInputType.number,
-        ),
-        // date 
-        CustomListTile(
-          tileColor: Theme.of(context).colorScheme.primaryContainer,
-          title: _selectedDate != null
-            ? '${_selectedDate!.day.toString().padLeft(2, '0')}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.year}'
-            : 'Date',
-          trailing: const CustomIcon(icon: Icons.chevron_right),
-          onTap: () async {
-            final selectedDate = await pickDate(context: context);
-            setState(() => _selectedDate = selectedDate);
-          },
-        ),
-        // time 
-        CustomListTile(
-          tileColor: Theme.of(context).colorScheme.primaryContainer,
-          title: _selectedTime != null
-            ? _selectedTime!.format(context)
-            : 'Time',
-          trailing: const CustomIcon(icon: Icons.chevron_right),
-          onTap: () async {
-            final selectedTime = await pickTime(context: context);
-            setState(() => _selectedTime = selectedTime);
-          },
-        ),
-        // category
-        CustomListTile(
-          tileColor: Theme.of(context).colorScheme.primaryContainer,
-          title: _selectedCategory?.name ?? 'Category',
-          trailing: const CustomIcon(icon: Icons.chevron_right),
-          onTap: () => _showCategories(
-            isIncome: isIncome,
-            onTap: (id) async {
-              setState(() {
-                _selectedCategoryId = id;
-              });
-              Navigator.pop(context);
-              await _findCategoryById(id);
-            }
+    return SingleChildScrollView(
+      child: Column(
+        spacing: 10,
+        children: [
+          // amount textfield
+          CustomTextField(
+            controller: _amountController, 
+            hintText: isIncome
+              ? 'Enter income...'
+              : 'Enter expense...',
+            prefix: Text(isIncome ? '+ ': '- '),
+            maxLines: 1,
+            textInputType: TextInputType.number,
           ),
-        ),
-        // description textfield
-        CustomTextField(
-          controller: _descriptionController,
-          hintText: 'Enter description...',
-          minLines: 1,
-          maxLines: 5,
-          textInputType: TextInputType.multiline,
-        ),
-        // save button
-        SubmitButton(
-          onTap: () {
-            HapticFeedback.lightImpact();
-            handleDataSubmit(
-              db: widget.db, 
-              displaySnackBar: (content) => showSnackBar(context: context, content: Text(content)),
-              amountStr: isIncome
-              ? _amountController.text // income amount
-              : '-${_amountController.text}', // expense amount
-              selectedDate: _selectedDate, 
-              selectedTime: _selectedTime, 
-              categoryId: _selectedCategoryId, 
-              descriptionController: _descriptionController, 
-              clearInputData: _resetData
-            );
-          },
-          text: 'Save'
-        ),
-      ],
+          // date 
+          CustomListTile(
+            tileColor: Theme.of(context).colorScheme.primaryContainer,
+            title: _selectedDate != null
+              ? '${_selectedDate!.day.toString().padLeft(2, '0')}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.year}'
+              : 'Date',
+            trailing: const CustomIcon(icon: Icons.chevron_right),
+            onTap: () async {
+              final selectedDate = await pickDate(context: context);
+              setState(() => _selectedDate = selectedDate);
+            },
+          ),
+          // time 
+          CustomListTile(
+            tileColor: Theme.of(context).colorScheme.primaryContainer,
+            title: _selectedTime != null
+              ? _selectedTime!.format(context)
+              : 'Time',
+            trailing: const CustomIcon(icon: Icons.chevron_right),
+            onTap: () async {
+              final selectedTime = await pickTime(context: context);
+              setState(() => _selectedTime = selectedTime);
+            },
+          ),
+          // category
+          CustomListTile(
+            tileColor: Theme.of(context).colorScheme.primaryContainer,
+            title: _selectedCategory?.name ?? 'Category',
+            trailing: const CustomIcon(icon: Icons.chevron_right),
+            onTap: () => _showCategories(
+              isIncome: isIncome,
+              onTap: (id) async {
+                setState(() {
+                  _selectedCategoryId = id;
+                });
+                Navigator.pop(context);
+                await _findCategoryById(id);
+              }
+            ),
+          ),
+          // description textfield
+          CustomTextField(
+            controller: _descriptionController,
+            hintText: 'Enter description...',
+            minLines: 1,
+            maxLines: 5,
+            textInputType: TextInputType.multiline,
+          ),
+          // save button
+          SubmitButton(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              handleDataSubmit(
+                db: widget.db, 
+                displaySnackBar: (content) => showSnackBar(context: context, content: Text(content)),
+                amountStr: isIncome
+                ? _amountController.text // income amount
+                : '-${_amountController.text}', // expense amount
+                selectedDate: _selectedDate, 
+                selectedTime: _selectedTime, 
+                categoryId: _selectedCategoryId, 
+                descriptionController: _descriptionController, 
+                clearInputData: _resetData
+              );
+            },
+            text: 'Save'
+          ),
+        ],
+      ),
     );
   }
 
@@ -221,17 +224,18 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
         shape: const StadiumBorder()
       ),
       onPressed: () {
-        HapticFeedback.selectionClick();
-        if(_transactionPageIndex != currentPageIndex) {
-          _resetData();
-          setState(() => _transactionPageIndex = currentPageIndex);
-        }
+        _resetData();
+        _pageViewController.animateToPage(
+          currentPageIndex, 
+          duration: const Duration(milliseconds: 300), 
+          curve: Curves.easeOutCubic
+        );
       }, 
       child: Row(
         children: [
           pageIndex == currentPageIndex
             ? Icon(
-              isIncome ? Icons.upload_outlined : Icons.download_outlined,
+              isIncome ? Icons.download_outlined : Icons.upload_outlined,
               color: Theme.of(context).colorScheme.secondary,
             )
             : const SizedBox(),
@@ -248,6 +252,13 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
       )
     );
   } 
+
+  void _handlePageViewChanged(int currentPageIndex) {
+    HapticFeedback.selectionClick();
+    setState(() {
+      _transactionPageIndex = currentPageIndex;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -283,18 +294,15 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           ),
           // income and expense forms
           Expanded(
-            child: SingleChildScrollView(
-              child:IndexedStack(
-                index: _transactionPageIndex,
-                children: [
-                  // income form
-                  _transactionAddForm(isIncome: true),
-                  // expense form
-                  _transactionAddForm(isIncome: false),
-                ],
-              ),
-            )
-          ),
+            child: PageView(
+              controller: _pageViewController,
+              onPageChanged: _handlePageViewChanged,
+              children: [
+                _transactionAddForm(isIncome: true),
+                _transactionAddForm(isIncome: false),
+              ],
+            ),
+          )
         ],
       )
     );

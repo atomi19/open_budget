@@ -14,6 +14,7 @@ import 'package:open_budget/widgets/custom_icon.dart';
 import 'package:open_budget/widgets/custom_icon_button.dart';
 import 'package:open_budget/widgets/custom_list_tile.dart';
 import 'package:open_budget/widgets/custom_modal_bottom_sheet.dart';
+import 'package:open_budget/widgets/custom_switch.dart';
 import 'package:open_budget/widgets/custom_text_field.dart';
 import 'package:open_budget/widgets/date_time_picker.dart';
 import 'package:open_budget/widgets/empty_list_placeholder.dart';
@@ -888,7 +889,7 @@ class _HomePageContentState extends State<HomePageContent> {
       borderRadius: 0,
       backgroundColor: Theme.of(context).colorScheme.surface,
       child: StatefulBuilder(
-        builder: (context, StateSetter setState) {
+        builder: (context, StateSetter setModalState) {
           return SizedBox(
             height: MediaQuery.of(context).size.height,
             child: Column(
@@ -952,29 +953,15 @@ class _HomePageContentState extends State<HomePageContent> {
                         const SizedBox(height: 20),
                         CustomListTile(
                           tileColor: Theme.of(context).colorScheme.primaryContainer,
-                          title: 'Show transaction description',             
-                          trailing: Switch(
+                          title: 'Show transaction description',
+                          trailing: CustomSwitch(
                             value: _isShowingDescription, 
-                            activeThumbColor: Colors.white,
-                            inactiveThumbColor: Colors.grey.shade200,
-                            activeTrackColor: Colors.blue,
-                            inactiveTrackColor: Colors.grey.shade500,
-                            trackOutlineColor: WidgetStateProperty.resolveWith(
-                              (Set<WidgetState> states) {
-                                return Colors.transparent;
-                              }
-                            ),
                             onChanged: (bool value) {
                               setState(() {
-                                setState(() {
-                                  _isShowingDescription = value;
-                                });
-                                setState(() {
-                                  _isShowingDescription = value;
-                                });
-                                AppSettings.switchTransactionDescription(value);
-                                _loadDescriptionState();
+                                _isShowingDescription = value;
                               });
+                              setModalState(() {});
+                              AppSettings.switchTransactionDescription(value);
                             }
                           ),
                         ),
@@ -1165,7 +1152,6 @@ class _HomePageContentState extends State<HomePageContent> {
                 child: TextButton(
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.all(15),
-
                     backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),

@@ -190,7 +190,14 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
               HapticFeedback.lightImpact();
               handleDataSubmit(
                 db: widget.db, 
-                displaySnackBar: (content) => showSnackBar(context: context, content: Text(content)),
+                displaySnackBar: (content) => 
+                  showSnackBar(
+                    context: context, 
+                    content: Text(
+                      content,
+                      style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+                    ),
+                  ),
                 amountStr: isIncome
                 ? _amountController.text // income amount
                 : '-${_amountController.text}', // expense amount

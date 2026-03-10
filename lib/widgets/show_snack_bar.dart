@@ -13,7 +13,7 @@ void showSnackBar({
       content: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: Colors.grey.shade800,
+          color: Theme.of(context).colorScheme.primaryContainer,
           borderRadius: BorderRadius.circular(15),
         ),
         child: content,

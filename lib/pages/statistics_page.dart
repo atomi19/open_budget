@@ -304,6 +304,7 @@ class _StatisticsPage extends State<StatisticsPage> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
       child: Column(
         children: [
           const SizedBox(height: 10),

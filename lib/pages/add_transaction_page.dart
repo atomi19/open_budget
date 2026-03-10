@@ -122,6 +122,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     required bool isIncome
   }) {
     return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
       child: Column(
         spacing: 10,
         children: [
@@ -268,28 +269,31 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
         spacing: 10,
         children: [
           // header
-          Container(
-            padding: const EdgeInsets.all(5),
-            decoration: ShapeDecoration(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              shape: const StadiumBorder(),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              spacing: 5,
-              children: [
-                // income button
-                _switchButton(
-                  isIncome: true, 
-                  pageIndex: _transactionPageIndex,
-                ),
-                // expense button
-                _switchButton(
-                  isIncome: false, 
-                  pageIndex: _transactionPageIndex,
-                ),
-              ],
+          Padding(
+            padding: const EdgeInsets.fromLTRB(15, 15, 15, 0),
+            child: Container(
+              padding: const EdgeInsets.all(5),
+              decoration: ShapeDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                shape: const StadiumBorder(),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                spacing: 5,
+                children: [
+                  // income button
+                  _switchButton(
+                    isIncome: true, 
+                    pageIndex: _transactionPageIndex,
+                  ),
+                  // expense button
+                  _switchButton(
+                    isIncome: false, 
+                    pageIndex: _transactionPageIndex,
+                  ),
+                ],
+              ),
             ),
           ),
           // income and expense forms

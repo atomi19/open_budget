@@ -1410,6 +1410,7 @@ class _HomePageContentState extends State<HomePageContent> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
       child: Column(
         spacing: 10,
         children: [

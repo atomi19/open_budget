@@ -37,13 +37,10 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: Theme.of(context).colorScheme.surface,
       // body
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: IndexedStack(
-            index: _currentTabIndex,
-            children: tabs,
-          ),
-        )
+        child: IndexedStack(
+          index: _currentTabIndex,
+          children: tabs,
+        ),
       ),
       // bottom navigation bar
       bottomNavigationBar: BottomNavigationBar(

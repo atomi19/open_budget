@@ -60,6 +60,7 @@ class _StatisticsPage extends State<StatisticsPage> {
 
                 return _buildCategory(
                   isFirst: isFirst, 
+                  isLast: false,
                   index: index, 
                   title: category.key.name, 
                   value: category.value,
@@ -112,7 +113,7 @@ class _StatisticsPage extends State<StatisticsPage> {
     showCustomModalBottomSheet(
       context: context, 
       backgroundColor: Theme.of(context).colorScheme.surface,
-      child: Wrap(
+      child: Column(
         children: [
           CustomHeader(
             children: [
@@ -128,25 +129,30 @@ class _StatisticsPage extends State<StatisticsPage> {
               const SizedBox(width: 48),
             ],
           ),
-          ListView.builder(
-            itemCount: categories.length,
-            padding:const EdgeInsets.symmetric(horizontal: 15),
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemBuilder: (context, index) {
+          Expanded(
+            child: ListView.separated(
+              itemCount: categories.length,
+              padding:const EdgeInsets.symmetric(horizontal: 15),
+              separatorBuilder: (context, index) => const SizedBox(height: 1),
+              itemBuilder: (context, index) {
+                final category = categories[index];
+                
+                bool isFirst = index == 0
+                  ? true 
+                  : false;
+                bool isLast = index == categories.length - 1
+                  ? true
+                  : false;
 
-              final category = categories[index];
-              bool isFirst = index == 0
-                ? true 
-                : false;
-
-              return _buildCategory(
-                isFirst: isFirst, 
-                index: index, 
-                title: category.key.name, 
-                value: category.value
-              );
-            }
+                return _buildCategory(
+                  isFirst: isFirst, 
+                  isLast: isLast,
+                  index: index, 
+                  title: category.key.name, 
+                  value: category.value
+                );
+              }
+            ),
           ),
         ],
       ),
@@ -156,6 +162,7 @@ class _StatisticsPage extends State<StatisticsPage> {
   // category custom list tile
   Widget _buildCategory({
     required bool isFirst,
+    required bool isLast,
     required int index,
     required String title,
     required double value,
@@ -164,17 +171,28 @@ class _StatisticsPage extends State<StatisticsPage> {
       tileColor: Theme.of(context).colorScheme.primaryContainer,
       customBorder: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
+          // top border 
           top: isFirst 
+            // first in list so rounded corners
             ? const Radius.circular(15)
+            // not first
             : Radius.zero,
-          bottom: Radius.zero,
+          // bottom border
+          bottom: isLast 
+            // last in list so rounded corners
+            ? const Radius.circular(15)
+            // not last
+            : Radius.zero
         )
       ),
+      // category ranking number 
       leading: Text(
         '${index+1}.',
         style: TextStyle(fontSize: 15, color: Theme.of(context).colorScheme.onPrimary),
       ),
+      // category name
       title: title,
+      // amount of spent money in this category
       trailing: Text(
         '${formatNumber(value)} ${CurrencyManager.currentCurrency!.symbol}',
         style: const TextStyle(fontSize: 15),

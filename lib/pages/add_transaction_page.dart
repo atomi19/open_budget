@@ -231,14 +231,11 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           : Theme.of(context).colorScheme.primaryContainer,
         shape: const StadiumBorder()
       ),
-      onPressed: () {
-        _resetData();
-        _pageViewController.animateToPage(
-          currentPageIndex, 
-          duration: const Duration(milliseconds: 300), 
-          curve: Curves.easeOutCubic
-        );
-      }, 
+      onPressed: () => _pageViewController.animateToPage(
+        currentPageIndex, 
+        duration: const Duration(milliseconds: 300), 
+        curve: Curves.easeOutCubic
+      ),
       child: Row(
         children: [
           pageIndex == currentPageIndex
@@ -263,9 +260,8 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
 
   void _handlePageViewChanged(int currentPageIndex) {
     HapticFeedback.selectionClick();
-    setState(() {
-      _transactionPageIndex = currentPageIndex;
-    });
+    _resetData();
+    _transactionPageIndex = currentPageIndex;
   }
 
   @override

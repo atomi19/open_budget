@@ -33,10 +33,12 @@ Widget buildTransactionList({
   required Function(Transaction) showTransactionDetails,
   required bool shouldInsertDate,
   required bool showDescription,
+  ScrollPhysics? scrollPhysics,
 }) {
   return ListView.builder(
     shrinkWrap: shrinkWrap,
     itemCount: items.length,
+    physics: scrollPhysics ,
     itemBuilder: (context, index) {
       bool showDate = false;
       final item = items[index];

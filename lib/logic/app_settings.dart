@@ -7,6 +7,20 @@ class AppSettings {
   static const _themeKey = 'theme';
   static const _currencyKey = 'currency';
   static const _showTransactionDescriptionKey = 'show_transaction_description';
+  static const _homeTransactionsCount = 'home_transactions_count';
+
+  static Future<void> setTransactionsCountOnHomePage(int quantity) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_homeTransactionsCount, quantity);
+  }
+
+  static Future<int?> getTransactionsCountOnHomePage() async {
+    final prefs = await SharedPreferences.getInstance();
+    int? quantity = prefs.getInt(_homeTransactionsCount);
+
+    return quantity;
+  }
+
 
   static Future<void> setTheme(String theme) async {
     final prefs = await SharedPreferences.getInstance();

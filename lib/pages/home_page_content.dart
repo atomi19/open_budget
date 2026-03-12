@@ -43,8 +43,8 @@ class HomePageContent extends StatefulWidget {
 
 class _HomePageContentState extends State<HomePageContent> {
   Currency _currentCurrency = CurrencyManager.currentCurrency!;
-
   bool _isShowingDescription = false;
+  int _homeTransactionsCount = 3;
 
   // filter for income, all and expense transactions
   _TransactionsListType _currentTransactionsListType = _TransactionsListType.all; // income, all, expense
@@ -60,6 +60,7 @@ class _HomePageContentState extends State<HomePageContent> {
     _loadCategories();
     _currentCurrency = CurrencyManager.currentCurrency!;
     _loadDescriptionState();
+    _loadTransactionsCount();
   }
 
   // load description preview state from shared_preferences
@@ -75,6 +76,10 @@ class _HomePageContentState extends State<HomePageContent> {
         _categoriesById= {for (var c in categories) c.id : c};
       });
     });
+  }
+
+  Future<void> _loadTransactionsCount() async {
+    _homeTransactionsCount = await AppSettings.getTransactionsCountOnHomePage() ?? 3;
   }
 
   // filter transactions by income, expense or all transactions
@@ -951,6 +956,53 @@ class _HomePageContentState extends State<HomePageContent> {
                           onTap: () => _showCategoriesManager(),
                         ),
                         const SizedBox(height: 20),
+                        // home transactions count
+                        CustomListTile(
+                          tileColor: Theme.of(context).colorScheme.primaryContainer, 
+                          title: 'Recent Transactions',
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            spacing: 10,
+                            children: [
+                              // transactions counter
+                              Text(
+                                '$_homeTransactionsCount',
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              // decrease
+                              CustomIconButton(
+                                backgroundColor: Theme.of(context).colorScheme.surface,
+                                onPressed: () {
+                                  _handleTransactionCount(-1);
+                                  setState(() {});
+                                  setModalState(() {});
+                                },
+                                icon: const Icon(Icons.remove)
+                              ),
+                              // increase
+                              CustomIconButton(
+                                backgroundColor: Theme.of(context).colorScheme.surface,
+                                onPressed: () {
+                                  _handleTransactionCount(1);
+                                  setState(() {});
+                                  setModalState(() {});
+                                },
+                                icon: const Icon(Icons.add)
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Align(
+                          alignment: Alignment.centerLeft,
+                          child: Padding(
+                            padding: EdgeInsets.fromLTRB(10, 5, 10, 10),
+                            child: Text('Number of transactions shown on the Home page', style: TextStyle(fontSize: 13),),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
                         CustomListTile(
                           tileColor: Theme.of(context).colorScheme.primaryContainer,
                           title: 'Show transaction description',
@@ -988,6 +1040,19 @@ class _HomePageContentState extends State<HomePageContent> {
         }
       ),
     );
+  }
+
+  // handle transaction count increase or decrease on home page
+  void _handleTransactionCount(int digit) {
+    final newValue = _homeTransactionsCount + digit;
+
+    if(newValue < 3 || newValue > 10) {
+      HapticFeedback.selectionClick();
+      return;
+    }
+
+    _homeTransactionsCount = newValue;
+    AppSettings.setTransactionsCountOnHomePage(_homeTransactionsCount);
   }
 
   // categories manager
@@ -1448,7 +1513,7 @@ class _HomePageContentState extends State<HomePageContent> {
               );
             }
           ),
-          // last 3 transactions
+          // last transactions (3 to 10)
           const SectionHeader(
             title: 'Transactions'
           ),
@@ -1462,7 +1527,7 @@ class _HomePageContentState extends State<HomePageContent> {
                   stream: widget.db.watchAllTransactionItems(),
                   builder: (context, snapshot) {
                     final items = snapshot.data ?? [];
-                    final lastThreeItems = items.take(3).toList();
+                    final lastThreeItems = items.take(_homeTransactionsCount).toList();
                     return items.isNotEmpty
                     ? buildTransactionList(
                       context: context, 
@@ -1474,6 +1539,7 @@ class _HomePageContentState extends State<HomePageContent> {
                       showTransactionDetails: _showTransactionDetails,
                       shouldInsertDate: false,
                       showDescription: _isShowingDescription,
+                      scrollPhysics: const NeverScrollableScrollPhysics()
                     )
                     : Padding(
                       padding: const EdgeInsets.all(10),

@@ -915,12 +915,12 @@ class _HomePageContentState extends State<HomePageContent> {
                   child: SingleChildScrollView(
                     padding:const EdgeInsets.symmetric(horizontal: 15),
                     child: Column(
+                      spacing: 10,
                       children: [
                         // theme
                         const SectionHeader(
                           title: 'Appearance'
                         ),
-                        const SizedBox(height: 10),
                         Center(
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -945,21 +945,19 @@ class _HomePageContentState extends State<HomePageContent> {
                           ),
                         ),
                         const SectionHeader(
-                          title: 'Preferences'
+                          title: 'Home'
                         ),
-                        // categories manager
-                        const SizedBox(height: 10),
-                        CustomListTile(
-                          tileColor: Theme.of(context).colorScheme.primaryContainer,
-                          title: 'Categories',
-                          trailing: const CustomIcon(icon: Icons.chevron_right),
-                          onTap: () => _showCategoriesManager(),
-                        ),
-                        const SizedBox(height: 20),
                         // home transactions count
                         CustomListTile(
                           tileColor: Theme.of(context).colorScheme.primaryContainer, 
                           title: 'Recent Transactions',
+                          subtitle: Text(
+                            'Number of transactions shown on the Home page',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Theme.of(context).colorScheme.tertiary,
+                            ),
+                          ),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             spacing: 10,
@@ -995,17 +993,16 @@ class _HomePageContentState extends State<HomePageContent> {
                             ],
                           ),
                         ),
-                        const Align(
-                          alignment: Alignment.centerLeft,
-                          child: Padding(
-                            padding: EdgeInsets.fromLTRB(10, 5, 10, 10),
-                            child: Text('Number of transactions shown on the Home page', style: TextStyle(fontSize: 13),),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
                         CustomListTile(
                           tileColor: Theme.of(context).colorScheme.primaryContainer,
                           title: 'Show transaction description',
+                          subtitle: Text(
+                            'Display the description below each transaction',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Theme.of(context).colorScheme.tertiary,
+                            ),
+                          ),
                           trailing: CustomSwitch(
                             value: _isShowingDescription, 
                             onChanged: (bool value) {
@@ -1017,18 +1014,22 @@ class _HomePageContentState extends State<HomePageContent> {
                             }
                           ),
                         ),
-                        const Align(
-                          alignment: Alignment.centerLeft,
-                          child: Padding(
-                            padding: EdgeInsets.fromLTRB(10, 5, 10, 10),
-                            child: Text('Display the description below each transaction', style: TextStyle(fontSize: 13),),
-                          ),
+                        const SectionHeader(
+                          title: 'Preferences'
                         ),
+                        // currency selection
                         CustomListTile(
                           tileColor: Theme.of(context).colorScheme.primaryContainer, 
                           title: 'Currency',
                           trailing: const CustomIcon(icon: Icons.chevron_right),
                           onTap: () => _showCurrencySelectionSheet(),
+                        ),
+                        // categories manager
+                        CustomListTile(
+                          tileColor: Theme.of(context).colorScheme.primaryContainer,
+                          title: 'Categories',
+                          trailing: const CustomIcon(icon: Icons.chevron_right),
+                          onTap: () => _showCategoriesManager(),
                         ),
                       ],
                     ),

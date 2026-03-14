@@ -21,6 +21,8 @@ import 'package:open_budget/widgets/empty_list_placeholder.dart';
 import 'package:open_budget/widgets/section_header.dart';
 import 'package:open_budget/widgets/show_snack_bar.dart';
 import 'package:open_budget/widgets/submit_button.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 enum _TransactionsListType {
   incomes,
@@ -45,6 +47,12 @@ class _HomePageContentState extends State<HomePageContent> {
   Currency _currentCurrency = CurrencyManager.currentCurrency!;
   bool _isShowingDescription = false;
   int _homeTransactionsCount = 3;
+  PackageInfo _appInfo = PackageInfo(
+    appName: 'Unknown', 
+    packageName: 'Unknown', 
+    version: 'Unknown', 
+    buildNumber: 'Unknown',
+  );
 
   // filter for income, all and expense transactions
   _TransactionsListType _currentTransactionsListType = _TransactionsListType.all; // income, all, expense
@@ -61,6 +69,15 @@ class _HomePageContentState extends State<HomePageContent> {
     _currentCurrency = CurrencyManager.currentCurrency!;
     _loadDescriptionState();
     _loadTransactionsCount();
+    _initAppInfo();
+  }
+
+  // get app info
+  Future<void> _initAppInfo() async {
+    final info = await PackageInfo.fromPlatform();
+    setState(() {
+      _appInfo = info;
+    });
   }
 
   // load description preview state from shared_preferences
@@ -90,6 +107,20 @@ class _HomePageContentState extends State<HomePageContent> {
       _TransactionsListType.expenses => items.where((t) => t.amount < 0),
     }.toList();
     return filteredItems;
+  }
+
+  // open url in browser
+  Future<void> _openWebsite(Uri url) async {
+    if(!await launchUrl(
+      url,
+      mode: LaunchMode.externalApplication,
+    )) {
+      if(!mounted) return;
+      showSnackBar(
+        context: context, 
+        content: const Text('Could not launch url')
+      );
+    }
   }
 
   // all transactions modalBottomSheet
@@ -1031,6 +1062,13 @@ class _HomePageContentState extends State<HomePageContent> {
                           trailing: const CustomIcon(icon: Icons.chevron_right),
                           onTap: () => _showCategoriesManager(),
                         ),
+                        // about
+                        CustomListTile(
+                          tileColor: Theme.of(context).colorScheme.primaryContainer,
+                          title: 'About',
+                          trailing: const CustomIcon(icon: Icons.chevron_right),
+                          onTap: () => _showAboutSheet(),
+                        ),
                       ],
                     ),
                   ),
@@ -1039,6 +1077,96 @@ class _HomePageContentState extends State<HomePageContent> {
             ),
           );
         }
+      ),
+    );
+  }
+
+  // about app modal bottom sheet
+  void _showAboutSheet() {
+    showCustomModalBottomSheet(
+      context: context, 
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // header
+          CustomHeader(
+            children: [
+              CustomIconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close)
+              ), 
+              const CustomHeaderTitle(title: 'About'),
+              const SizedBox(width: 48),
+            ],
+          ),
+          // content
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: Column(
+                spacing: 10,
+                children: [
+                  // app icon
+                  Image.asset(
+                    width: 150,
+                    'assets/icon/openbudget_icon.png'
+                  ),
+                  // app name
+                  const Text(
+                    'Open Budget',
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  // app version container
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Text(
+                      _appInfo.version,
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Theme.of(context).colorScheme.secondary,
+                      ),
+                    ),
+                  ),
+                  // github link
+                  CustomListTile(
+                    tileColor: Theme.of(context).colorScheme.primaryContainer, 
+                    title: 'GitHub',
+                    trailing: const Icon(Icons.launch),
+                    onTap: () => _openWebsite(Uri.parse('https://github.com/atomi19/open_budget')),
+                  ),
+                  // license link
+                  CustomListTile(
+                    tileColor: Theme.of(context).colorScheme.primaryContainer, 
+                    title: 'License',
+                    trailing: const Icon(Icons.launch),
+                    onTap: () => _openWebsite(Uri.parse('https://github.com/atomi19/open_budget/blob/main/LICENSE.txt')),
+                  ),
+                  // open source licenses used in project 
+                  CustomListTile(
+                    tileColor: Theme.of(context).colorScheme.primaryContainer, 
+                    title: 'Open Source Licenses',
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.pop(context);
+                      showLicensePage(
+                        context: context,
+                        applicationName: 'Open Budget',
+                      );
+                    }
+                  ),
+                ],
+              ),
+            )
+          )
+        ],
       ),
     );
   }

@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:open_budget/pages/add_transaction_page.dart';
 import 'package:open_budget/pages/home_page_content.dart';
 import 'package:open_budget/logic/database/database.dart';
-import 'package:open_budget/pages/statistics_page.dart';
 
 class HomePage extends StatefulWidget {
   final Function(ThemeMode) setTheme;
@@ -30,7 +29,6 @@ class _HomePageState extends State<HomePage> {
         setTheme: widget.setTheme,
       ),
       AddTransactionPage(db: db),
-      StatisticsPage(db: db),
     ];
 
     return Scaffold(
@@ -63,11 +61,6 @@ class _HomePageState extends State<HomePage> {
             icon: Icon(Icons.add, color: Theme.of(context).colorScheme.tertiary,),
             activeIcon: const Icon(Icons.add_circle),
             label: 'Add Transaction',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.data_usage, color: Theme.of(context).colorScheme.tertiary,),
-            activeIcon: const Icon(Icons.data_usage_outlined),
-            label: 'Statistics',
           ),
         ]
       ),

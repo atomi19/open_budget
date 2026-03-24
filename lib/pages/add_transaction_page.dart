@@ -33,7 +33,9 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
 
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  Account? selectedAccount;
   Category? _selectedCategory;
+
   int? _selectedCategoryId;
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
@@ -44,6 +46,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
       _amountController.clear();
       _selectedDate = null;
       _selectedTime = null;
+      selectedAccount = null;
       _selectedCategory = null;
       _selectedCategoryId = null;
       _descriptionController.clear();
@@ -51,7 +54,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
   }
 
   Future _findCategoryById(int id) async {
-    _selectedCategory = await widget.db.getCategoryById(id);
+    _selectedCategory = await widget.db.categoriesDao.getCategoryById(id);
   }
 
   // list income or expense categories
@@ -84,7 +87,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           // categories list
           Expanded(
             child: StreamBuilder(
-              stream: widget.db.watchIncomeOrExpenseCategories(isIncome),
+              stream: widget.db.categoriesDao.watchIncomeOrExpenseCategories(isIncome),
               builder: (context, snapshot) {
                 final items =snapshot.data ?? [];
                 return items.isEmpty
@@ -103,9 +106,69 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                     final item = items[index];
                     return CustomListTile(
                       tileColor: Theme.of(context).colorScheme.primaryContainer, 
-                      leading: CustomIcon(icon: IconsManager.getIconByName(item.iconName)),
+                      leading: CustomIcon(icon: IconsManager.getCategoryIconByName(item.iconName)),
                       title: item.name,
                       onTap: () => onTap(item.id),
+                    );
+                  }
+                );
+              }
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  void _showAccountsSheet() {
+    showCustomModalBottomSheet(
+      context: context, 
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // header
+          CustomHeader(
+            children: [
+              // close button
+              CustomIconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close)
+              ),
+              const CustomHeaderTitle(title: 'Select Account'),
+              const SizedBox(width: 48),
+            ],
+          ),
+          // accounts list
+          Expanded(
+            child: StreamBuilder(
+              stream: widget.db.accountsDao.watchAccounts(),
+              builder: (context, snapshot) {
+                final items =snapshot.data ?? [];
+                return items.isEmpty
+                ? EmptyListPlaceholder(
+                    color: Theme.of(context).colorScheme.surface,
+                    icon: Icons.close_rounded, 
+                    title: 'No accounts yet', 
+                    subtitle: 'Create account first'
+                )
+                : ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: items.length,
+                  separatorBuilder: (context, index) => const SizedBox(height: 5),
+                  padding:const EdgeInsets.symmetric(horizontal: 15),
+                  itemBuilder: (context, index) {
+                    final item = items[index];
+                    return CustomListTile(
+                      tileColor: Theme.of(context).colorScheme.primaryContainer, 
+                      leading: CustomIcon(icon: IconsManager.getAccountIconByName(item.icon)),
+                      title: item.name,
+                      onTap: ()  {
+                        setState(() {
+                          selectedAccount = item;
+                        });
+                        Navigator.pop(context);
+                      },
                     );
                   }
                 );
@@ -135,6 +198,14 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
             prefix: Text(isIncome ? '+ ': '- '),
             maxLines: 1,
             textInputType: TextInputType.number,
+          ),
+          CustomListTile(
+            tileColor: Theme.of(context).colorScheme.primaryContainer, 
+            title: selectedAccount != null
+              ? selectedAccount!.name.toString()
+              : 'Account',
+            trailing: const CustomIcon(icon: Icons.chevron_right),
+            onTap: _showAccountsSheet,
           ),
           // date 
           CustomListTile(
@@ -203,6 +274,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                 : '-${_amountController.text}', // expense amount
                 selectedDate: _selectedDate, 
                 selectedTime: _selectedTime, 
+                accountOwnerId: selectedAccount!.id,
                 categoryId: _selectedCategoryId, 
                 descriptionController: _descriptionController, 
                 clearInputData: _resetData

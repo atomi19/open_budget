@@ -46,3 +46,6 @@ app.*.map.json
 
 # drift library generated file
 /lib/logic/database/database.g.dart
+/lib/logic/database/daos/accounts_dao.g.dart
+/lib/logic/database/daos/transactions_dao.g.dart
+/lib/logic/database/daos/categories_dao.g.dart

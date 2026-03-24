@@ -39,11 +39,32 @@ class IconsManager {
     'movie': Icons.movie_outlined,
   };
 
+  // icons for accounts
+  static const Map<String, IconData> accountIcons = {
+    'account_balance': Icons.account_balance_outlined,
+    'account_balance_wallet': Icons.account_balance_wallet_outlined,
+    'wallet': Icons.wallet_outlined,
+    'credit_card': Icons.credit_card_outlined,
+
+    'payments': Icons.payments_outlined,
+    'savings': Icons.savings_outlined,
+    'currency_exchange': Icons.currency_exchange_outlined,
+    'attach_money': Icons.attach_money_outlined
+  };
+
   // get icon by String key
-  static IconData getIconByName(String? nameKey) {
+  static IconData getCategoryIconByName(String? nameKey) {
     return categoryIcons[nameKey] ?? Icons.help_outline;
   }
 
-  // list all icons keys
-  static List<String> get keys => categoryIcons.keys.toList();
+  // get account icon by String key
+  static IconData getAccountIconByName(String? nameKey) {
+    return accountIcons[nameKey] ?? Icons.help_outline;
+  }
+
+  // list all category icons keys
+  static List<String> get categoriesKeys => categoryIcons.keys.toList();
+  
+  // list all accounts icon keys
+  static List<String> get accountsKeys => accountIcons.keys.toList();
 }

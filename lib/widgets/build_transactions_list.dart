@@ -30,7 +30,7 @@ Widget buildTransactionList({
   required List<Transaction> items,
   required Map<int, Category> categoriesById,
   required Currency currentCurrency,
-  required Function(Transaction) showTransactionDetails,
+  required Function(Transaction, Currency) showTransactionDetails,
   required bool shouldInsertDate,
   required bool showDescription,
   ScrollPhysics? scrollPhysics,
@@ -75,7 +75,7 @@ Widget buildTransactionList({
           CustomListTile(
             tileColor: tileColor,
             // category icon
-            leading: CustomIcon(icon: IconsManager.getIconByName(iconNameKey)),
+            leading: CustomIcon(icon: IconsManager.getCategoryIconByName(iconNameKey)),
             // category name
             title: categoriesById[item.categoryId]?.name ?? 'Unknown Category',
             // description
@@ -101,7 +101,7 @@ Widget buildTransactionList({
                 fontSize: 15
               ),
             ),
-            onTap: () => showTransactionDetails(item),
+            onTap: () => showTransactionDetails(item, currentCurrency),
           ),
         ]
       );

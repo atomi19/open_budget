@@ -3,32 +3,33 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:open_budget/logic/app_settings.dart';
 import 'package:open_budget/logic/currencies.dart';
-import 'package:open_budget/logic/currency_manager.dart';
 import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/logic/format_number.dart';
 import 'package:open_budget/logic/icons_manager.dart';
+import 'package:open_budget/ui/accounts/account_create_bottom_sheet.dart';
+import 'package:open_budget/ui/accounts/account_edit_bottom_sheet.dart';
+import 'package:open_budget/ui/accounts/accounts_bottom_sheet.dart';
+import 'package:open_budget/ui/categories/categories_bottom_sheet.dart';
+import 'package:open_budget/ui/categories/categories_manager_bottom_sheet.dart';
+import 'package:open_budget/ui/categories/category_create_bottom_sheet.dart';
+import 'package:open_budget/ui/categories/category_edit_bottom_sheet.dart';
+import 'package:open_budget/ui/settings/about_bottom_sheet.dart';
+import 'package:open_budget/ui/settings/settings_bottom_sheet.dart';
+import 'package:open_budget/ui/statistics/statistics_bottom_sheet.dart';
+import 'package:open_budget/ui/transactions/all_transactions_bottom_sheet.dart';
+import 'package:open_budget/ui/transactions/amount_edit_bottom_sheet.dart';
+import 'package:open_budget/ui/transactions/transaction_details_bottom_sheet.dart';
 import 'package:open_budget/widgets/build_transactions_list.dart';
-import 'package:open_budget/widgets/custom_header.dart';
-import 'package:open_budget/widgets/custom_header_title.dart';
+import 'package:open_budget/widgets/custom_alert_dialog.dart';
 import 'package:open_budget/widgets/custom_icon.dart';
-import 'package:open_budget/widgets/custom_icon_button.dart';
 import 'package:open_budget/widgets/custom_list_tile.dart';
 import 'package:open_budget/widgets/custom_modal_bottom_sheet.dart';
-import 'package:open_budget/widgets/custom_switch.dart';
-import 'package:open_budget/widgets/custom_text_field.dart';
 import 'package:open_budget/widgets/date_time_picker.dart';
 import 'package:open_budget/widgets/empty_list_placeholder.dart';
 import 'package:open_budget/widgets/section_header.dart';
 import 'package:open_budget/widgets/show_snack_bar.dart';
-import 'package:open_budget/widgets/submit_button.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-enum _TransactionsListType {
-  incomes,
-  all,
-  expenses,
-}
 
 class HomePageContent extends StatefulWidget {
   final AppDatabase db;
@@ -44,7 +45,9 @@ class HomePageContent extends StatefulWidget {
 }
 
 class _HomePageContentState extends State<HomePageContent> {
-  Currency _currentCurrency = CurrencyManager.currentCurrency!;
+  final PageController _pageViewController = PageController();
+  int currentPageIndex = 0;
+
   bool _isShowingDescription = false;
   int _homeTransactionsCount = 3;
   PackageInfo _appInfo = PackageInfo(
@@ -53,9 +56,6 @@ class _HomePageContentState extends State<HomePageContent> {
     version: 'Unknown', 
     buildNumber: 'Unknown',
   );
-
-  // filter for income, all and expense transactions
-  _TransactionsListType _currentTransactionsListType = _TransactionsListType.all; // income, all, expense
 
   // store categories locally 
   // sort them by id 
@@ -66,7 +66,6 @@ class _HomePageContentState extends State<HomePageContent> {
   void initState() {
     super.initState();
     _loadCategories();
-    _currentCurrency = CurrencyManager.currentCurrency!;
     _loadDescriptionState();
     _loadTransactionsCount();
     _initAppInfo();
@@ -88,7 +87,7 @@ class _HomePageContentState extends State<HomePageContent> {
   // load and keep categories locally
   // e.g. to get category name 
   Future<void> _loadCategories() async {
-    widget.db.watchCategories().listen((categories) {
+    widget.db.categoriesDao.watchCategories().listen((categories) {
       setState(() {
         _categoriesById= {for (var c in categories) c.id : c};
       });
@@ -97,16 +96,6 @@ class _HomePageContentState extends State<HomePageContent> {
 
   Future<void> _loadTransactionsCount() async {
     _homeTransactionsCount = await AppSettings.getTransactionsCountOnHomePage() ?? 3;
-  }
-
-  // filter transactions by income, expense or all transactions
-  List<Transaction> _filterTransactions(List<Transaction> items) {
-    final filteredItems = switch (_currentTransactionsListType) {
-      _TransactionsListType.incomes => items.where((t) => t.amount > 0),
-      _TransactionsListType.all => items,
-      _TransactionsListType.expenses => items.where((t) => t.amount < 0),
-    }.toList();
-    return filteredItems;
   }
 
   // open url in browser
@@ -124,173 +113,23 @@ class _HomePageContentState extends State<HomePageContent> {
   }
 
   // all transactions modalBottomSheet
-  void _showAllTransactions() {
-    final TextEditingController searchTransactionController = TextEditingController();
-    bool isSearchingTransactions = false;
-    String searchQuery = '';
-    _currentTransactionsListType = _TransactionsListType.all; // show all transactions
-
+  void _showAllTransactions({
+    required int selectedAccountId,
+    required Currency accountCurrency,
+  }) {
     showCustomModalBottomSheet(
       context: context, 
       isScrollControlled: true,
       backgroundColor: Theme.of(context).colorScheme.surface,
       borderRadius: 0,
       padding: 0,
-      child: StatefulBuilder(
-        builder: (BuildContext context, StateSetter setState) {
-          return Column(
-            children: [
-              isSearchingTransactions
-              // header with searching field
-              ? CustomHeader(
-                children: [
-                  // search text field
-                  Expanded(
-                    child: CustomTextField(
-                      controller: searchTransactionController, 
-                      maxLines: 1,
-                      isDense: true,
-                      prefixIcon: const CustomIcon(icon: Icons.search_outlined),
-                      hintText: 'Search transactions...',
-                      onChanged: (String query) {
-                        setState(() {
-                          searchQuery = query.trim();
-                        });
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  // switch to default header icon button
-                  CustomIconButton(
-                    onPressed: () {
-                      setState(() {
-                        isSearchingTransactions = !isSearchingTransactions;
-                        searchTransactionController.clear();
-                        searchQuery = '';
-                      });
-                    }, 
-                    icon: const Icon(Icons.close_outlined)
-                  ),
-                ]
-              )
-              // default header when user is not searching transactions
-              : CustomHeader(
-                children: [
-                  CustomIconButton(
-                    onPressed: () => Navigator.pop(context), 
-                    icon: Icon(Icons.close_outlined, color: Theme.of(context).colorScheme.onPrimary)
-                  ),
-                  const CustomHeaderTitle(title: 'All Transactions'),
-                  CustomIconButton(
-                    onPressed: () {
-                      setState(() {
-                        isSearchingTransactions = !isSearchingTransactions;
-                      });
-                    }, 
-                    icon: Icon(Icons.search_outlined, color: Theme.of(context).colorScheme.onPrimary)
-                  ),
-                ]
-              ),
-              // incomes, all, expenses textbuttons
-              Container(
-                padding: const EdgeInsets.all(3),
-                margin: const EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(15),
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                ),
-                child:Row(
-                  children: _TransactionsListType.values.map((type) {
-                    final label = switch (type) {
-                      _TransactionsListType.incomes => 'Incomes',
-                      _TransactionsListType.all => 'All',
-                      _TransactionsListType.expenses => 'Expenses',
-                    };
-                    final isSelected = _currentTransactionsListType == type;
-                    return Expanded(
-                      child: TextButton(
-                        style: TextButton.styleFrom(
-                          backgroundColor: isSelected
-                          ? Colors.blue
-                          : Theme.of(context).colorScheme.primaryContainer,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _currentTransactionsListType = type;
-                          });
-                        }, 
-                        child: Text(
-                          label,
-                          style: TextStyle(
-                            color: isSelected
-                              ? Theme.of(context).colorScheme.secondary
-                              : Theme.of(context).colorScheme.onPrimary
-                          ),
-                        )
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-              // transactions list
-              Expanded(
-                child: isSearchingTransactions 
-                // search transactions
-                ? StreamBuilder(
-                  stream: widget.db.searchTransactions(searchQuery), 
-                  builder: (context, snapshot) {
-                    final items = snapshot.data ?? [];
-                    final filteredItems = _filterTransactions(items);
-                    return items.isEmpty
-                    ? EmptyListPlaceholder(
-                        color: Theme.of(context).colorScheme.surface,
-                        icon: Icons.search_off_outlined, 
-                        title: 'No results found', 
-                        subtitle: 'Try to search by category or amount'
-                      )
-                    : buildTransactionList(
-                      context: context, 
-                      tileColor: Theme.of(context).colorScheme.surface,
-                      shrinkWrap: false,
-                      items: filteredItems, 
-                      categoriesById: _categoriesById,
-                      currentCurrency: _currentCurrency, 
-                      showTransactionDetails: _showTransactionDetails,
-                      shouldInsertDate: true,
-                      showDescription: _isShowingDescription,
-                    );
-                  }
-                )
-                // all transactions
-                : StreamBuilder(
-                  stream: widget.db.watchAllTransactionItems(), 
-                  builder: (context, snapshot) {
-                    final items = snapshot.data ?? [];
-                    final filteredItems = _filterTransactions(items);
-                    return filteredItems.isEmpty
-                    ? EmptyListPlaceholder(
-                        color: Theme.of(context).colorScheme.surface,
-                        icon: Icons.close_rounded, 
-                        title: 'No transactions yet', 
-                        subtitle: 'Add transactions and they will appear here'
-                      )
-                    : buildTransactionList(
-                      context: context, 
-                      tileColor: Theme.of(context).colorScheme.surface,
-                      shrinkWrap: false,
-                      items: filteredItems, 
-                      categoriesById: _categoriesById,
-                      currentCurrency: _currentCurrency, 
-                      showTransactionDetails: _showTransactionDetails,
-                      shouldInsertDate: true,
-                      showDescription: _isShowingDescription,
-                    );
-                  }
-                ),
-              ),
-            ],
-          );
-        },
+      child: AllTransactionsBottomSheet(
+        db: widget.db, 
+        selectedAccountId: selectedAccountId, 
+        categoriesById: _categoriesById, 
+        currentCurrency: accountCurrency, 
+        isShowingDescription: _isShowingDescription, 
+        showTransactionDetails: _showTransactionDetails,
       ),
     );
   }
@@ -303,70 +142,11 @@ class _HomePageContentState extends State<HomePageContent> {
     showCustomModalBottomSheet(
       context: context,
       backgroundColor: Theme.of(context).colorScheme.surface,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // header
-          CustomHeader(
-            children: [
-              CustomIconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close)
-              ),
-              const CustomHeaderTitle(title: 'Change category'),
-              const SizedBox(width: 48),
-            ]
-          ),
-          // categories
-          Expanded(
-            child: ListView(
-              children: [
-                StreamBuilder(
-                  stream: widget.db.watchIncomeOrExpenseCategories(isIncome),
-                  builder: (context, snapshot) {
-                    final items = snapshot.data ?? [];
-                    return items.isEmpty
-                    ? Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: EmptyListPlaceholder(
-                        color: Theme.of(context).colorScheme.surface,
-                        icon: Icons.close_rounded, 
-                        title: 'No categories yet', 
-                        subtitle: 'Create category first'
-                      )
-                    )
-                    : ListView.separated(
-                      shrinkWrap: true,
-                      itemCount: items.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 5),
-                      padding: const EdgeInsets.symmetric(horizontal: 15),
-                      itemBuilder: (context, index) {
-                        final category = items[index];
-
-                        return CustomListTile(
-                          tileColor: Theme.of(context).colorScheme.primaryContainer, 
-                          leading: CustomIcon(icon: IconsManager.categoryIcons[category.iconName]!),
-                          title: category.name,
-                          trailing: category.id == item.categoryId
-                            ? const CustomIcon(icon: Icons.done_rounded)
-                            : null,
-                          onTap: () {
-                            // if user selects same category as current transaction category just return
-                            if(item.categoryId == category.id) return;
-                            // update transaction category
-                            widget.db.updateTransactionCategoryId(item.id, category.id);
-                            Navigator.of(context).popUntil((route) => route.isFirst);
-                          },
-                        );
-                      }
-                    );
-                  }
-                ),
-              ],
-            ),
-          )
-        ],
-      )
+      child: CategoriesBottomSheet(
+        db: widget.db,
+        isIncome: isIncome,
+        item: item,
+      ),
     );
   }
 
@@ -375,64 +155,14 @@ class _HomePageContentState extends State<HomePageContent> {
     required bool isIncome,
     required Transaction item
   }) {
-    final TextEditingController editAmountController = TextEditingController();
-
     showCustomModalBottomSheet(
       context: context, 
       backgroundColor: Theme.of(context).colorScheme.surface,
-      child: Wrap(
-        children: [
-          // header
-          CustomHeader(
-            children: [
-              // close button
-              CustomIconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close)
-              ),
-              const CustomHeaderTitle(title: 'Edit'),
-              // update amount (confirm) button
-              CustomIconButton(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                onPressed: () {
-                  HapticFeedback.lightImpact();
-
-                  final newAmount = isIncome
-                    ? editAmountController.text
-                    : '-${editAmountController.text}';
-
-                  double? amount = double.tryParse(newAmount);
-
-                  if(amount == null) {
-                    showSnackBar(
-                      context: context, 
-                      content: const Text('Enter valid amount')
-                    );
-                  } else {
-                    widget.db.updateAmount(item.id, amount);
-                    Navigator.of(context).popUntil((route) => route.isFirst);
-                  }
-                }, 
-                icon: Icon(Icons.done_rounded, color: Theme.of(context).colorScheme.primaryContainer)
-              ),
-            ]
-          ),
-          // amount editing textfield
-          Padding(
-            padding:const EdgeInsets.symmetric(horizontal: 15),
-            child: CustomTextField(
-              controller: editAmountController, 
-              prefix: isIncome
-                ? const Text('+ ')
-                : const Text('- '),
-              hintText: isIncome
-                ? 'Edit income...'
-                : 'Edit expense...',
-              textInputType: TextInputType.number,
-            ),
-          )
-        ],
-      )
+      child: AmountEditBottomSheet(
+        db: widget.db,
+        isIncome: isIncome,
+        item: item,
+      ),
     );
   }
 
@@ -455,7 +185,7 @@ class _HomePageContentState extends State<HomePageContent> {
         oldDate.minute,
       );
       // update in db
-      widget.db.updateDateAndTime(item.id, newDate);
+      widget.db.transactionsDao.updateDateAndTime(item.id, newDate);
       if(!mounted) return;
       Navigator.of(context).popUntil((route) => route.isFirst);
     }
@@ -480,16 +210,14 @@ class _HomePageContentState extends State<HomePageContent> {
         newTime.minute,
       );
       // update in db
-      widget.db.updateDateAndTime(item.id, newDate);
+      widget.db.transactionsDao.updateDateAndTime(item.id, newDate);
       if(!mounted) return;
       Navigator.of(context).popUntil((route) => route.isFirst);
     }
   }
 
   // transaction details modalBottomSheet
-  void _showTransactionDetails(Transaction item) {
-    final TextEditingController transactionDescriptionController = TextEditingController();
-    transactionDescriptionController.text = item.description;
+  void _showTransactionDetails(Transaction item, Currency accountCurrency) {
     final category = _categoriesById[item.categoryId];
     final iconNameKey = category?.iconName;
     bool isIncome = item.amount > 0
@@ -501,159 +229,19 @@ class _HomePageContentState extends State<HomePageContent> {
       isScrollControlled: true,
       borderRadius: 0,
       backgroundColor: Theme.of(context).colorScheme.surface,
-      child: Column(
-        children: [
-          // header
-          CustomHeader(
-            children: [
-              // close button
-              CustomIconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close)
-              ),
-              const CustomHeaderTitle(title: 'Details'),
-              // delete transaction button
-              CustomIconButton(
-                onPressed: () => _showDeleteConfirmation(item),
-                icon: const Icon(Icons.delete_outlined)
-              ),
-            ]
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: Column(
-                children: [
-                  // amount
-                  GestureDetector(
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: Text(
-                        item.amount % 1 == 0
-                          ? '${item.amount.toInt().toString()} ${_currentCurrency.symbol}'
-                          : '${item.amount.toString()} ${_currentCurrency.symbol}', 
-                        style: TextStyle(
-                          fontSize: 40, 
-                          fontWeight: FontWeight.bold,
-                          color: isIncome
-                            ? Colors.green
-                            : Theme.of(context).colorScheme.onPrimary,
-                        ),
-                      ),
-                    ),
-                    // editing modalBottomSheet
-                    onTap: () => _showAmountEditingSheet(isIncome: isIncome, item: item),
-                  ),
-                  const SectionHeader(title: 'Date & Time'),
-                  const SizedBox(height: 10),
-                  Column(
-                    children: [
-                      // date in dd-mm-yyyy format
-                      CustomListTile(
-                        tileColor: Theme.of(context).colorScheme.primaryContainer,
-                        leading: const CustomIcon(icon: Icons.calendar_today,),
-                        title: 'Date',
-                        customBorder: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.vertical(
-                            top: Radius.circular(15),
-                            bottom: Radius.zero,
-                          )
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              '${item.dateAndTime.day.toString().padLeft(2, '0')}-${item.dateAndTime.month.toString().padLeft(2, '0')}-${item.dateAndTime.year}',
-                              style: const TextStyle(fontSize: 15),
-                            ),
-                            const SizedBox(width: 5),
-                            const CustomIcon(icon: Icons.chevron_right)
-                          ],
-                        ),
-                        onTap: () => _showEditDatePicker(item),
-                      ),
-                      Divider(
-                        height: 1,
-                        color: Theme.of(context).colorScheme.surface,
-                      ),
-                      // time in hh:mm format
-                      CustomListTile(
-                        tileColor: Theme.of(context).colorScheme.primaryContainer,
-                        leading: const CustomIcon(icon: Icons.access_time),
-                        title: 'Time',
-                        customBorder: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.vertical(
-                            top: Radius.zero,
-                            bottom: Radius.circular(15)
-                          )
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              '${item.dateAndTime.hour.toString().padLeft(2, '0')}:${item.dateAndTime.minute.toString().padLeft(2, '0')}',
-                              style: const TextStyle(fontSize: 15),
-                            ),
-                            const SizedBox(width: 5),
-                            const CustomIcon(icon: Icons.chevron_right)
-                          ],
-                        ),
-                        onTap: () => _showEditTimePicker(item),
-                      ),
-                    ],
-                  ),
-                  const SectionHeader(
-                    title: 'Details'
-                  ),
-                  const SizedBox(height: 10),
-                  // category
-                  CustomListTile(
-                    tileColor: Theme.of(context).colorScheme.primaryContainer,
-                    leading: CustomIcon(icon: IconsManager.getIconByName(iconNameKey)),
-                    title: 'Category', 
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SizedBox(
-                          width: 175,
-                          child: Text(
-                            _categoriesById[item.categoryId]?.name ?? 'Unknown Category',
-                            style: const TextStyle(fontSize: 15),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.right,
-                          ),
-                        ),
-                        const SizedBox(width: 5),
-                        const CustomIcon(icon: Icons.chevron_right),
-                      ],
-                    ),
-                    onTap: () => _showCategories(isIncome: isIncome, item: item),
-                  ),
-                  const SizedBox(height: 10),
-                  // description inside transaction details
-                  // if user changed description it will update
-                  // when focus on CustomTextField is lost
-                  Focus(
-                    onFocusChange: (focus) {
-                      if(!focus) {
-                        widget.db.updateDescription(item.id, transactionDescriptionController.text);
-                      }
-                    },
-                    child: CustomTextField(
-                      controller: transactionDescriptionController, 
-                      hintText: 'Enter description...',
-                      minLines: 5,
-                      maxLines: 5,
-                      textInputType: TextInputType.multiline,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      )
+      child: TransactionDetailsBottomSheet(
+        db: widget.db, 
+        item: item, 
+        currentCurrency: accountCurrency, 
+        categoriesById: _categoriesById, 
+        isIncome: isIncome, 
+        iconNameKey: iconNameKey, 
+        showDeleteConfirmation: _showDeleteConfirmation, 
+        showAmountEditingSheet: _showAmountEditingSheet, 
+        showCategories: _showCategories, 
+        showEditDatePicker: _showEditDatePicker, 
+        showEditTimePicker: _showEditTimePicker
+      ),
     );
   }
 
@@ -661,257 +249,88 @@ class _HomePageContentState extends State<HomePageContent> {
   void _showDeleteConfirmation(Transaction transaction) {
     showDialog(
       context: context, 
-      builder: (context) => AlertDialog(
-        title: const Text('Delete transaction?'),
-        content: const Text('Are you sure you want to delete this transaction?'),
-        actions: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: TextButton(
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.all(15),
-                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    )
-                  ),
-                  onPressed: () => Navigator.pop(context), 
-                  child: Text('Cancel', style: TextStyle(fontSize: 15, color: Theme.of(context).colorScheme.onPrimary)),
+      builder: (context) => CustomAlertDialog(
+        title: 'Delete transaction?', 
+        content: 'Are you sure you want to delete this transaction?', 
+        leftButtonLabel: 'Cancel', 
+        rightButtonLabel: 'Delete', 
+        leftButtonAction: () => Navigator.pop(context), 
+        rightButtonAction: () {
+          final messenger = ScaffoldMessenger.of(context);
+          Navigator.of(context).popUntil((route) => route.isFirst);
+
+          final deletedTransaction = transaction;
+          widget.db.transactionsDao.deleteTransaction(deletedTransaction.id);
+
+          showSnackBar(
+            context: context, 
+            content: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Transaction deleted',
+                  style: TextStyle(color: Theme.of(context).colorScheme.secondary),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: TextButton(
+                TextButton(
                   style: TextButton.styleFrom(
-                    padding: const EdgeInsets.all(15),
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.red.shade100,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+                    backgroundColor: Theme.of(context).colorScheme.surface,
                   ),
                   onPressed: () {
-                    final messenger = ScaffoldMessenger.of(context);
-                    Navigator.of(context).popUntil((route) => route.isFirst);
+                    // date and time
+                    final DateTime dateAndTime = deletedTransaction.dateAndTime;
 
-                    final deletedTransaction = transaction;
-                    widget.db.deleteTransaction(deletedTransaction.id);
-
-                    showSnackBar(
-                      context: context, 
-                      content: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Transaction deleted',
-                            style: TextStyle(color: Theme.of(context).colorScheme.secondary),
-                          ),
-                          TextButton(
-                            style: TextButton.styleFrom(
-                              backgroundColor: Theme.of(context).colorScheme.surface,
-                            ),
-                            onPressed: () {
-                              // date and time
-                              final DateTime dateAndTime = deletedTransaction.dateAndTime;
-
-                              // date
-                              final DateTime date = DateTime(
-                                dateAndTime.year,
-                                dateAndTime.month,
-                                dateAndTime.day,
-                              );
-
-                              // time
-                              final TimeOfDay time = TimeOfDay.fromDateTime(dateAndTime);
-
-                              widget.db.addTransaction(
-                                amount: deletedTransaction.amount, 
-                                description: deletedTransaction.description, 
-                                categoryId: deletedTransaction.categoryId, 
-                                date: date, 
-                                time: time
-                              );
-
-                              messenger.hideCurrentSnackBar();
-                            },
-                            child: Text('Undo', style: TextStyle(color: Theme.of(context).colorScheme.onPrimary)),
-                          ),
-                        ],
-                      ),
+                    // date
+                    final DateTime date = DateTime(
+                      dateAndTime.year,
+                      dateAndTime.month,
+                      dateAndTime.day,
                     );
-                  }, 
-                  child: const Text('Delete', style: TextStyle(fontSize: 15, color: Colors.white)),
+
+                    // time
+                    final TimeOfDay time = TimeOfDay.fromDateTime(dateAndTime);
+
+                    widget.db.transactionsDao.addTransaction(
+                      amount: deletedTransaction.amount, 
+                      description: deletedTransaction.description, 
+                      accountOwnerId: deletedTransaction.accountOwnerId,
+                      categoryId: deletedTransaction.categoryId, 
+                      date: date, 
+                      time: time
+                    );
+
+                    messenger.hideCurrentSnackBar();
+                  },
+                  child: Text('Undo', style: TextStyle(color: Theme.of(context).colorScheme.onPrimary)),
                 ),
-              )
-            ],
-          )
-        ],
-      )
-    );
-  }
-
-  // light/system/dark button
-  Widget _buildThemeSelectionButton({
-    required ThemeMode? theme,
-    required ThemeMode newTheme,
-    required String label,
-  }) {
-    return FilledButton(
-      style: FilledButton.styleFrom(
-        backgroundColor: theme == newTheme
-          // active theme
-          ? Colors.blue
-          // inactive theme
-          : Theme.of(context).colorScheme.primaryContainer
-      ),
-      onPressed: () {
-        HapticFeedback.selectionClick();
-        widget.setTheme(newTheme); // set new theme
-        Navigator.pop(context);
-      },
-      child: Text(
-        label,
-        style: TextStyle(
-          color: theme == newTheme
-          ? Theme.of(context).colorScheme.secondary
-          : Theme.of(context).colorScheme.onPrimary,
-        ),
-      )
-    );
-  }
-
-  // currency selection inside settings
-  void _showCurrencySelectionSheet() {
-    final controller = TextEditingController(text: '');
-    List<Currency> foundCurrencies = [];
-    bool isSearchingCurrencies = false;
-
-    showCustomModalBottomSheet(
-      context: context, 
-      isScrollControlled: true,
-      borderRadius: 0,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      child: StatefulBuilder(
-        builder: (context, setState) {
-          return Column(
-            children: [
-              // header
-              isSearchingCurrencies
-              // search header
-              ? CustomHeader(
-                children: [
-                  Expanded(
-                    child: CustomTextField(
-                      prefixIcon: const Icon(Icons.search),
-                      controller: controller,
-                      isDense: true,
-                      hintText: 'Find currency...',
-                      maxLines: 1,
-                      onChanged: (String query) {
-                        setState(() {
-                          foundCurrencies = _findCurrency(query);
-                        });
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  CustomIconButton(
-                    onPressed: () {
-                      setState(() {
-                        isSearchingCurrencies = false;
-                      });
-                    },
-                    icon: const Icon(Icons.close)
-                  ),
-                ],
-              )
-              // default header
-              : CustomHeader(
-                children: [
-                  // close button
-                  CustomIconButton(
-                    icon: const Icon(Icons.close), 
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const CustomHeaderTitle(title: 'Currency'),
-                  // search button
-                  CustomIconButton(
-                    icon: const Icon(Icons.search), 
-                    onPressed: () {
-                      setState(() {
-                        isSearchingCurrencies = true;
-                      });
-                    }
-                  ),
-                ],
-              ),
-              // currencies lists
-              Expanded(
-                child: isSearchingCurrencies
-                // found currencies
-                ? foundCurrencies.isEmpty
-                  // no currencies found
-                  ? EmptyListPlaceholder(
-                    color: Theme.of(context).colorScheme.surface,
-                    icon: Icons.search_off, 
-                    title: 'No currencies found', 
-                    subtitle: 'Try a different search'
-                  )
-                  // found currencies
-                  : _buildCurrenciesList(currencies: foundCurrencies)
-                // all currencies
-                : _buildCurrenciesList(currencies: Currency.currencies)
-              ),
-            ],
-          );
-        },
-      )
-    );
-  }
-
-  // currencies list in settings
-  Widget _buildCurrenciesList({
-    required List<Currency> currencies,
-  }) {
-    return ListView.separated(
-      itemCount: currencies.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 5), 
-      padding: const EdgeInsets.symmetric(horizontal: 15),
-      itemBuilder: (context, index) {
-        final currencyItem = currencies[index]; 
-
-        return CustomListTile(
-          tileColor: Theme.of(context).colorScheme.primaryContainer,
-          title: currencyItem.name, 
-          trailing: Text(
-            currencyItem.code,
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.grey
+              ],
             ),
-          ),
-          onTap: () async {
-            HapticFeedback.selectionClick();
-            Navigator.pop(context);
-            await CurrencyManager.setCurrency(currencyItem);
-            setState(() {
-              _currentCurrency = CurrencyManager.currentCurrency!;
-            });
-          }
-        );
-      }, 
+          );
+        }
+      ),
     );
   }
 
-  // find currency
-  List<Currency> _findCurrency(String query) {
-    if(query.trim().isEmpty) return [];
-    final String formattedQuery = query.toLowerCase();
-    final List<Currency> currencies = Currency.currencies;
-    final List<Currency> foundCurrencies = currencies.where((c) => c.name.toLowerCase().contains(formattedQuery)).toList();
-    return foundCurrencies;
+  // switch description state for transaction (show on home page or not)
+  void _switchDescriptionState(bool state) {
+    setState(() {
+      _isShowingDescription = state;
+    });
+  }
+
+  // handle transaction count increase or decrease on home page
+  // return number of transactions for settings_bottom_sheet updating value
+  int? _handleTransactionCount(int digit) {
+    final newValue = _homeTransactionsCount + digit;
+
+    if(newValue < 3 || newValue > 10) {
+      HapticFeedback.selectionClick();
+      return null;
+    }
+    setState(() {
+      _homeTransactionsCount = newValue;
+    });
+    AppSettings.setTransactionsCountOnHomePage(_homeTransactionsCount);
+    return _homeTransactionsCount;
   }
 
   // settings modalBottomSheet
@@ -924,160 +343,42 @@ class _HomePageContentState extends State<HomePageContent> {
       isScrollControlled: true,
       borderRadius: 0,
       backgroundColor: Theme.of(context).colorScheme.surface,
-      child: StatefulBuilder(
-        builder: (context, StateSetter setModalState) {
-          return SizedBox(
-            height: MediaQuery.of(context).size.height,
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                // header
-                CustomHeader(
-                  children: [
-                    CustomIconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close)
-                    ), 
-                    const CustomHeaderTitle(title: 'Settings'),
-                    const SizedBox(width: 48),
-                  ],
-                ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding:const EdgeInsets.symmetric(horizontal: 15),
-                    child: Column(
-                      spacing: 10,
-                      children: [
-                        // theme
-                        const SectionHeader(
-                          title: 'Appearance'
-                        ),
-                        Center(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            spacing: 10,
-                            children: [
-                              _buildThemeSelectionButton(
-                                theme: theme, 
-                                newTheme: ThemeMode.light,
-                                label: 'Light',
-                              ),
-                              _buildThemeSelectionButton(
-                                theme: theme, 
-                                newTheme: ThemeMode.system,
-                                label: 'System',
-                              ),
-                              _buildThemeSelectionButton(
-                                theme: theme, 
-                                newTheme: ThemeMode.dark,
-                                label: 'Dark',
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SectionHeader(
-                          title: 'Home'
-                        ),
-                        // home transactions count
-                        CustomListTile(
-                          tileColor: Theme.of(context).colorScheme.primaryContainer, 
-                          title: 'Recent Transactions',
-                          subtitle: Text(
-                            'Number of transactions shown on the Home page',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Theme.of(context).colorScheme.tertiary,
-                            ),
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            spacing: 10,
-                            children: [
-                              // transactions counter
-                              Text(
-                                '$_homeTransactionsCount',
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              // decrease
-                              CustomIconButton(
-                                backgroundColor: Theme.of(context).colorScheme.surface,
-                                onPressed: () {
-                                  _handleTransactionCount(-1);
-                                  setState(() {});
-                                  setModalState(() {});
-                                },
-                                icon: const Icon(Icons.remove)
-                              ),
-                              // increase
-                              CustomIconButton(
-                                backgroundColor: Theme.of(context).colorScheme.surface,
-                                onPressed: () {
-                                  _handleTransactionCount(1);
-                                  setState(() {});
-                                  setModalState(() {});
-                                },
-                                icon: const Icon(Icons.add)
-                              ),
-                            ],
-                          ),
-                        ),
-                        CustomListTile(
-                          tileColor: Theme.of(context).colorScheme.primaryContainer,
-                          title: 'Show transaction description',
-                          subtitle: Text(
-                            'Display the description below each transaction',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Theme.of(context).colorScheme.tertiary,
-                            ),
-                          ),
-                          trailing: CustomSwitch(
-                            value: _isShowingDescription, 
-                            onChanged: (bool value) {
-                              setState(() {
-                                _isShowingDescription = value;
-                              });
-                              setModalState(() {});
-                              AppSettings.switchTransactionDescription(value);
-                            }
-                          ),
-                        ),
-                        const SectionHeader(
-                          title: 'Preferences'
-                        ),
-                        // currency selection
-                        CustomListTile(
-                          tileColor: Theme.of(context).colorScheme.primaryContainer, 
-                          title: 'Currency',
-                          trailing: const CustomIcon(icon: Icons.chevron_right),
-                          onTap: () => _showCurrencySelectionSheet(),
-                        ),
-                        // categories manager
-                        CustomListTile(
-                          tileColor: Theme.of(context).colorScheme.primaryContainer,
-                          title: 'Categories',
-                          trailing: const CustomIcon(icon: Icons.chevron_right),
-                          onTap: () => _showCategoriesManager(),
-                        ),
-                        // about
-                        CustomListTile(
-                          tileColor: Theme.of(context).colorScheme.primaryContainer,
-                          title: 'About',
-                          trailing: const CustomIcon(icon: Icons.chevron_right),
-                          onTap: () => _showAboutSheet(),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              ],
-            ),
-          );
-        }
+      child: SettingsBottomSheet(
+        context: context,
+        theme: theme,
+        homeTransactionsCount: _homeTransactionsCount,
+        isShowingDescription: _isShowingDescription,
+        setState: setState,
+        setTheme: (newTheme) => widget.setTheme(newTheme),
+        switchDescriptionState: (bool state) => _switchDescriptionState(state),
+        handleTransactionCount: (digit) => _handleTransactionCount(digit),
+        showAccountsSheet: _showAccountsSheet,
+        showCategoriesManager: _showCategoriesManager,
+        showAboutSheet: _showAboutSheet,
       ),
+    );
+  }
+
+  void _showAccountsSheet() {
+    showCustomModalBottomSheet(
+      context: context, 
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      isScrollControlled: true,
+      borderRadius: 0,
+      child: AccountsBottomSheet(
+        context: context,
+        db: widget.db,
+        showAccountCreateSheet: _showAccountCreateSheet,
+        showAccountEditSheet: _showAccountEditSheet,
+      ),
+    );
+  }
+
+  void _showAccountCreateSheet() {
+    showCustomModalBottomSheet(
+      context: context, 
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      child: AccountCreateBottomSheet(db: widget.db,)
     );
   }
 
@@ -1086,246 +387,25 @@ class _HomePageContentState extends State<HomePageContent> {
     showCustomModalBottomSheet(
       context: context, 
       backgroundColor: Theme.of(context).colorScheme.surface,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // header
-          CustomHeader(
-            children: [
-              CustomIconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close)
-              ), 
-              const CustomHeaderTitle(title: 'About'),
-              const SizedBox(width: 48),
-            ],
-          ),
-          // content
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: Column(
-                spacing: 10,
-                children: [
-                  // app icon
-                  Image.asset(
-                    width: 150,
-                    'assets/icon/openbudget_icon.png'
-                  ),
-                  // app name
-                  const Text(
-                    'Open Budget',
-                    style: TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  // app version container
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Text(
-                      _appInfo.version,
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Theme.of(context).colorScheme.secondary,
-                      ),
-                    ),
-                  ),
-                  // github link
-                  CustomListTile(
-                    tileColor: Theme.of(context).colorScheme.primaryContainer, 
-                    title: 'GitHub',
-                    trailing: const Icon(Icons.launch),
-                    onTap: () => _openWebsite(Uri.parse('https://github.com/atomi19/open_budget')),
-                  ),
-                  // license link
-                  CustomListTile(
-                    tileColor: Theme.of(context).colorScheme.primaryContainer, 
-                    title: 'License',
-                    trailing: const Icon(Icons.launch),
-                    onTap: () => _openWebsite(Uri.parse('https://github.com/atomi19/open_budget/blob/main/LICENSE.txt')),
-                  ),
-                  // open source licenses used in project 
-                  CustomListTile(
-                    tileColor: Theme.of(context).colorScheme.primaryContainer, 
-                    title: 'Open Source Licenses',
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      Navigator.pop(context);
-                      showLicensePage(
-                        context: context,
-                        applicationName: 'Open Budget',
-                      );
-                    }
-                  ),
-                ],
-              ),
-            )
-          )
-        ],
+      child: AboutBottomSheet(
+        appInfo: _appInfo,
+        openWebsite: _openWebsite,
       ),
     );
   }
 
-  // handle transaction count increase or decrease on home page
-  void _handleTransactionCount(int digit) {
-    final newValue = _homeTransactionsCount + digit;
-
-    if(newValue < 3 || newValue > 10) {
-      HapticFeedback.selectionClick();
-      return;
-    }
-
-    _homeTransactionsCount = newValue;
-    AppSettings.setTransactionsCountOnHomePage(_homeTransactionsCount);
-  }
-
-  // categories manager
+  // categories manager modal bottom sheet
   void _showCategoriesManager() {
-    bool isIncome = true;
-
     showCustomModalBottomSheet(
       context: context, 
       isScrollControlled: true,
       borderRadius: 0,
       backgroundColor: Theme.of(context).colorScheme.surface,
-      child: StatefulBuilder(
-        builder: (context, setState) {
-          return Column(
-            children: [
-              // header
-              CustomHeader(
-                children: [
-                  CustomIconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close)
-                  ),
-                  const CustomHeaderTitle(title: 'Categories'),
-                  const SizedBox(width: 48),
-                ],
-              ),
-              Container(
-                color: Theme.of(context).colorScheme.surface,
-                padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: FilledButton(
-                        style: FilledButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          backgroundColor: isIncome
-                            ? Colors.blue
-                            : Theme.of(context).colorScheme.primaryContainer,
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 20
-                          )
-                        ),
-                        onPressed: () {
-                          HapticFeedback.selectionClick();
-                          setState(() {
-                            isIncome = true;
-                          });
-                        },
-                        child:Text(
-                          'Income categories',
-                          style: TextStyle(
-                            color: isIncome 
-                              ? Theme.of(context).colorScheme.secondary
-                              : Theme.of(context).colorScheme.onPrimary
-                          ),
-                        )
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: FilledButton(
-                        style: FilledButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          backgroundColor: isIncome
-                            ? Theme.of(context).colorScheme.primaryContainer
-                            : Colors.blue,
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 20
-                          )
-                        ),
-                        onPressed: () {
-                          HapticFeedback.selectionClick();
-                          setState(() {
-                            isIncome = false;
-                          });
-                        },
-                        child: Text(
-                          'Expense categories',
-                          style: TextStyle(
-                            color: isIncome 
-                              ? Theme.of(context).colorScheme.onPrimary
-                              : Theme.of(context).colorScheme.secondary
-                          ),
-                        )
-                      ),
-                    )
-                  ],
-                ),
-              ),
-              // income or expense categories
-              Expanded(
-                child: StreamBuilder(
-                  stream: widget.db.watchIncomeOrExpenseCategories(isIncome),
-                  builder: (context, snapshot) {
-                    final items =snapshot.data ?? [];
-                    return items.isEmpty
-                    ? Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: EmptyListPlaceholder(
-                        color: Theme.of(context).colorScheme.surface,
-                        icon: Icons.close_rounded, 
-                        title: 'No categories yet', 
-                        subtitle: 'Create category first'
-                      )
-                    )
-                    : ListView.separated(
-                      shrinkWrap: true,
-                      itemCount: items.length,
-                      padding: const EdgeInsets.symmetric(horizontal: 15),
-                      separatorBuilder: (context, index) => const SizedBox(height: 5),
-                      itemBuilder: (context, index) {
-                        final item = items[index];
-
-                        return CustomListTile(
-                          tileColor: Theme.of(context).colorScheme.primaryContainer,
-                          leading: CustomIcon(icon: IconsManager.getIconByName(item.iconName)),
-                          title: item.name,
-                          trailing: IconButton(
-                            onPressed: () => _showCategoryDeletetionPrompt(item.id),
-                            icon: const Icon(Icons.delete_outlined)
-                          ),
-                          onTap: () => _showCategoryEditingSheet(item),
-                        );
-                      }
-                    );
-                  }
-                ),
-              ),
-              // create category button
-              FilledButton(
-                onPressed: () => _showCategoryCreationSheet(isIncome: isIncome), 
-                child: Text(
-                  'Create category',
-                  style: TextStyle(color: Theme.of(context).colorScheme.secondary),
-                )
-              ),
-            ],
-          );
-        }
+      child: CategoriesManagerBottomSheet(
+        db: widget.db, 
+        showCategoryDeletetionPrompt: _showCategoryDeletetionPrompt, 
+        showCategoryEditingSheet: _showCategoryEditingSheet, 
+        showCategoryCreationSheet: _showCategoryCreationSheet,
       ),
     );
   }
@@ -1334,52 +414,18 @@ class _HomePageContentState extends State<HomePageContent> {
   void _showCategoryDeletetionPrompt(int categoryId) {
     showDialog(
       context: context, 
-      builder: (context) => AlertDialog(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        title: const Text('Delete category?'),
-        content: const Text('Transactions will stay, but without a category.'),
-        actions: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: TextButton(
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.all(15),
-                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    )
-                  ),
-                  onPressed: () => Navigator.pop(context), 
-                  child: Text('Cancel', style: TextStyle(
-                    fontSize: 15, color: Theme.of(context).colorScheme.onPrimary,
-                  )),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: TextButton(
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.all(15),
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.red.shade100,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  onPressed: () {
-                    HapticFeedback.heavyImpact();
-                    widget.db.deleteCategory(categoryId);
-                    Navigator.pop(context);
-                  }, 
-                  child: const Text('Delete', style: TextStyle(fontSize: 15, color: Colors.white)),
-                ),
-              )
-            ],
-          )
-        ],
-      )
+      builder: (context) => CustomAlertDialog(
+        title: 'Delete category?', 
+        content: 'Transactions will stay, but without a category.', 
+        leftButtonLabel: 'Cancel', 
+        rightButtonLabel: 'Delete', 
+        leftButtonAction: () => Navigator.pop(context), 
+        rightButtonAction: () {
+          HapticFeedback.heavyImpact();
+          widget.db.categoriesDao.deleteCategory(categoryId);
+          Navigator.pop(context);
+        }
+      ),
     );
   }
 
@@ -1387,377 +433,354 @@ class _HomePageContentState extends State<HomePageContent> {
   void _showCategoryCreationSheet({
     required bool isIncome,
   }) {
-    final TextEditingController categoryNameController = TextEditingController();
-    String? selectedIcon;
-
     showCustomModalBottomSheet(
       context: context, 
       backgroundColor: Theme.of(context).colorScheme.surface,
-      child: StatefulBuilder(
-        builder: (context, StateSetter setState) {
-          return Column(
-            children: [
-              // header
-              CustomHeader(
-                children: [
-                  CustomIconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close)
-                  ),
-                  CustomHeaderTitle(                    
-                    title: isIncome
-                      ? 'Create income category'
-                      : 'Create expense category',
-                  ),
-                  const SizedBox(width: 48),
-                ],
-              ),
-              Flexible(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
-                  child: Column(
-                    children: [
-                      // category name
-                      CustomTextField(
-                        controller: categoryNameController,
-                        maxLines: 1,
-                        hintText: 'Enter category name...'
-                      ),
-                      const SizedBox(height: 10),
-                      // expansion tile with icons for custom categories 
-                      ExpansionTile(
-                        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                        collapsedBackgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                        collapsedShape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15)
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        title: const Text('Icon'),
-                        trailing: selectedIcon != null
-                        ? CustomIcon(icon: IconsManager.getIconByName(selectedIcon!))
-                        : const CustomIcon(icon: Icons.arrow_drop_down_rounded),
-                        childrenPadding: const EdgeInsets.all(10),
-                        children: [
-                          SizedBox(
-                            height: 150,
-                            child: GridView.builder(
-                              shrinkWrap: true,
-                              itemCount: IconsManager.keys.length,
-                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 4,
-                                mainAxisSpacing: 2,
-                                crossAxisSpacing: 2,
-                              ), 
-                              itemBuilder: (context, index) {
-                                return IconButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      selectedIcon = IconsManager.keys[index];
-                                    });
-                                  },
-                                  icon: CustomIcon(icon: IconsManager.getIconByName(IconsManager.keys[index])),
-                                  iconSize: 25,
-                                  padding: EdgeInsets.zero,
-                                );
-                              }
-                            )
-                          )
-                        ]
-                      ),
-                      const SizedBox(height: 10),
-                      // submit button
-                      SubmitButton(
-                        onTap: () async {
-                          if(categoryNameController.text.trim().isNotEmpty &&
-                            selectedIcon != null) {
-                            Navigator.pop(context);
-                            await widget.db.addCategory(
-                              name: categoryNameController.text,
-                              isIncome: isIncome,
-                              iconName: selectedIcon!
-                            );
-                          } else {
-                            showSnackBar(
-                              context: context, 
-                              content: const Text('Enter category name'),
-                            );
-                          }
-                        }, 
-                        text: 'Create'
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          );
-        }
-      )
+      child: CategoryCreateBottomSheet(
+        db: widget.db,
+        isIncome: isIncome,
+      ),
     );
   }
 
   // edit category name and icon modal bottom sheet
   void _showCategoryEditingSheet(Category category) {
-    String? selectedIcon = category.iconName;
-    final controller = TextEditingController(text: category.name);
-    
     showCustomModalBottomSheet(
       context: context, 
       backgroundColor: Theme.of(context).colorScheme.surface,
-      child: StatefulBuilder(
-        builder: (context, setState) {
-          return Column(
-            children: [
-              // header
-              CustomHeader(
-                children: [
-                  CustomIconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close)
-                  ),
-                  const CustomHeaderTitle(title: 'Edit'),
-                  // confirm category changes button
-                  CustomIconButton(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    onPressed: () {
-                      HapticFeedback.lightImpact();
-                      final categoryName = controller.text.trim();
-
-                      if(categoryName.isEmpty || selectedIcon == null) return;
-
-                      // update in db
-                      widget.db.updateCategoryName(category.id, categoryName);
-                      widget.db.updateCategoryIcon(category.id, selectedIcon!);
-
-                      Navigator.pop(context);
-                    }, 
-                    icon: Icon(Icons.done_rounded, color: Theme.of(context).colorScheme.primaryContainer),
-                  ),
-                ],
-              ),
-              Flexible(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 15),
-                  child: Column(
-                    children: [
-                      // edit name text field
-                      CustomTextField(
-                        controller: controller, 
-                        hintText: 'Edit category name'
-                      ),
-                      const SizedBox(height: 10),
-                      // edit icon
-                      ExpansionTile(
-                        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                        collapsedBackgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                        collapsedShape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15)
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        title: const Text('Icon'),
-                        trailing: selectedIcon != null
-                          ? CustomIcon(icon: IconsManager.getIconByName(selectedIcon!))
-                          : const CustomIcon(icon: Icons.arrow_drop_down_rounded),
-                        childrenPadding: const EdgeInsets.all(10),
-                        children: [
-                          SizedBox(
-                            height: 150,
-                            child: GridView.builder(
-                              shrinkWrap: true,
-                              itemCount: IconsManager.keys.length,
-                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 4,
-                                mainAxisSpacing: 2,
-                                crossAxisSpacing: 2,
-                              ), 
-                              itemBuilder: (context, index) {
-                                return IconButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      selectedIcon = IconsManager.keys[index];
-                                    });
-                                  },
-                                  icon: CustomIcon(icon: IconsManager.getIconByName(IconsManager.keys[index])),
-                                  iconSize: 25,
-                                  padding: EdgeInsets.zero,
-                                );
-                              }
-                            )
-                          )
-                        ]
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            ],
-          );
-        }
+      child: CategoryEditBottomSheet(
+        db: widget.db,
+        category: category,
       )
+    );
+  }
+
+  void _showAccountEditSheet(Account account) {
+    showCustomModalBottomSheet(
+      context: context, 
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      child: AccountEditBottomSheet(db: widget.db, account: account,)
+    );
+  }
+
+  void _handlePageViewChanged({
+    required int pageIndex,
+    required List<Account> items,
+  }) {
+    HapticFeedback.selectionClick();
+    currentPageIndex = pageIndex; // selected account based on page view index
+  }
+
+  // statistics modal bottom sheet
+  void _showStatisticsSheet({
+    required int accountOwnerId,
+    required Currency accountCurrency,
+  }) {
+    showCustomModalBottomSheet(
+      context: context, 
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      borderRadius: 0,
+      isScrollControlled: true,
+      child: StatisticsBottomSheet(
+        context: context, 
+        db: widget.db, 
+        currentCurrency: accountCurrency, 
+        accountOwnerId: accountOwnerId,
+      ),
+    );
+  }
+
+  // header
+  Widget _header({
+    required int selectedAccountId,
+    required Currency accountCurrency,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 15, 0, 5),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(
+            onPressed: () => _showStatisticsSheet(
+              accountOwnerId: selectedAccountId,
+              accountCurrency: accountCurrency,
+            ), 
+            style: IconButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+            ),
+            icon: const Icon(Icons.data_usage_outlined)
+          ),
+          IconButton(
+            onPressed: () => _showSettings(), 
+            style: IconButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+            ),
+            icon: const Icon(Icons.settings_outlined)
+          ),
+        ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-      child: Column(
-        spacing: 10,
+    return Scaffold(
+      body: Column(
         children: [
-          // header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const SizedBox(width: 48),
-              IconButton(
-                onPressed: () => _showSettings(), 
-                style: IconButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                ),
-                icon: const Icon(Icons.settings_outlined)
-              ),
-            ],
-          ),
-          // total balance
-          StreamBuilder(
-            stream: widget.db.watchTotalBalance(), 
-            builder: (context, snapshot) {
-              final totalBalance = snapshot.data ?? 0;
-              return Container(
-                alignment: Alignment.center,
-                width: double.infinity,
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(15)
-                ),
-                child: Text(
-                  '${totalBalance.toString()} ${_currentCurrency.symbol}', 
-                  style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
-                ),
-              );
-            }
-          ),
-          // last transactions (3 to 10)
-          const SectionHeader(
-            title: 'Transactions'
-          ),
-          Material(
-            color: Theme.of(context).colorScheme.primaryContainer,
-            borderRadius: BorderRadius.circular(15),
-            clipBehavior: Clip.antiAlias,
-            child: Column(
-              children: [
-                StreamBuilder(
-                  stream: widget.db.watchAllTransactionItems(),
-                  builder: (context, snapshot) {
-                    final items = snapshot.data ?? [];
-                    final lastThreeItems = items.take(_homeTransactionsCount).toList();
-                    return items.isNotEmpty
-                    ? buildTransactionList(
-                      context: context, 
-                      tileColor: Theme.of(context).colorScheme.primaryContainer,
-                      shrinkWrap: true,
-                      items: lastThreeItems, 
-                      categoriesById: _categoriesById,
-                      currentCurrency: _currentCurrency, 
-                      showTransactionDetails: _showTransactionDetails,
-                      shouldInsertDate: false,
-                      showDescription: _isShowingDescription,
-                      scrollPhysics: const NeverScrollableScrollPhysics()
-                    )
-                    : Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: EmptyListPlaceholder(
-                        color: Theme.of(context).colorScheme.primaryContainer,
-                        icon: Icons.close_rounded, 
-                        title: 'No transactions yet', 
-                        subtitle: 'Add transactions and they will appear here'
-                      )
-                    );
-                  }
-                ),
-                Divider(
-                  height: 1,
-                  color: Theme.of(context).colorScheme.surface,
-                ),
-                // all transactions listtile
-                CustomListTile(
-                  tileColor: Theme.of(context).colorScheme.primaryContainer,
-                  title: 'All Transactions',
-                  trailing: const CustomIcon(icon: Icons.chevron_right),
-                  customBorder: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.zero,
-                      bottom: Radius.circular(15)
-                    )
-                  ),
-                  onTap: () => _showAllTransactions(),
-                ),
-              ],
-            )
-          ),
-          // summary 
-          const SectionHeader(
-            title: 'Summary'
-          ),
-          Material(
-            color: Theme.of(context).colorScheme.primaryContainer,
-            borderRadius: BorderRadius.circular(15),
-            child: Column(
-              children: [
-                StreamBuilder(
-                  stream: widget.db.watchTotalIncome(), 
-                  builder: (context, snapshot) {
-                    final income = snapshot.data ?? 0;
-                    final formattedIncome = formatNumber(income);
+          Expanded(
+            child: StreamBuilder(
+              stream: widget.db.accountsDao.watchAccounts(), 
+              builder: (context, snapshot) {
+                final items = snapshot.data ?? [];
 
-                    return CustomListTile(
-                      tileColor: Theme.of(context).colorScheme.primaryContainer,
-                      leading: const CustomIcon(icon: Icons.download_outlined),
-                      title: 'Income',
-                      trailing: Text(
-                        '+$formattedIncome ${_currentCurrency.symbol}',
-                        style: const TextStyle(
-                          fontSize: 15,
-                          color: Colors.green
-                        ),
+                // if there is no accounts
+                // show placeholder
+                return items.isEmpty 
+                  ? Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      EmptyListPlaceholder(
+                        color: Theme.of(context).colorScheme.surface, 
+                        icon: Icons.account_balance_wallet_outlined,
+                        title: 'No accounts yet',
+                        subtitle: 'Please, create account first'
                       ),
-                    );
-                  }
-                ),
-                Divider(
-                  height: 1,
-                  color: Theme.of(context).colorScheme.surface,
-                ),
-                StreamBuilder(
-                  stream: widget.db.watchTotalExpense(), 
-                  builder: (context, snapshot) {
-                    final expense = snapshot.data ?? 0;
-                    final formattedExpense = formatNumber(expense);
+                      FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Theme.of(context).colorScheme.primary
+                        ),
+                        child: Text(
+                          'Create Account',
+                          style: TextStyle(color: Theme.of(context).colorScheme.secondary),
+                        ),
+                        onPressed: () => _showAccountCreateSheet(),
+                      ),
+                    ],
+                  )
+                  // otherwise show body
+                  : PageView.builder(
+                    controller: _pageViewController,
+                    onPageChanged: (index) => _handlePageViewChanged(
+                      pageIndex: index,
+                      items: items
+                    ),
+                    itemCount: items.length,
+                    itemBuilder: (context, index) {
+                      final account = items[index];
+                      final Currency accountCurrency = Currency.currencies.firstWhere((c) => c.code == account.currency);
 
-                    return CustomListTile(
-                      tileColor: Theme.of(context).colorScheme.primaryContainer,
-                      leading: const CustomIcon(icon: Icons.upload_outlined),
-                      title: 'Expense',
-                      trailing: Text(
-                        '$formattedExpense ${_currentCurrency.symbol}',
-                        style: const TextStyle(
-                          fontSize: 15
+                      return SingleChildScrollView(
+                        padding: const EdgeInsets.fromLTRB(15, 0, 15, 10),
+                        child: Column(
+                          children: [
+                            _header(
+                              selectedAccountId: account.id, 
+                              accountCurrency: accountCurrency
+                            ),
+                            const SizedBox(height: 10),
+                            // total balance
+                            StreamBuilder(
+                              stream: widget.db.transactionsDao.watchTotalBalance(account),
+                              builder: (context, snapshot) {
+                                final totalBalance = snapshot.data ?? 0;
+                                return Container(
+                                  alignment: Alignment.center,
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).colorScheme.primaryContainer,
+                                    borderRadius: BorderRadius.circular(15)
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      CustomIcon(icon: IconsManager.getAccountIconByName(account.icon)),
+                                      Text(account.name),
+                                      Text(
+                                        '${totalBalance.toString()} ${accountCurrency.symbol}', 
+                                        style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+                                      ),
+                                    ],
+                                  )
+                                );
+                              }
+                            ),
+                            const SizedBox(height: 10),
+                            // tab indicator
+                            Container(
+                              padding: const EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(15),
+                                color: Theme.of(context).colorScheme.primaryContainer,
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                spacing: 10,
+                                children: [
+                                  IconButton(
+                                    onPressed: () {
+                                      _pageViewController.animateToPage(
+                                        currentPageIndex - 1, 
+                                        duration: const Duration(milliseconds: 300), 
+                                        curve: Curves.easeOutCubic
+                                      );
+                                    }, 
+                                    icon: const Icon(Icons.chevron_left)
+                                  ),
+                                  ...List.generate(
+                                    items.length, 
+                                    (int index) {
+                                      bool isSelected = items[index].id == account.id;
+                                      return Icon(
+                                        color: Theme.of(context).colorScheme.tertiary,
+                                        size: 10,
+                                        isSelected
+                                          ? Icons.circle
+                                          : Icons.circle_outlined
+                                      );
+                                    }
+                                  ),
+                                  IconButton(
+                                    onPressed: () {
+                                      _pageViewController.animateToPage(
+                                        currentPageIndex + 1, 
+                                        duration: const Duration(milliseconds: 300), 
+                                        curve: Curves.easeOutCubic
+                                      );
+                                    }, 
+                                    icon: const Icon(Icons.chevron_right)
+                                  ),
+                                ] 
+                              ),
+                            ),
+                            // last transactions (3 to 10)
+                            const SectionHeader(
+                              title: 'Transactions'
+                            ),
+                            const SizedBox(height: 10),
+                            Material(
+                              color: Theme.of(context).colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(15),
+                              clipBehavior: Clip.antiAlias,
+                              child: Column(
+                                children: [
+                                  StreamBuilder(
+                                    stream: widget.db.transactionsDao.watchAllTransactionItems(account.id),
+                                    builder: (context, snapshot) {
+                                      final items = snapshot.data ?? [];
+                                      final lastThreeItems = items.take(_homeTransactionsCount).toList();
+                                      return items.isNotEmpty
+                                      ? buildTransactionList(
+                                        context: context, 
+                                        tileColor: Theme.of(context).colorScheme.primaryContainer,
+                                        shrinkWrap: true,
+                                        items: lastThreeItems, 
+                                        categoriesById: _categoriesById,
+                                        currentCurrency: accountCurrency, 
+                                        showTransactionDetails: _showTransactionDetails,
+                                        shouldInsertDate: false,
+                                        showDescription: _isShowingDescription,
+                                        scrollPhysics: const NeverScrollableScrollPhysics()
+                                      )
+                                      : Padding(
+                                        padding: const EdgeInsets.all(10),
+                                        child: EmptyListPlaceholder(
+                                          color: Theme.of(context).colorScheme.primaryContainer,
+                                          icon: Icons.close_rounded, 
+                                          title: 'No transactions yet', 
+                                          subtitle: 'Add transactions and they will appear here'
+                                        )
+                                      );
+                                    }
+                                  ),
+                                  Divider(
+                                    height: 1,
+                                    color: Theme.of(context).colorScheme.surface,
+                                  ),
+                                  // all transactions listtile
+                                  CustomListTile(
+                                    tileColor: Theme.of(context).colorScheme.primaryContainer,
+                                    title: 'All Transactions',
+                                    trailing: const CustomIcon(icon: Icons.chevron_right),
+                                    customBorder: const RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.vertical(
+                                        top: Radius.zero,
+                                        bottom: Radius.circular(15)
+                                      )
+                                    ),
+                                    onTap: () => _showAllTransactions(
+                                      selectedAccountId: account.id, 
+                                      accountCurrency: accountCurrency
+                                    ),
+                                  ),
+                                ],
+                              )
+                            ),
+                            // summary 
+                            const SectionHeader(
+                              title: 'Summary'
+                            ),
+                            const SizedBox(height: 10),
+                            Material(
+                              color: Theme.of(context).colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(15),
+                              child: Column(
+                                children: [
+                                  StreamBuilder(
+                                    stream: widget.db.transactionsDao.watchTotalIncome(account.id), 
+                                    builder: (context, snapshot) {
+                                      final income = snapshot.data ?? 0;
+                                      final formattedIncome = formatNumber(income);
+
+                                      return CustomListTile(
+                                        tileColor: Theme.of(context).colorScheme.primaryContainer,
+                                        leading: const CustomIcon(icon: Icons.download_outlined),
+                                        title: 'Income',
+                                        trailing: Text(
+                                          '+$formattedIncome ${accountCurrency.symbol}',
+                                          style: const TextStyle(
+                                            fontSize: 15,
+                                            color: Colors.green
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  ),
+                                  Divider(
+                                    height: 1,
+                                    color: Theme.of(context).colorScheme.surface,
+                                  ),
+                                  StreamBuilder(
+                                    stream: widget.db.transactionsDao.watchTotalExpense(account.id), 
+                                    builder: (context, snapshot) {
+                                      final expense = snapshot.data ?? 0;
+                                      final formattedExpense = formatNumber(expense);
+
+                                      return CustomListTile(
+                                        tileColor: Theme.of(context).colorScheme.primaryContainer,
+                                        leading: const CustomIcon(icon: Icons.upload_outlined),
+                                        title: 'Expense',
+                                        trailing: Text(
+                                          '$formattedExpense ${accountCurrency.symbol}',
+                                          style: const TextStyle(
+                                            fontSize: 15
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    );
-                  }
-                ),
-              ],
+                      );
+                    },
+                  );
+              }
             ),
           )
         ],
-      )
+      ),
     );
   }
 }

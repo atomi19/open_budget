@@ -1,255 +1,29 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
-import 'package:flutter/material.dart' hide Table;
-import 'package:open_budget/logic/format_number.dart';
 import 'package:path_provider/path_provider.dart';
+
+// tables
+import 'tables/transactions.dart';
+import 'tables/categories.dart';
+import 'tables/accounts.dart';
+
+// daos
+import 'daos/transactions_dao.dart';
+import 'daos/categories_dao.dart';
+import 'daos/accounts_dao.dart';
 
 part 'database.g.dart';
 
-// tables
-// transactions table
-class Transactions extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  RealColumn get amount => real()();
-  TextColumn get description => text()();
-  IntColumn get categoryId => integer()(); // category id 
-  DateTimeColumn get dateAndTime => dateTime()();
-}
-
-// categories table
-class Categories extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  TextColumn get name => text()();
-  BoolColumn get isIncome => boolean()(); // true - income, false - expense
-  TextColumn get iconName => text()(); // store icon as String key 
-}
-
 // db
-@DriftDatabase(tables: [Transactions, Categories])
+@DriftDatabase(
+  tables: [Transactions, Categories, Accounts],
+  daos: [TransactionsDao, CategoriesDao, AccountsDao]
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
   int get schemaVersion => 1;
-
-  // transactions daos
-
-  // add (insert) transaction
-  Future<int> addTransaction({
-    required double amount,
-    required String description,
-    required int categoryId,
-    required DateTime date, 
-    required TimeOfDay time,
-  }) {
-    final dateAndTime = DateTime(
-      date.year,
-      date.month,
-      date.day,
-      time.hour,
-      time.minute
-    );
-
-    return into(transactions).insert(
-      TransactionsCompanion.insert(
-        amount: amount, 
-        description: description, 
-        categoryId: categoryId,
-        dateAndTime: dateAndTime,
-      )
-    );
-  }
-
-  // delete transaction
-  Future<int> deleteTransaction(int id) {
-    return (delete(transactions)..where((transaction) => transaction.id.equals(id))).go();
-  }
-
-  // update amaount
-  Future<int> updateAmount(int id, double newAmount) async {
-    return (update(transactions)
-      ..where(((transaction) => transaction.id.equals(id))))
-        .write(TransactionsCompanion(amount: Value(newAmount)
-      )
-    );
-  }
-
-  // update transaction date 
-  Future<int> updateDateAndTime(int id, DateTime newDate) async {
-    return (update(transactions)
-      ..where(((transaction) => transaction.id.equals(id))))
-        .write(TransactionsCompanion(dateAndTime: Value(newDate)
-      )
-    );
-  }
-
-  // update transaction category id 
-  Future<int> updateTransactionCategoryId(int id, int newCategoryId) {
-    return (update(transactions)
-      ..where(((transaction) => transaction.id.equals(id))))
-        .write(TransactionsCompanion(categoryId: Value(newCategoryId)
-      )
-    );
-  }
-
-  // update (edit) transaction description
-  Future<int> updateDescription(int id, String newDescription) async {
-    return (update(transactions)
-      ..where(((transaction) => transaction.id.equals(id))))
-        .write(TransactionsCompanion(description: Value(newDescription)
-      )
-    );
-  }
-
-  // get all transactions
-  Stream<List<Transaction>> watchAllTransactionItems() {
-    return (select(transactions)..orderBy([
-      (transaction) => OrderingTerm(
-        expression: transaction.dateAndTime,
-        mode: OrderingMode.desc // highest items first (so user gets recent transactions first)
-      )
-    ])
-    ).watch();
-  }
-
-  // calculate total balance 
-  Stream<String> watchTotalBalance() {
-    final query = select(transactions).addColumns([transactions.amount.sum()]);
-    return query.watchSingle().map((row) {
-      final totalBalance = row.read(transactions.amount.sum()) ?? 0;
-      return formatNumber(totalBalance);
-    });
-  }
-
-  // watch total income
-  Stream<double> watchTotalIncome() {
-    return (select(transactions)
-      ..where((t) => t.amount.isBiggerThanValue(0))
-    ).watch()
-      .map((rows) => rows.fold(0, (sum, t) => sum + t.amount)
-    );
-  }
-
-  // watch total expense
-  Stream<double> watchTotalExpense() {
-    return (select(transactions)
-      ..where((t) => t.amount.isSmallerThanValue(0))
-    ).watch()
-      .map((rows) => rows.fold(0, (sum, t) => sum + t.amount)
-    );
-  }
-
-  // search transactions
-  Stream<List<Transaction>> searchTransactions(String query) {
-    // if query is empty return all transactions
-    if(query.isEmpty) {
-      return watchAllTransactionItems();
-    }
-    final String formattedQuery = '%${query.toLowerCase()}%';
-    // search through descriptions and amounts 
-    return (
-      select(transactions)..orderBy([
-        (t) => OrderingTerm(
-          expression: t.dateAndTime,
-          mode: OrderingMode.desc,
-        )
-      ])..where((t) => 
-        t.description.lower().like(formattedQuery) |
-        t.amount.cast<String>().like(formattedQuery)
-      )
-    ).watch();
-  }
-
-  // statistics daos
-  // sort categories from highest to lowest expenses or incomes
-  Stream<List<MapEntry<Category, double>>> sortCategoriesByTotalAmount({
-    required bool isIncome,
-    required DateTime startDate,
-    required DateTime endDate,
-    }) {
-    final totalAmount = transactions.amount.sum();
-    final absTotalAmount = totalAmount.abs();
-
-    final query = select(categories).join([
-      leftOuterJoin(
-        transactions, 
-        // filter all transactions with category id we need 
-        transactions.categoryId.equalsExp(categories.id) &
-        // date range (from start to end date)
-        transactions.dateAndTime.isBiggerOrEqualValue(startDate) &
-        transactions.dateAndTime.isSmallerOrEqualValue(endDate),
-      )
-    ])
-      ..where(categories.isIncome.equals(isIncome)) // true = income, false = expense
-      ..addColumns([totalAmount])
-      ..groupBy([categories.id])
-      ..orderBy([OrderingTerm(expression: absTotalAmount, mode: OrderingMode.desc)]);
-
-
-    return query.watch().map((rows) {
-      return rows.map((row) {
-        final category = row.readTable(categories);
-        final total = row.read(totalAmount) ?? 0;
-
-        return MapEntry(category, total);
-      }).toList();
-    });
-  }
-
-  // categories daos
-
-  // watch all categories
-  Stream<List<Category>> watchCategories() {
-    return (select(categories)).watch();
-  }
-
-  // watch income/expense categories
-  Stream<List<Category>> watchIncomeOrExpenseCategories(bool isIncome) {
-    return (select(categories)..where((c) => c.isIncome.equals(isIncome))).watch();
-  }
-
-  // add category
-  Future<int> addCategory({
-    required String name,
-    required bool isIncome,
-    required String iconName,
-  }) {
-    return into(categories).insert(
-      CategoriesCompanion.insert(
-        name: name, 
-        isIncome: isIncome, 
-        iconName: iconName,
-      )
-    );
-  } 
-
-  // delete category
-  Future<int> deleteCategory(int categoryId) {
-    return (delete(categories)..where((c) => c.id.equals(categoryId))).go();
-  }
-
-  // find category
-  Future<Category?> getCategoryById(int id) {
-    return (select(categories)..where((c) => c.id.equals(id))).getSingleOrNull();
-  }
-
-  // update category name
-  Future<int> updateCategoryName(int id, String newName) async {
-    return (update(categories)
-      ..where(((c) => c.id.equals(id))))
-        .write(CategoriesCompanion(name: Value(newName)
-      )
-    );
-  }
-
-  // update category icon
-  Future<int> updateCategoryIcon(int id, String newIcon) async {
-    return (update(categories)
-      ..where(((c) => c.id.equals(id))))
-        .write(CategoriesCompanion(iconName: Value(newIcon)
-      )
-    );
-  }
 
   static QueryExecutor _openConnection() {
     return driftDatabase(

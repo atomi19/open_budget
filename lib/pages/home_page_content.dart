@@ -6,6 +6,7 @@ import 'package:open_budget/logic/currencies.dart';
 import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/logic/format_number.dart';
 import 'package:open_budget/logic/icons_manager.dart';
+import 'package:open_budget/ui/accounts/account_choose_bottom_sheet.dart';
 import 'package:open_budget/ui/accounts/account_create_bottom_sheet.dart';
 import 'package:open_budget/ui/accounts/account_edit_bottom_sheet.dart';
 import 'package:open_budget/ui/accounts/accounts_bottom_sheet.dart';
@@ -463,6 +464,17 @@ class _HomePageContentState extends State<HomePageContent> {
     );
   }
 
+  void _showAccountChooseSheet({required List<Account> allAccounts}) {
+    showCustomModalBottomSheet(
+      context: context, 
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      child: AccountChooseBottomSheet(
+        pageViewController: _pageViewController,
+        allAccounts: allAccounts,
+      ),
+    );
+  }
+
   void _handlePageViewChanged({
     required int pageIndex,
     required List<Account> items,
@@ -492,7 +504,8 @@ class _HomePageContentState extends State<HomePageContent> {
 
   // header
   Widget _header({
-    required int selectedAccountId,
+    required Account account,
+    required List<Account> allAccounts,
     required Currency accountCurrency,
   }) {
     return Padding(
@@ -500,9 +513,10 @@ class _HomePageContentState extends State<HomePageContent> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          // statistics icon button
           IconButton(
             onPressed: () => _showStatisticsSheet(
-              accountOwnerId: selectedAccountId,
+              accountOwnerId: account.id,
               accountCurrency: accountCurrency,
             ), 
             style: IconButton.styleFrom(
@@ -510,6 +524,25 @@ class _HomePageContentState extends State<HomePageContent> {
             ),
             icon: const Icon(Icons.data_usage_outlined)
           ),
+          // account filled button
+          // on tap account choose modal botom sheet
+          FilledButton(
+            onPressed: () => _showAccountChooseSheet(allAccounts: allAccounts), 
+            child: Row(
+              spacing: 5,
+              children: [
+                Text(
+                  account.name,
+                  style: TextStyle(color: Theme.of(context).colorScheme.secondary),
+                ),
+                Icon(
+                  Icons.arrow_drop_down,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+              ],
+            )
+          ),
+          // settings icon button
           IconButton(
             onPressed: () => _showSettings(), 
             style: IconButton.styleFrom(
@@ -574,7 +607,8 @@ class _HomePageContentState extends State<HomePageContent> {
                         child: Column(
                           children: [
                             _header(
-                              selectedAccountId: account.id, 
+                              account: account, 
+                              allAccounts: items,
                               accountCurrency: accountCurrency
                             ),
                             const SizedBox(height: 10),
@@ -778,7 +812,7 @@ class _HomePageContentState extends State<HomePageContent> {
                   );
               }
             ),
-          )
+          ),
         ],
       ),
     );

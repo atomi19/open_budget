@@ -8,7 +8,7 @@ void handleDataSubmit({
   required String amountStr,
   required DateTime? selectedDate, 
   required TimeOfDay? selectedTime,
-  required int? accountOwnerId,
+  required Account? accountOwner,
   required int? categoryId,
   required TextEditingController descriptionController,
   required VoidCallback clearInputData,
@@ -31,8 +31,9 @@ void handleDataSubmit({
       displaySnackBar('Select time');
       return;
     }
-
-    if(accountOwnerId == null) {
+  
+    // validate account
+    if(accountOwner == null) {
       displaySnackBar('Select an account');
       return;
     }
@@ -47,7 +48,7 @@ void handleDataSubmit({
     await db.transactionsDao.addTransaction(
       amount: amount, 
       description: descriptionController.text, 
-      accountOwnerId: accountOwnerId,
+      accountOwnerId: accountOwner.id,
       categoryId: categoryId, 
       date: selectedDate, 
       time: selectedTime,

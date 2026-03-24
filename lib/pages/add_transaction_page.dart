@@ -274,7 +274,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                 : '-${_amountController.text}', // expense amount
                 selectedDate: _selectedDate, 
                 selectedTime: _selectedTime, 
-                accountOwnerId: selectedAccount!.id,
+                accountOwner: selectedAccount,
                 categoryId: _selectedCategoryId, 
                 descriptionController: _descriptionController, 
                 clearInputData: _resetData

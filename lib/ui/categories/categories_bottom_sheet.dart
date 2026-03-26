@@ -67,7 +67,7 @@ class CategoriesBottomSheet extends StatelessWidget {
                         leading: CustomIcon(icon: IconsManager.categoryIcons[category.iconName]!),
                         title: category.name,
                         trailing: category.id == item.categoryId
-                          ? const CustomIcon(icon: Icons.done_rounded)
+                          ? const Icon(Icons.done)
                           : null,
                         onTap: () {
                           // if user selects same category as current transaction category just return

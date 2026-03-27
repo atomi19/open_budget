@@ -152,7 +152,7 @@ class _AccountCreateBottomSheetState extends State<AccountCreateBottomSheet> {
                 );
                 Navigator.pop(context);
               },
-              icon: const Icon(Icons.done)
+              icon: Icon(Icons.done, color: Theme.of(context).colorScheme.secondary,)
             ), 
           ],
         ),
@@ -168,9 +168,11 @@ class _AccountCreateBottomSheetState extends State<AccountCreateBottomSheet> {
                   controller: nameController, 
                   hintText: 'Account name...'
                 ),
+                // initial balance
                 CustomTextField(
                   controller: initialBalanceController, 
-                  hintText: 'Initial balance',
+                  labelText: 'Initial balance',
+                  hintText: '',
                 ),
                 // currency
                 CustomListTile(

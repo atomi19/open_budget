@@ -55,7 +55,7 @@ class AmountEditBottomSheet extends StatelessWidget {
                   Navigator.of(context).popUntil((route) => route.isFirst);
                 }
               }, 
-              icon: const Icon(Icons.done)
+              icon: Icon(Icons.done, color: Theme.of(context).colorScheme.secondary,)
             ),
           ]
         ),

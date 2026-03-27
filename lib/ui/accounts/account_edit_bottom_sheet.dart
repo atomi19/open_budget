@@ -141,7 +141,7 @@ class _AccountEditBottomSheetState extends State<AccountEditBottomSheet> {
                 _handleAccountEdit(widget.account.id);
                 Navigator.pop(context);
               },
-              icon: const Icon(Icons.done)
+              icon: Icon(Icons.done, color: Theme.of(context).colorScheme.secondary,)
             ), 
           ],
         ),
@@ -157,9 +157,11 @@ class _AccountEditBottomSheetState extends State<AccountEditBottomSheet> {
                   controller: _nameController, 
                   hintText: 'Account name...'
                 ),
+                // initial balance
                 CustomTextField(
                   controller: _initialBalanceController, 
-                  hintText: 'Initial balance',
+                  labelText: 'Initial balance',
+                  hintText: '',
                 ),
                 // currency
                 CustomListTile(

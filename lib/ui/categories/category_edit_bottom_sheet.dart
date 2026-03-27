@@ -61,7 +61,7 @@ class _CategoryEditBottomSheetState extends State<CategoryEditBottomSheet> {
 
                     Navigator.pop(context);
                   }, 
-                  icon: const Icon(Icons.done),
+                  icon: Icon(Icons.done, color: Theme.of(context).colorScheme.secondary,)
                 ),
               ],
             ),

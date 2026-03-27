@@ -9,6 +9,7 @@ class CustomTextField extends StatelessWidget {
   final bool? isDense;
   final Widget? prefix;
   final Widget? prefixIcon;
+  final String? labelText;
   final void Function(String)? onChanged;
   final TextInputType? textInputType;
 
@@ -22,6 +23,7 @@ class CustomTextField extends StatelessWidget {
     this.isDense,
     this.prefix,
     this.prefixIcon,
+    this.labelText,
     this.onChanged,
     this.textInputType,
   });
@@ -38,6 +40,7 @@ class CustomTextField extends StatelessWidget {
         prefix: prefix,
         prefixIcon: prefixIcon,
         filled: true,
+        labelText: labelText,
         fillColor: Theme.of(context).colorScheme.primaryContainer,
         hoverColor: Theme.of(context).colorScheme.primaryContainer,
         hintText: hintText,

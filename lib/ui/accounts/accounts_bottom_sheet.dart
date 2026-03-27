@@ -28,13 +28,14 @@ class AccountsBottomSheet extends StatelessWidget {
     showDialog(
       context: context, 
       builder: (context) => CustomAlertDialog(
-        title: 'Delete account?', 
-        content: 'Transactions will stay, but without an account.', 
+        title: 'Delet`e account?', 
+        content: 'This will permanently delete your account and all associated transactions.', 
         leftButtonLabel: 'Cancel', 
         rightButtonLabel: 'Delete', 
         leftButtonAction: () => Navigator.pop(context), 
         rightButtonAction: () {
           HapticFeedback.heavyImpact();
+          db.transactionsDao.deleteAllTransactionsByAccountOwnerId(id);
           db.accountsDao.deleteAccount(id);
           Navigator.pop(context);
         }

@@ -130,6 +130,11 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase> with _$TransactionsD
     );
   }
 
+  // delete all transactions that associated with account 
+  Future<int> deleteAllTransactionsByAccountOwnerId(int accountOwnerId) {
+    return (delete(transactions)..where((transaction) => transaction.accountOwnerId.equals(accountOwnerId))).go();
+  }
+
   // search transactions
   Stream<List<Transaction>> searchTransactions({
     required String query, 

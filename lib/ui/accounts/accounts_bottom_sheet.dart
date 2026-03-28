@@ -28,7 +28,7 @@ class AccountsBottomSheet extends StatelessWidget {
     showDialog(
       context: context, 
       builder: (context) => CustomAlertDialog(
-        title: 'Delet`e account?', 
+        title: 'Delete account?', 
         content: 'This will permanently delete your account and all associated transactions.', 
         leftButtonLabel: 'Cancel', 
         rightButtonLabel: 'Delete', 

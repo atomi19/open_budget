@@ -31,8 +31,10 @@ class AccountsDao extends DatabaseAccessor<AppDatabase> with _$AccountsDaoMixin{
   }
 
   // stream accounts
-  Stream<List<Account>> watchAccounts() {
-    return (select(accounts)).watch();
+  Stream<List<Account>> watchAccounts(bool isArchived) {
+    return (
+      select(accounts)..where((a) => a.isArchived.equals(isArchived))
+    ).watch();
   }
 
   // update account name
@@ -67,6 +69,15 @@ class AccountsDao extends DatabaseAccessor<AppDatabase> with _$AccountsDaoMixin{
     return (update(accounts)
       ..where(((c) => c.id.equals(id))))
         .write(AccountsCompanion(icon: Value(newIcon)
+      )
+    );
+  }
+
+  // set isArchived to true or false
+  Future<int> updateAccountArchiveStatus(int id, bool isArchived) {
+    return (update(accounts)
+      ..where(((account) => account.id.equals(id))))
+        .write(AccountsCompanion(isArchived: Value(isArchived)
       )
     );
   }

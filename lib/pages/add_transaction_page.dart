@@ -142,7 +142,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           // accounts list
           Expanded(
             child: StreamBuilder(
-              stream: widget.db.accountsDao.watchAccounts(),
+              stream: widget.db.accountsDao.watchAccounts(false),
               builder: (context, snapshot) {
                 final items =snapshot.data ?? [];
                 return items.isEmpty

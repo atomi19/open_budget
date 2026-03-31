@@ -15,6 +15,7 @@ class AccountsBottomSheet extends StatelessWidget {
   final AppDatabase db;
   final VoidCallback showAccountCreateSheet;
   final Function(Account account) showAccountEditSheet;
+  final VoidCallback showAccountsArchiveSheet;
 
   const AccountsBottomSheet({
     super.key,
@@ -22,25 +23,27 @@ class AccountsBottomSheet extends StatelessWidget {
     required this.db,
     required this.showAccountCreateSheet,
     required this.showAccountEditSheet,
+    required this.showAccountsArchiveSheet,
   });
 
-  void _showAccountDeletePrompt(int id) {
+  // archive account prompt
+  void _showAccountArchivePrompt(int id) {
     showDialog(
       context: context, 
       builder: (context) => CustomAlertDialog(
-        title: 'Delete account?', 
-        content: 'This will permanently delete your account and all associated transactions.', 
+        title: 'Achive account?', 
+        content: 'This will achive your account, you will be able to restore it.', 
         leftButtonLabel: 'Cancel', 
-        rightButtonLabel: 'Delete', 
+        rightButtonLabel: 'Archive', 
         leftButtonAction: () => Navigator.pop(context), 
         rightButtonAction: () {
           HapticFeedback.heavyImpact();
-          db.transactionsDao.deleteAllTransactionsByAccountOwnerId(id);
-          db.accountsDao.deleteAccount(id);
+          // archive account
+          db.accountsDao.updateAccountArchiveStatus(id, true);
           Navigator.pop(context);
         }
       ),
-    );
+    ); 
   }
 
   @override
@@ -51,21 +54,63 @@ class AccountsBottomSheet extends StatelessWidget {
         // header
         CustomHeader(
           children: [
+            // close button
             CustomIconButton(
               onPressed: () => Navigator.pop(context),
               icon: const Icon(Icons.close)
             ), 
             const CustomHeaderTitle(title: 'Accounts'),
-            CustomIconButton(
-              onPressed: showAccountCreateSheet,
-              icon: const Icon(Icons.add)
-            ), 
+            // more pop up menu button
+            Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                shape: BoxShape.circle
+              ),
+              child: PopupMenuButton(
+                menuPadding: EdgeInsets.zero,
+                icon: const Icon(Icons.more_vert_outlined),
+                color: Theme.of(context).colorScheme.primaryContainer,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15)
+                ),
+                clipBehavior: Clip.antiAlias,
+                itemBuilder: (BuildContext context) => <PopupMenuEntry>[
+                  // add account 
+                  PopupMenuItem(
+                    padding: EdgeInsets.zero,
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+                      leading: const CustomIcon(icon: Icons.add_outlined),
+                      title: const Text('Add Account'),
+                      onTap: () {
+                        Navigator.pop(context);
+                        showAccountCreateSheet();
+                      }
+                    )
+                  ),
+                  // archived accounts 
+                  PopupMenuItem(
+                    padding: EdgeInsets.zero,
+                    child: ListTile(
+                      contentPadding:const EdgeInsets.symmetric(horizontal: 10),
+                      leading: const CustomIcon(icon: Icons.archive_outlined),
+                      title: const Text('Archived Accounts'),
+                      onTap: () {
+                        Navigator.pop(context);
+                        showAccountsArchiveSheet();
+                      },
+                    )
+                  ),
+                ]
+              ),
+            )
           ],
         ),
         // accounts list
         Expanded(
           child: StreamBuilder(
-            stream: db.accountsDao.watchAccounts(),
+            // list unarchived accounts
+            stream: db.accountsDao.watchAccounts(false),
             builder: (context, snapshot) {
               final items =snapshot.data ?? [];
               return items.isEmpty
@@ -82,13 +127,17 @@ class AccountsBottomSheet extends StatelessWidget {
                 padding:const EdgeInsets.symmetric(horizontal: 15),
                 itemBuilder: (context, index) {
                   final item = items[index];
+
+                  // account list tile
                   return CustomListTile(
                     tileColor: Theme.of(context).colorScheme.primaryContainer, 
+                    // account icon 
                     leading: CustomIcon(icon: IconsManager.getAccountIconByName(item.icon)),
                     title: item.name,
+                    // archive icon button 
                     trailing: IconButton(
-                      onPressed: () => _showAccountDeletePrompt(item.id), 
-                      icon: const Icon(Icons.delete_outlined)
+                      onPressed: () => _showAccountArchivePrompt(item.id),
+                      icon: const Icon(Icons.archive_outlined)
                     ),
                     onTap: () => showAccountEditSheet(item),
                   );

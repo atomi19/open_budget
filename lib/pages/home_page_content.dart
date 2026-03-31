@@ -9,6 +9,7 @@ import 'package:open_budget/logic/icons_manager.dart';
 import 'package:open_budget/ui/accounts/account_choose_bottom_sheet.dart';
 import 'package:open_budget/ui/accounts/account_create_bottom_sheet.dart';
 import 'package:open_budget/ui/accounts/account_edit_bottom_sheet.dart';
+import 'package:open_budget/ui/accounts/accounts_archive_sheet.dart';
 import 'package:open_budget/ui/accounts/accounts_bottom_sheet.dart';
 import 'package:open_budget/ui/categories/categories_bottom_sheet.dart';
 import 'package:open_budget/ui/categories/categories_manager_bottom_sheet.dart';
@@ -371,6 +372,7 @@ class _HomePageContentState extends State<HomePageContent> {
         db: widget.db,
         showAccountCreateSheet: _showAccountCreateSheet,
         showAccountEditSheet: _showAccountEditSheet,
+        showAccountsArchiveSheet: _showAccountsArchiveSheet,
       ),
     );
   }
@@ -475,6 +477,19 @@ class _HomePageContentState extends State<HomePageContent> {
     );
   }
 
+  void _showAccountsArchiveSheet() {
+    showCustomModalBottomSheet(
+      context: context, 
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      borderRadius: 0,
+      isScrollControlled: true,
+      child: AccountsArchiveSheet(
+        context: context,
+        db: widget.db,
+      )
+    );
+  }
+
   void _handlePageViewChanged({
     required int pageIndex,
     required List<Account> items,
@@ -562,7 +577,7 @@ class _HomePageContentState extends State<HomePageContent> {
         children: [
           Expanded(
             child: StreamBuilder(
-              stream: widget.db.accountsDao.watchAccounts(), 
+              stream: widget.db.accountsDao.watchAccounts(false), 
               builder: (context, snapshot) {
                 final items = snapshot.data ?? [];
 

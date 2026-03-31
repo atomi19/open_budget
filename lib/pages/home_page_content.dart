@@ -380,6 +380,8 @@ class _HomePageContentState extends State<HomePageContent> {
   void _showAccountCreateSheet() {
     showCustomModalBottomSheet(
       context: context, 
+      isScrollControlled: true,
+      borderRadius: 0,
       backgroundColor: Theme.of(context).colorScheme.surface,
       child: AccountCreateBottomSheet(db: widget.db,)
     );
@@ -438,6 +440,8 @@ class _HomePageContentState extends State<HomePageContent> {
   }) {
     showCustomModalBottomSheet(
       context: context, 
+      isScrollControlled: true,
+      borderRadius: 0,
       backgroundColor: Theme.of(context).colorScheme.surface,
       child: CategoryCreateBottomSheet(
         db: widget.db,
@@ -450,6 +454,8 @@ class _HomePageContentState extends State<HomePageContent> {
   void _showCategoryEditingSheet(Category category) {
     showCustomModalBottomSheet(
       context: context, 
+      isScrollControlled: true,
+      borderRadius: 0,
       backgroundColor: Theme.of(context).colorScheme.surface,
       child: CategoryEditBottomSheet(
         db: widget.db,
@@ -462,6 +468,8 @@ class _HomePageContentState extends State<HomePageContent> {
     showCustomModalBottomSheet(
       context: context, 
       backgroundColor: Theme.of(context).colorScheme.surface,
+      isScrollControlled: true,
+      borderRadius: 0,
       child: AccountEditBottomSheet(db: widget.db, account: account,)
     );
   }

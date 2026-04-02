@@ -479,6 +479,7 @@ class _HomePageContentState extends State<HomePageContent> {
       context: context, 
       backgroundColor: Theme.of(context).colorScheme.surface,
       child: AccountChooseBottomSheet(
+        db: widget.db,
         pageViewController: _pageViewController,
         allAccounts: allAccounts,
       ),

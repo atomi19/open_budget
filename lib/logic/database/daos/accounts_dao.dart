@@ -14,10 +14,13 @@ class AccountsDao extends DatabaseAccessor<AppDatabase> with _$AccountsDaoMixin{
     required String name,
     required String currency,
     required String icon,
-  }) {
+  }) async {
+    final int sortIndex = await getAccountsCount();
+
     return into(accounts).insert(
       AccountsCompanion.insert(
         initialBalance: initialBalance,
+        sortIndex: Value(sortIndex),
         name: name, 
         currency: currency, 
         icon: icon,
@@ -32,8 +35,10 @@ class AccountsDao extends DatabaseAccessor<AppDatabase> with _$AccountsDaoMixin{
 
   // stream accounts
   Stream<List<Account>> watchAccounts(bool isArchived) {
-    return (
-      select(accounts)..where((a) => a.isArchived.equals(isArchived))
+    return (select(accounts)
+      ..where((a) => a.isArchived.equals(isArchived))
+      // sort by sort index
+      ..orderBy([(a) => OrderingTerm(expression: a.sortIndex)])
     ).watch();
   }
 
@@ -80,5 +85,22 @@ class AccountsDao extends DatabaseAccessor<AppDatabase> with _$AccountsDaoMixin{
         .write(AccountsCompanion(isArchived: Value(isArchived)
       )
     );
+  }
+
+  // update account sorting index 
+  // accounts are sorted everywhere where they are visible
+  Future<int> updateAccountSortIndex(int id, int newIndex) {
+    return (update(accounts)
+      ..where(((account) => account.id.equals(id))))
+        .write(AccountsCompanion(sortIndex: Value(newIndex)
+      )
+    );
+  }
+
+  // count accounts
+  Future<int> getAccountsCount() {
+    final count = countAll();
+    final query = selectOnly(accounts)..addColumns([count]);
+    return query.map((row) => row.read(count)!).getSingle();
   }
 }

@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:open_budget/logic/app_settings.dart';
 
 Future<DateTime?> pickDate({
   required BuildContext context,
   DateTime? currentDate,
-  }) {
+  }) async {
+  final mode = await AppSettings.getDatePickerInitialEntryMode();
+
+  if(!context.mounted) return null;
+
   return showDatePicker(
     context: context, 
     switchToCalendarEntryModeIcon: const Icon(Icons.calendar_month),
     switchToInputEntryModeIcon: const Icon(Icons.edit_outlined),
-    initialEntryMode: DatePickerEntryMode.calendarOnly,
+    initialEntryMode: mode,
     firstDate: DateTime(2000), 
     currentDate: currentDate,
     lastDate: DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day),
+    onDatePickerModeChange: (DatePickerEntryMode newMode) => AppSettings.setDatePickerInitialEntryMode(newMode.name),
     builder: (context, child) {
       return Theme(
         data: Theme.of(context).copyWith(
@@ -40,24 +46,30 @@ Future<DateTime?> pickDate({
 Future<TimeOfDay?> pickTime({
   required BuildContext context,
   TimeOfDay? initialTime
-  }) {
+  }) async {
+  final mode = await AppSettings.getTimePickerInitialEntryMode();
+
+  if(!context.mounted) return null;
+
   return showTimePicker(
     context: context, 
-    initialEntryMode: TimePickerEntryMode.inputOnly,
+    initialEntryMode: mode,
     initialTime: initialTime ?? TimeOfDay.now(),
+    onEntryModeChanged: (TimePickerEntryMode newMode) => AppSettings.setTimePickerInitialEntryMode(newMode.name),
     builder: (context, child) {
       return Theme(
         data: Theme.of(context).copyWith(
           timePickerTheme: TimePickerThemeData(
+            dialBackgroundColor: Theme.of(context).colorScheme.primaryContainer,
             backgroundColor: Theme.of(context).colorScheme.primaryContainer,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
             hourMinuteColor: Theme.of(context).colorScheme.surface, // hour/minute squares bg color
             hourMinuteTextColor: Theme.of(context).colorScheme.onPrimary,
           ),
           colorScheme: ColorScheme.light(
-            primary: Theme.of(context).colorScheme.surface, // selected hour/minute bg color
+            primary: Theme.of(context).colorScheme.primary, // selected hour/minute bg color
             onPrimary: Theme.of(context).colorScheme.surface, // selected hour/minute text color
-            onSurface: Theme.of(context).colorScheme.surface, // not selected hour/minute text color
+            onSurface: Theme.of(context).colorScheme.onPrimary, // not selected hour/minute text color
           ),
           dialogTheme: DialogThemeData(
             backgroundColor: Theme.of(context).colorScheme.surface,

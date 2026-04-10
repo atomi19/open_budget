@@ -53,6 +53,14 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     });
   }
 
+  // clear amount and description fields on transaction submit
+  void _clearInputDataOnSubmit() {
+    setState(() {
+      _amountController.clear();
+      _descriptionController.clear();
+    });
+  }
+
   Future _findCategoryById(int id) async {
     _selectedCategory = await widget.db.categoriesDao.getCategoryById(id);
   }
@@ -277,7 +285,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                 accountOwner: selectedAccount,
                 categoryId: _selectedCategoryId, 
                 descriptionController: _descriptionController, 
-                clearInputData: _resetData
+                clearInputDataOnSubmit: _clearInputDataOnSubmit,
               );
             },
             text: 'Save'

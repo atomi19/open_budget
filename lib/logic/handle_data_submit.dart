@@ -11,7 +11,7 @@ void handleDataSubmit({
   required Account? accountOwner,
   required int? categoryId,
   required TextEditingController descriptionController,
-  required VoidCallback clearInputData,
+  required VoidCallback clearInputDataOnSubmit,
 }) async {
   try {
     // validate amount
@@ -53,7 +53,9 @@ void handleDataSubmit({
       date: selectedDate, 
       time: selectedTime,
     );
-    clearInputData();
+
+    // clear amount and description fields
+    clearInputDataOnSubmit();
   } catch (e) {
     displaySnackBar('Error: $e');
   }

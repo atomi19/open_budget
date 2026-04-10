@@ -33,7 +33,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
 
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  Account? selectedAccount;
+  Account? _selectedAccount;
   Category? _selectedCategory;
 
   int? _selectedCategoryId;
@@ -46,7 +46,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
       _amountController.clear();
       _selectedDate = null;
       _selectedTime = null;
-      selectedAccount = null;
+      _selectedAccount = null;
       _selectedCategory = null;
       _selectedCategoryId = null;
       _descriptionController.clear();
@@ -173,7 +173,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                       title: item.name,
                       onTap: ()  {
                         setState(() {
-                          selectedAccount = item;
+                          _selectedAccount = item;
                         });
                         Navigator.pop(context);
                       },
@@ -207,10 +207,14 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
             maxLines: 1,
             textInputType: TextInputType.number,
           ),
+          // account
           CustomListTile(
             tileColor: Theme.of(context).colorScheme.primaryContainer, 
-            title: selectedAccount != null
-              ? selectedAccount!.name.toString()
+            leading: _selectedAccount == null 
+              ? const CustomIcon(icon: Icons.help_outline)
+              : CustomIcon(icon: IconsManager.getAccountIconByName(_selectedAccount!.icon)),
+            title: _selectedAccount != null
+              ? _selectedAccount!.name.toString()
               : 'Account',
             trailing: const CustomIcon(icon: Icons.chevron_right),
             onTap: _showAccountsSheet,
@@ -218,6 +222,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           // date 
           CustomListTile(
             tileColor: Theme.of(context).colorScheme.primaryContainer,
+            leading: const CustomIcon(icon: Icons.calendar_month),
             title: _selectedDate != null
               ? '${_selectedDate!.day.toString().padLeft(2, '0')}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.year}'
               : 'Date',
@@ -230,6 +235,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           // time 
           CustomListTile(
             tileColor: Theme.of(context).colorScheme.primaryContainer,
+            leading: const CustomIcon(icon: Icons.access_time),
             title: _selectedTime != null
               ? _selectedTime!.format(context)
               : 'Time',
@@ -242,6 +248,9 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           // category
           CustomListTile(
             tileColor: Theme.of(context).colorScheme.primaryContainer,
+            leading: _selectedCategory == null 
+              ? const CustomIcon(icon: Icons.help_outline)
+              : CustomIcon(icon: IconsManager.getCategoryIconByName(_selectedCategory!.iconName)),
             title: _selectedCategory?.name ?? 'Category',
             trailing: const CustomIcon(icon: Icons.chevron_right),
             onTap: () => _showCategories(
@@ -282,7 +291,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                 : '-${_amountController.text}', // expense amount
                 selectedDate: _selectedDate, 
                 selectedTime: _selectedTime, 
-                accountOwner: selectedAccount,
+                accountOwner: _selectedAccount,
                 categoryId: _selectedCategoryId, 
                 descriptionController: _descriptionController, 
                 clearInputDataOnSubmit: _clearInputDataOnSubmit,

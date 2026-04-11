@@ -4,15 +4,13 @@ import 'package:flutter/services.dart';
 import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/logic/handle_data_submit.dart';
 import 'package:open_budget/logic/icons_manager.dart';
-import 'package:open_budget/widgets/custom_header.dart';
-import 'package:open_budget/widgets/custom_header_title.dart';
+import 'package:open_budget/ui/accounts/accounts_list_bottom_sheet.dart';
+import 'package:open_budget/ui/categories/categories_list_bottom_sheet.dart';
 import 'package:open_budget/widgets/custom_icon.dart';
-import 'package:open_budget/widgets/custom_icon_button.dart';
 import 'package:open_budget/widgets/custom_list_tile.dart';
 import 'package:open_budget/widgets/custom_modal_bottom_sheet.dart';
 import 'package:open_budget/widgets/custom_text_field.dart';
 import 'package:open_budget/widgets/date_time_picker.dart';
-import 'package:open_budget/widgets/empty_list_placeholder.dart';
 import 'package:open_budget/widgets/show_snack_bar.dart';
 import 'package:open_budget/widgets/submit_button.dart';
 
@@ -61,129 +59,44 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     });
   }
 
-  Future _findCategoryById(int id) async {
+  Future<void> _findCategoryById(int id) async {
     _selectedCategory = await widget.db.categoriesDao.getCategoryById(id);
   }
 
   // list income or expense categories
   void _showCategories({
     required bool isIncome,
-    required Function(int index) onTap,
   }) {
     showCustomModalBottomSheet(
       context: context, 
       backgroundColor: Theme.of(context).colorScheme.surface,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // header
-          CustomHeader(
-            children: [
-              // close button
-              CustomIconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close)
-              ),
-              CustomHeaderTitle(
-                title: isIncome
-                  ? 'Select income category'
-                  : 'Select expense category',
-              ),
-              const SizedBox(width: 48),
-            ],
-          ),
-          // categories list
-          Expanded(
-            child: StreamBuilder(
-              stream: widget.db.categoriesDao.watchIncomeOrExpenseCategories(isIncome),
-              builder: (context, snapshot) {
-                final items =snapshot.data ?? [];
-                return items.isEmpty
-                ? EmptyListPlaceholder(
-                    color: Theme.of(context).colorScheme.surface,
-                    icon: Icons.close_rounded, 
-                    title: 'No categories yet', 
-                    subtitle: 'Create category first'
-                )
-                : ListView.separated(
-                  shrinkWrap: true,
-                  itemCount: items.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 5),
-                  padding:const EdgeInsets.symmetric(horizontal: 15),
-                  itemBuilder: (context, index) {
-                    final item = items[index];
-                    return CustomListTile(
-                      tileColor: Theme.of(context).colorScheme.primaryContainer, 
-                      leading: CustomIcon(icon: IconsManager.getCategoryIconByName(item.iconName)),
-                      title: item.name,
-                      onTap: () => onTap(item.id),
-                    );
-                  }
-                );
-              }
-            ),
-          )
-        ],
+      child: CategoriesListBottomSheet(
+        db: widget.db, 
+        isIncome: isIncome, 
+        onTap: (int id) async {
+          setState(() {
+            _selectedCategoryId = id;
+          });
+          Navigator.pop(context);
+          await _findCategoryById(id);
+        }
       ),
     );
   }
 
+  // accounts list modal bottom sheet
   void _showAccountsSheet() {
     showCustomModalBottomSheet(
       context: context, 
       backgroundColor: Theme.of(context).colorScheme.surface,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // header
-          CustomHeader(
-            children: [
-              // close button
-              CustomIconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close)
-              ),
-              const CustomHeaderTitle(title: 'Select Account'),
-              const SizedBox(width: 48),
-            ],
-          ),
-          // accounts list
-          Expanded(
-            child: StreamBuilder(
-              stream: widget.db.accountsDao.watchAccounts(false),
-              builder: (context, snapshot) {
-                final items =snapshot.data ?? [];
-                return items.isEmpty
-                ? EmptyListPlaceholder(
-                    color: Theme.of(context).colorScheme.surface,
-                    icon: Icons.close_rounded, 
-                    title: 'No accounts yet', 
-                    subtitle: 'Create account first'
-                )
-                : ListView.separated(
-                  shrinkWrap: true,
-                  itemCount: items.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 5),
-                  padding:const EdgeInsets.symmetric(horizontal: 15),
-                  itemBuilder: (context, index) {
-                    final item = items[index];
-                    return CustomListTile(
-                      tileColor: Theme.of(context).colorScheme.primaryContainer, 
-                      leading: CustomIcon(icon: IconsManager.getAccountIconByName(item.icon)),
-                      title: item.name,
-                      onTap: ()  {
-                        setState(() {
-                          _selectedAccount = item;
-                        });
-                        Navigator.pop(context);
-                      },
-                    );
-                  }
-                );
-              }
-            ),
-          )
-        ],
+      child: AccountsListBottomSheet(
+        db: widget.db,
+        onTap: (Account account) {
+          setState(() {
+            _selectedAccount = account;
+          });
+          Navigator.pop(context);
+        },
       ),
     );
   }
@@ -255,13 +168,6 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
             trailing: const CustomIcon(icon: Icons.chevron_right),
             onTap: () => _showCategories(
               isIncome: isIncome,
-              onTap: (id) async {
-                setState(() {
-                  _selectedCategoryId = id;
-                });
-                Navigator.pop(context);
-                await _findCategoryById(id);
-              }
             ),
           ),
           // description textfield

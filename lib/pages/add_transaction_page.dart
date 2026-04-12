@@ -133,30 +133,66 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
             onTap: _showAccountsSheet,
           ),
           // date 
-          CustomListTile(
-            tileColor: Theme.of(context).colorScheme.primaryContainer,
-            leading: const CustomIcon(icon: Icons.calendar_month),
-            title: _selectedDate != null
-              ? '${_selectedDate!.day.toString().padLeft(2, '0')}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.year}'
-              : 'Date',
-            trailing: const CustomIcon(icon: Icons.chevron_right),
-            onTap: () async {
-              final selectedDate = await pickDate(context: context);
-              setState(() => _selectedDate = selectedDate);
-            },
+          Row(
+            spacing: 10,
+            children: [
+              Expanded(
+                child: CustomListTile(
+                  tileColor: Theme.of(context).colorScheme.primaryContainer,
+                  leading: const CustomIcon(icon: Icons.calendar_month),
+                  title: _selectedDate != null
+                    ? '${_selectedDate!.day.toString().padLeft(2, '0')}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.year}'
+                    : 'Date',
+                  trailing: const CustomIcon(icon: Icons.chevron_right),
+                  onTap: () async {
+                    final selectedDate = await pickDate(context: context);
+                    setState(() => _selectedDate = selectedDate);
+                  },
+                ),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primaryContainer
+                ),
+                onPressed: () {
+                  setState(() {
+                    _selectedDate = DateTime.now();
+                  });
+                }, 
+                child: Text('Now', style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),)
+              ),
+            ],
           ),
           // time 
-          CustomListTile(
-            tileColor: Theme.of(context).colorScheme.primaryContainer,
-            leading: const CustomIcon(icon: Icons.access_time),
-            title: _selectedTime != null
-              ? _selectedTime!.format(context)
-              : 'Time',
-            trailing: const CustomIcon(icon: Icons.chevron_right),
-            onTap: () async {
-              final selectedTime = await pickTime(context: context);
-              setState(() => _selectedTime = selectedTime);
-            },
+          Row(
+            spacing: 10,
+            children: [
+              Expanded(
+                child: CustomListTile(
+                  tileColor: Theme.of(context).colorScheme.primaryContainer,
+                  leading: const CustomIcon(icon: Icons.access_time),
+                  title: _selectedTime != null
+                    ? _selectedTime!.format(context)
+                    : 'Time',
+                  trailing: const CustomIcon(icon: Icons.chevron_right),
+                  onTap: () async {
+                    final selectedTime = await pickTime(context: context);
+                    setState(() => _selectedTime = selectedTime);
+                  },
+                ),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _selectedTime = TimeOfDay.now();
+                  });
+                }, 
+                child: Text('Now', style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),)
+              ),
+            ],
           ),
           // category
           CustomListTile(

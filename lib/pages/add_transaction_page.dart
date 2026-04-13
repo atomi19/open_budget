@@ -1,6 +1,7 @@
 // main page that contains income and expense screens (switch between them)
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:open_budget/logic/app_settings.dart';
 import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/logic/handle_data_submit.dart';
 import 'package:open_budget/logic/icons_manager.dart';
@@ -31,12 +32,28 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
 
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  Account? _favoriteAccount;
   Account? _selectedAccount;
   Category? _selectedCategory;
 
   int? _selectedCategoryId;
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
+
+  @override
+  void initState() {
+    super.initState();
+    _getFavoriteAccount();
+  }
+
+  void _getFavoriteAccount() async {
+    final favoriteAccountId = await AppSettings.getFavoriteAccount();
+    final Account? favoriteAccount = await widget.db.accountsDao.getAccountById(favoriteAccountId);
+    setState(() {
+      _favoriteAccount = favoriteAccount;
+      _selectedAccount = favoriteAccount;
+    });
+  }
 
   // reset all variables for _transactionAddForm
   void _resetData() {
@@ -97,6 +114,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           });
           Navigator.pop(context);
         },
+        favoriteAccount: _favoriteAccount,
       ),
     );
   }
@@ -121,16 +139,32 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
             textInputType: TextInputType.number,
           ),
           // account
-          CustomListTile(
-            tileColor: Theme.of(context).colorScheme.primaryContainer, 
-            leading: _selectedAccount == null 
-              ? const CustomIcon(icon: Icons.help_outline)
-              : CustomIcon(icon: IconsManager.getAccountIconByName(_selectedAccount!.icon)),
-            title: _selectedAccount != null
-              ? _selectedAccount!.name.toString()
-              : 'Account',
-            trailing: const CustomIcon(icon: Icons.chevron_right),
-            onTap: _showAccountsSheet,
+          Row(
+            spacing: 10,
+            children: [
+              Expanded(
+                child: CustomListTile(
+                  tileColor: Theme.of(context).colorScheme.primaryContainer, 
+                  leading: _selectedAccount == null 
+                    ? const CustomIcon(icon: Icons.help_outline)
+                    : CustomIcon(icon: IconsManager.getAccountIconByName(_selectedAccount!.icon)),
+                  title: _selectedAccount != null
+                    ? _selectedAccount!.name.toString()
+                    : 'Account',
+                  trailing: const CustomIcon(icon: Icons.chevron_right),
+                  onTap: _showAccountsSheet,
+                ),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primaryContainer
+                ),
+                onPressed: () {
+                  _getFavoriteAccount();
+                }, 
+                child: Text('Default', style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),)
+              ),
+            ],
           ),
           // date 
           Row(

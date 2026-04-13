@@ -103,4 +103,8 @@ class AccountsDao extends DatabaseAccessor<AppDatabase> with _$AccountsDaoMixin{
     final query = selectOnly(accounts)..addColumns([count]);
     return query.map((row) => row.read(count)!).getSingle();
   }
+
+  Future<Account?> getAccountById(int id) {
+    return (select(accounts)..where((a) => a.id.equals(id))).getSingleOrNull();
+  }
 }

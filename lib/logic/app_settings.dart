@@ -10,6 +10,22 @@ class AppSettings {
   static const _homeTransactionsCount = 'home_transactions_count';
   static const _datePickerInitialEntryMode = 'date_picker_initial_entry_mode';
   static const _timePickerInitialEntryMode = 'time_picker_initial_entry_mode';
+  static const _favoriteAccount = 'favorite_account';
+
+  // set favorite account id
+  static Future<void> setFavoriteAccount(int accountId) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    await prefs.setInt(_favoriteAccount, accountId);
+  }
+
+  // get favorite account id 
+  static Future<int> getFavoriteAccount() async {
+    final prefs = await SharedPreferences.getInstance();
+    int? favoriteAccountId = prefs.getInt(_favoriteAccount);
+
+    return favoriteAccountId ?? 0;
+  }
 
   // set date picker initial mode (calendar or input)
   static Future<void> setDatePickerInitialEntryMode(String mode) async {

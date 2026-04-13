@@ -1,6 +1,7 @@
 // accounts list on Add Transaction page
 
 import 'package:flutter/material.dart';
+import 'package:open_budget/logic/app_settings.dart';
 import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/logic/icons_manager.dart';
 import 'package:open_budget/widgets/custom_header.dart';
@@ -10,15 +11,30 @@ import 'package:open_budget/widgets/custom_icon_button.dart';
 import 'package:open_budget/widgets/custom_list_tile.dart';
 import 'package:open_budget/widgets/empty_list_placeholder.dart';
 
-class AccountsListBottomSheet extends StatelessWidget {
+class AccountsListBottomSheet extends StatefulWidget {
   final AppDatabase db;
   final Function(Account) onTap;
+  final Account? favoriteAccount;
 
   const AccountsListBottomSheet({
     super.key,
     required this.db,
     required this.onTap,
+    required this.favoriteAccount,
   });
+
+  @override
+  State<AccountsListBottomSheet> createState() => _AccountsListBottomSheetState();
+}
+
+class _AccountsListBottomSheetState extends State<AccountsListBottomSheet> {
+  Account? _favoriteAccount;
+
+  @override
+  void initState() {
+    super.initState();
+    _favoriteAccount = widget.favoriteAccount;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +56,7 @@ class AccountsListBottomSheet extends StatelessWidget {
         // accounts list
         Expanded(
           child: StreamBuilder(
-            stream: db.accountsDao.watchAccounts(false),
+            stream: widget.db.accountsDao.watchAccounts(false),
             builder: (context, snapshot) {
               final items =snapshot.data ?? [];
               return items.isEmpty
@@ -61,7 +77,16 @@ class AccountsListBottomSheet extends StatelessWidget {
                     tileColor: Theme.of(context).colorScheme.primaryContainer, 
                     leading: CustomIcon(icon: IconsManager.getAccountIconByName(item.icon)),
                     title: item.name,
-                    onTap: () => onTap(item),
+                    trailing: IconButton(
+                      onPressed: () async {
+                        await AppSettings.setFavoriteAccount(item.id);
+                        setState(() {
+                          _favoriteAccount = item;
+                        });
+                      }, 
+                      icon: Icon((_favoriteAccount?.id == item.id) ? Icons.star : Icons.star_outline)
+                    ),
+                    onTap: () => widget.onTap(item),
                   );
                 }
               );

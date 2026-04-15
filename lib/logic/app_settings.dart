@@ -27,6 +27,12 @@ class AppSettings {
     return favoriteAccountId ?? 0;
   }
 
+  // remove favorite account key
+  static Future<void> removeFavoriteAccount() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_favoriteAccount);
+  }
+
   // set date picker initial mode (calendar or input)
   static Future<void> setDatePickerInitialEntryMode(String mode) async {
     final prefs = await SharedPreferences.getInstance();

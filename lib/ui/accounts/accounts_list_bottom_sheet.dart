@@ -1,7 +1,6 @@
 // accounts list on Add Transaction page
 
 import 'package:flutter/material.dart';
-import 'package:open_budget/logic/app_settings.dart';
 import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/logic/icons_manager.dart';
 import 'package:open_budget/widgets/custom_header.dart';
@@ -13,14 +12,16 @@ import 'package:open_budget/widgets/empty_list_placeholder.dart';
 
 class AccountsListBottomSheet extends StatefulWidget {
   final AppDatabase db;
-  final Function(Account) onTap;
   final Account? favoriteAccount;
+  final Function(Account) onTap;
+  final Function(Account) onFavoriteTap;
 
   const AccountsListBottomSheet({
     super.key,
     required this.db,
-    required this.onTap,
     required this.favoriteAccount,
+    required this.onTap,
+    required this.onFavoriteTap
   });
 
   @override
@@ -79,11 +80,19 @@ class _AccountsListBottomSheetState extends State<AccountsListBottomSheet> {
                     title: item.name,
                     trailing: IconButton(
                       onPressed: () async {
-                        await AppSettings.setFavoriteAccount(item.id);
+                        await widget.onFavoriteTap(item);
+
                         setState(() {
-                          _favoriteAccount = item;
+                          if(_favoriteAccount?.id == item.id) {
+                            // favorite account and current account are the same
+                            // so change favorite account to not favorite
+                            _favoriteAccount = null;
+                          } else {
+                            // mark account as favorite
+                            _favoriteAccount = item;
+                          }
                         });
-                      }, 
+                      },
                       icon: Icon((_favoriteAccount?.id == item.id) ? Icons.star : Icons.star_outline)
                     ),
                     onTap: () => widget.onTap(item),

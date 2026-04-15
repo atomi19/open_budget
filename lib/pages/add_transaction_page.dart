@@ -108,13 +108,29 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
       backgroundColor: Theme.of(context).colorScheme.surface,
       child: AccountsListBottomSheet(
         db: widget.db,
+        favoriteAccount: _favoriteAccount,
         onTap: (Account account) {
           setState(() {
             _selectedAccount = account;
           });
           Navigator.pop(context);
         },
-        favoriteAccount: _favoriteAccount,
+        onFavoriteTap: (Account account) async {
+          if(_favoriteAccount?.id == account.id) {
+            // favorite account and current selected account are the same
+            // remove favorite account key from shared_preferences
+            await AppSettings.removeFavoriteAccount();
+            setState(() {
+              _favoriteAccount = null;
+            });
+          } else {
+            // set favorite account 
+            await AppSettings.setFavoriteAccount(account.id);
+            setState(() {
+              _favoriteAccount = account;
+            });
+          }
+        }
       ),
     );
   }
@@ -155,6 +171,8 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                   onTap: _showAccountsSheet,
                 ),
               ),
+              // insert Default text button only if there is chosen favorite account
+              if(_favoriteAccount != null)
               TextButton(
                 style: TextButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.primaryContainer

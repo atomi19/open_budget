@@ -175,7 +175,8 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
               if(_favoriteAccount != null)
               TextButton(
                 style: TextButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primaryContainer
+                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
                 ),
                 onPressed: () {
                   _getFavoriteAccount();
@@ -204,7 +205,8 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
               ),
               TextButton(
                 style: TextButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primaryContainer
+                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
                 ),
                 onPressed: () {
                   setState(() {
@@ -236,6 +238,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
               TextButton(
                 style: TextButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
                 ),
                 onPressed: () {
                   setState(() {

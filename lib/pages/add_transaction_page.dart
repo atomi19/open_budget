@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:open_budget/logic/app_settings.dart';
 import 'package:open_budget/logic/database/database.dart';
+import 'package:open_budget/logic/format_number.dart';
 import 'package:open_budget/logic/handle_data_submit.dart';
 import 'package:open_budget/logic/icons_manager.dart';
 import 'package:open_budget/ui/accounts/accounts_list_bottom_sheet.dart';
@@ -39,6 +40,9 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
   int? _selectedCategoryId;
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
+
+  // quick amounts
+  final List<double> _quickAmounts = [10, 50, 100, 200, 500, 1000];
 
   @override
   void initState() {
@@ -144,6 +148,38 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
       child: Column(
         spacing: 10,
         children: [
+          SizedBox(
+            height: 35,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: _quickAmounts.length,
+              itemBuilder: (context, index) {
+                final amount = formatNumber(_quickAmounts[index]);
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 5),
+                  child: ActionChip(
+                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                    side: BorderSide.none,
+                    label: Text(
+                      isIncome 
+                      ? '+$amount' 
+                      : '-$amount'
+                    ),
+                    onPressed: () {
+                      double? amount = double.tryParse(_amountController.text);
+
+                      if(_amountController.text.isEmpty) amount = 0;
+
+                      if(amount != null) {
+                        amount += _quickAmounts[index];
+                        _amountController.text = formatNumber(amount);
+                      }
+                    },
+                  ),
+                );
+              }
+            ),
+          ),
           // amount textfield
           CustomTextField(
             controller: _amountController, 

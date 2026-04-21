@@ -12,6 +12,7 @@ class CustomTextField extends StatelessWidget {
   final String? labelText;
   final void Function(String)? onChanged;
   final TextInputType? textInputType;
+  final Widget? suffixIcon;
 
   const CustomTextField({
     super.key,
@@ -26,6 +27,7 @@ class CustomTextField extends StatelessWidget {
     this.labelText,
     this.onChanged,
     this.textInputType,
+    this.suffixIcon,
   });
   
   @override
@@ -39,6 +41,7 @@ class CustomTextField extends StatelessWidget {
         isDense: isDense ?? false,
         prefix: prefix,
         prefixIcon: prefixIcon,
+        suffixIcon: suffixIcon,
         filled: true,
         labelText: labelText,
         fillColor: Theme.of(context).colorScheme.primaryContainer,

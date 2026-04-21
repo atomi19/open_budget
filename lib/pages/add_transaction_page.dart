@@ -187,6 +187,13 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
               ? 'Enter income...'
               : 'Enter expense...',
             prefix: Text(isIncome ? '+ ': '- '),
+            suffixIcon: Padding(
+              padding: const EdgeInsets.only(right: 5),
+              child: GestureDetector(
+                onTap: () => _amountController.clear(),
+                child: const Icon(Icons.cancel_outlined, size: 20,),
+              ),
+            ),
             maxLines: 1,
             textInputType: TextInputType.number,
           ),

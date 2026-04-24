@@ -1,7 +1,7 @@
 name: open_budget
 description: "Open Budget is open-source, cross-platform budgeting application."
 publish_to: 'none'
-version: 0.5.0+8
+version: 0.5.1+9
 
 environment:
   sdk: ^3.9.2

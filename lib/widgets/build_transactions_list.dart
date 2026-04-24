@@ -46,6 +46,8 @@ Widget buildTransactionList({
       final category = categoriesById[item.categoryId];
       final iconNameKey = category?.iconName;
 
+      bool isTransfer = item.transactionType == 2 ? true : false;
+
       // check if this is required to insert date (each day) between transactions
       if(shouldInsertDate) {
         if(previousItem == null) {
@@ -60,6 +62,7 @@ Widget buildTransactionList({
           }
         }
       }
+
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -74,10 +77,17 @@ Widget buildTransactionList({
           // transaction ListTile
           CustomListTile(
             tileColor: tileColor,
-            // category icon
-            leading: CustomIcon(icon: IconsManager.getCategoryIconByName(iconNameKey)),
-            // category name
-            title: categoriesById[item.categoryId]?.name ?? 'Unknown Category',
+            // category icon or transfer icon
+            leading: isTransfer
+              ? const CustomIcon(icon: Icons.swap_horiz)
+              : CustomIcon(icon: IconsManager.getCategoryIconByName(iconNameKey)),
+            // category name or transfer title based on transactionType
+            // 0 - income, 1 - expense, 2 - transfer
+            title: isTransfer
+              ? item.amount < 0
+                ? 'Transfer to account'
+                : 'Transfer from account'
+              : categoriesById[item.categoryId]?.name ?? 'Unknown Category',
             // description
             subtitle: showDescription
             ? item.description.trim().isNotEmpty

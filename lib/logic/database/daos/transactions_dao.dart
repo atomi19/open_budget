@@ -15,7 +15,7 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase> with _$TransactionsD
     required double amount,
     required String description,
     required int accountOwnerId,
-    required int categoryId,
+    int? categoryId,
     required DateTime date, 
     required TimeOfDay time,
   }) {
@@ -27,15 +27,90 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase> with _$TransactionsD
       time.minute
     );
 
+    // 0 - income, 1 - expense
+    final transactionType = amount > 0 ? 0 : 1;
+
     return into(transactions).insert(
       TransactionsCompanion.insert(
         amount: amount, 
         description: description, 
         accountOwnerId: accountOwnerId,
-        categoryId: categoryId,
+        categoryId: Value(categoryId),
         dateAndTime: dateAndTime,
+        transactionType: transactionType,
       )
     );
+  }
+
+  // add transfer
+  Future<void> addTransfer({
+    required double amount,
+    required int fromAccount, 
+    required int toAccount,
+    required DateTime date,
+    required TimeOfDay time,
+    required String description
+  }) async {
+    final dateAndTime = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      time.hour,
+      time.minute,
+    );
+
+    final transferId = DateTime.now().millisecondsSinceEpoch;
+
+    // add expense to 'from account'
+    await batch((batch) {
+      batch.insert(
+        transactions, 
+        TransactionsCompanion.insert(
+          amount: -amount, 
+          description: description, 
+          accountOwnerId: fromAccount, 
+          dateAndTime: dateAndTime,
+          transferId: Value(transferId),
+          transactionType: 2, // transfer type
+        )
+      );
+
+      // add income to 'to account'
+      batch.insert(
+        transactions, 
+        TransactionsCompanion.insert(
+          amount: amount, 
+          description: description, 
+          accountOwnerId: toAccount, 
+          dateAndTime: dateAndTime,
+          transferId: Value(transferId),
+          transactionType: 2, // transfer type
+        ),
+      );
+    });
+  }
+
+  // update transfer description
+  Future<int> updateTransferDescription(int transferId, String newDescription) {
+    return (update(transactions)
+      ..where(((transfer) => transfer.transferId.equals(transferId))))
+        .write(TransactionsCompanion(description: Value(newDescription)
+      )
+    );
+  }
+
+  // update transfer date and time
+  Future<int> updateTransferDateAndTime(int transferId, DateTime newDate) {
+    return (update(transactions)
+      ..where(((transfer) => transfer.transferId.equals(transferId))))
+        .write(TransactionsCompanion(dateAndTime: Value(newDate)
+      )
+    );
+  }
+
+  // delete transfer
+  Future<int> deleteTransfer(int transferId) {
+    return (delete(transactions)..where((transfer) => transfer.transferId.equals(transferId))).go();
   }
 
   // delete transaction
@@ -43,8 +118,8 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase> with _$TransactionsD
     return (delete(transactions)..where((transaction) => transaction.id.equals(id))).go();
   }
 
-  // update amaount
-  Future<int> updateAmount(int id, double newAmount) async {
+  // update amount
+  Future<int> updateAmount(int id, double newAmount) {
     return (update(transactions)
       ..where(((transaction) => transaction.id.equals(id))))
         .write(TransactionsCompanion(amount: Value(newAmount)
@@ -53,7 +128,7 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase> with _$TransactionsD
   }
 
   // update transaction date 
-  Future<int> updateDateAndTime(int id, DateTime newDate) async {
+  Future<int> updateDateAndTime(int id, DateTime newDate) {
     return (update(transactions)
       ..where(((transaction) => transaction.id.equals(id))))
         .write(TransactionsCompanion(dateAndTime: Value(newDate)
@@ -113,6 +188,7 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase> with _$TransactionsD
   // watch total income
   Stream<double> watchTotalIncome(int accountOwnerId) {
     return (select(transactions)
+      ..where((t) => t.transactionType.equals(2).not()) // do not include transfers
       ..where((t) => t.amount.isBiggerThanValue(0))
       ..where((t) => t.accountOwnerId.equals(accountOwnerId))
     ).watch()
@@ -123,6 +199,7 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase> with _$TransactionsD
   // watch total expense
   Stream<double> watchTotalExpense(int accountOwnerId) {
     return (select(transactions)
+      ..where((t) => t.transactionType.equals(2).not()) // do not include transfers
       ..where((t) => t.amount.isSmallerThanValue(0))
       ..where((t) => t.accountOwnerId.equals(accountOwnerId))
     ).watch()

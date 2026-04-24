@@ -21,6 +21,7 @@ class AmountEditBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final TextEditingController editAmountController = TextEditingController();
+    final bool isTransfer = item.transactionType == 2 ? true : false;
 
     return Wrap(
       children: [
@@ -51,7 +52,9 @@ class AmountEditBottomSheet extends StatelessWidget {
                     content: const Text('Enter valid amount')
                   );
                 } else {
-                  db.transactionsDao.updateAmount(item.id, amount);
+                  if(!isTransfer) {
+                    db.transactionsDao.updateAmount(item.id, amount);
+                  }
                   Navigator.of(context).popUntil((route) => route.isFirst);
                 }
               }, 
@@ -64,10 +67,14 @@ class AmountEditBottomSheet extends StatelessWidget {
           padding:const EdgeInsets.symmetric(horizontal: 15),
           child: CustomTextField(
             controller: editAmountController, 
-            prefix: isIncome
+            prefix: isTransfer
+            ? null
+            : isIncome
               ? const Text('+ ')
               : const Text('- '),
-            hintText: isIncome
+            hintText: isTransfer
+            ? 'Edit transfer...'
+            : isIncome
               ? 'Edit income...'
               : 'Edit expense...',
             textInputType: TextInputType.number,

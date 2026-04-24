@@ -187,7 +187,13 @@ class _HomePageContentState extends State<HomePageContent> {
         oldDate.minute,
       );
       // update in db
-      widget.db.transactionsDao.updateDateAndTime(item.id, newDate);
+      if(item.transactionType == 2) {
+        // update transfer date and time
+        widget.db.transactionsDao.updateTransferDateAndTime(item.transferId!, newDate);
+      } else {
+        // update transaction date and time
+        widget.db.transactionsDao.updateDateAndTime(item.id, newDate);
+      }
       if(!mounted) return;
       Navigator.of(context).popUntil((route) => route.isFirst);
     }
@@ -212,7 +218,13 @@ class _HomePageContentState extends State<HomePageContent> {
         newTime.minute,
       );
       // update in db
-      widget.db.transactionsDao.updateDateAndTime(item.id, newDate);
+      if(item.transactionType == 2) {
+        // update transfer date and time
+        widget.db.transactionsDao.updateTransferDateAndTime(item.transferId!, newDate);
+      } else {
+        // update transaction date and time
+        widget.db.transactionsDao.updateDateAndTime(item.id, newDate);
+      }
       if(!mounted) return;
       Navigator.of(context).popUntil((route) => route.isFirst);
     }
@@ -239,6 +251,7 @@ class _HomePageContentState extends State<HomePageContent> {
         isIncome: isIncome, 
         iconNameKey: iconNameKey, 
         showDeleteConfirmation: _showDeleteConfirmation, 
+        showTransferDeleteConfirmation: _showTransferDeleteConfirmation,
         showAmountEditingSheet: _showAmountEditingSheet, 
         showCategories: _showCategories, 
         showEditDatePicker: _showEditDatePicker, 
@@ -307,6 +320,23 @@ class _HomePageContentState extends State<HomePageContent> {
               ],
             ),
           );
+        }
+      ),
+    );
+  }
+
+  void _showTransferDeleteConfirmation(Transaction transaction) {
+    showDialog(
+      context: context, 
+      builder: (context) => CustomAlertDialog(
+        title: 'Delete transfer?', 
+        content: 'Are you sure you want to delete this transfer?', 
+        leftButtonLabel: 'Cancel', 
+        rightButtonLabel: 'Delete', 
+        leftButtonAction: () => Navigator.pop(context), 
+        rightButtonAction: () {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+          widget.db.transactionsDao.deleteTransfer(transaction.transferId!);
         }
       ),
     );

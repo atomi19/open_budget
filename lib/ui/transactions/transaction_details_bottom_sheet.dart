@@ -18,6 +18,7 @@ class TransactionDetailsBottomSheet extends StatefulWidget {
   final bool isIncome;
   final String? iconNameKey;
   final Function(Transaction item) showDeleteConfirmation;
+  final Function(Transaction item) showTransferDeleteConfirmation;
   final Function({required bool isIncome, required Transaction item}) showAmountEditingSheet;
   final Function({required bool isIncome, required Transaction item}) showCategories;
   final Function(Transaction item) showEditDatePicker;
@@ -32,6 +33,7 @@ class TransactionDetailsBottomSheet extends StatefulWidget {
     required this.isIncome,
     required this.iconNameKey,
     required this.showDeleteConfirmation,
+    required this.showTransferDeleteConfirmation,
     required this.showAmountEditingSheet,
     required this.showCategories,
     required this.showEditDatePicker,
@@ -47,6 +49,7 @@ class _TransactionDetailsBottomSheetState extends State<TransactionDetailsBottom
   Widget build(BuildContext context) {
   final TextEditingController transactionDescriptionController = 
     TextEditingController(text: widget.item.description);
+    bool isTransfer = widget.item.transactionType == 2 ? true : false;
 
     return Column(
       children: [
@@ -61,7 +64,13 @@ class _TransactionDetailsBottomSheetState extends State<TransactionDetailsBottom
             const CustomHeaderTitle(title: 'Details'),
             // delete transaction button
             CustomIconButton(
-              onPressed: () => widget.showDeleteConfirmation(widget.item),
+              onPressed: () {
+                if(isTransfer) {
+                  widget.showTransferDeleteConfirmation(widget.item);
+                } else {
+                  widget.showDeleteConfirmation(widget.item);
+                }
+              },
               icon: const Icon(Icons.delete_outlined)
             ),
           ]
@@ -89,10 +98,14 @@ class _TransactionDetailsBottomSheetState extends State<TransactionDetailsBottom
                     ),
                   ),
                   // editing modalBottomSheet
-                  onTap: () => widget.showAmountEditingSheet(
-                    isIncome: widget.isIncome, 
-                    item: widget.item,
-                  ),
+                  onTap: () {
+                    if(!isTransfer) {
+                      widget.showAmountEditingSheet(
+                        isIncome: widget.isIncome, 
+                        item: widget.item,
+                      );
+                    }
+                  }
                 ),
                 const SectionHeader(title: 'Date & Time'),
                 const SizedBox(height: 10),
@@ -156,41 +169,58 @@ class _TransactionDetailsBottomSheetState extends State<TransactionDetailsBottom
                   title: 'Details'
                 ),
                 const SizedBox(height: 10),
-                // category
-                CustomListTile(
-                  tileColor: Theme.of(context).colorScheme.primaryContainer,
-                  leading: CustomIcon(icon: IconsManager.getCategoryIconByName(widget.iconNameKey)),
-                  title: 'Category', 
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
+                if(!isTransfer) 
+                  // category
+                  Column(
                     children: [
-                      SizedBox(
-                        width: 175,
-                        child: Text(
-                          widget.categoriesById[widget.item.categoryId]?.name ?? 'Unknown Category',
-                          style: const TextStyle(fontSize: 15),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.right,
+                      CustomListTile(
+                        tileColor: Theme.of(context).colorScheme.primaryContainer,
+                        leading: CustomIcon(icon: IconsManager.getCategoryIconByName(widget.iconNameKey)),
+                        title: 'Category', 
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 175,
+                              child: Text(
+                                widget.categoriesById[widget.item.categoryId]?.name ?? 'Unknown Category',
+                                style: const TextStyle(fontSize: 15),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.right,
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            const CustomIcon(icon: Icons.chevron_right),
+                          ],
+                        ),
+                        onTap: () => widget.showCategories(
+                          isIncome: widget.isIncome,
+                          item: widget.item,
                         ),
                       ),
-                      const SizedBox(width: 5),
-                      const CustomIcon(icon: Icons.chevron_right),
+                      const SizedBox(height: 10),
                     ],
                   ),
-                  onTap: () => widget.showCategories(
-                    isIncome: widget.isIncome,
-                    item: widget.item,
-                  ),
-                ),
-                const SizedBox(height: 10),
                 // description inside transaction details
                 // if user changed description it will update
                 // when focus on CustomTextField is lost
                 Focus(
                   onFocusChange: (focus) {
                     if(!focus) {
-                      widget.db.transactionsDao.updateDescription(widget.item.id, transactionDescriptionController.text);
+                      if(isTransfer) {
+                        // update transfer description
+                        widget.db.transactionsDao.updateTransferDescription(
+                          widget.item.transferId!, 
+                          transactionDescriptionController.text
+                        );
+                      } else {
+                        // update transaction description
+                        widget.db.transactionsDao.updateDescription(
+                          widget.item.id, 
+                          transactionDescriptionController.text
+                        );
+                      }
                     }
                   },
                   child: CustomTextField(

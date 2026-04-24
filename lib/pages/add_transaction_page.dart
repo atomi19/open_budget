@@ -6,6 +6,7 @@ import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/logic/format_number.dart';
 import 'package:open_budget/logic/handle_data_submit.dart';
 import 'package:open_budget/logic/icons_manager.dart';
+import 'package:open_budget/ui/accounts/account_transfer_bottom_sheet.dart';
 import 'package:open_budget/ui/accounts/accounts_list_bottom_sheet.dart';
 import 'package:open_budget/ui/categories/categories_list_bottom_sheet.dart';
 import 'package:open_budget/widgets/custom_icon.dart';
@@ -43,6 +44,10 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
 
   // quick amounts
   final List<double> _quickAmounts = [10, 50, 100, 200, 500, 1000];
+  
+  // transfer 
+  Account? _fromAccount;
+  Account? _toAccount;
 
   @override
   void initState() {
@@ -69,6 +74,8 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
       _selectedCategory = null;
       _selectedCategoryId = null;
       _descriptionController.clear();
+      _fromAccount = null;
+      _toAccount = null;
     });
   }
 
@@ -136,6 +143,27 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           }
         }
       ),
+    );
+  }
+
+  // accounts list for transfer
+  void _showAccountsTransferSheet(bool isFromAccount) {
+    showCustomModalBottomSheet(
+      context: context, 
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      child: AccountTransferBottomSheet(
+        db: widget.db,
+        onAccountTap: (Account account) {
+          setState(() {            
+            if(isFromAccount) {
+              _fromAccount = account;
+            } else {
+              _toAccount = account;
+            }
+          });
+          Navigator.pop(context);
+        },
+      )
     );
   }
 
@@ -344,40 +372,197 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     );
   }
 
+  // transfer form
+  Widget _transactionTransferForm() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+      child: Column(
+        spacing: 10,
+        children: [
+          // amount textfield
+          CustomTextField(
+            controller: _amountController, 
+            hintText: 'Enter transfer',
+            suffixIcon: Padding(
+              padding: const EdgeInsets.only(right: 5),
+              child: GestureDetector(
+                onTap: () => _amountController.clear(),
+                child: const Icon(Icons.cancel_outlined, size: 20,),
+              ),
+            ),
+            maxLines: 1,
+            textInputType: TextInputType.number,
+          ),
+          // from account
+          Row(
+            spacing: 10,
+            children: [
+              Expanded(
+                child: CustomListTile(
+                  tileColor: Theme.of(context).colorScheme.primaryContainer, 
+                  leading: _fromAccount == null 
+                    ? const CustomIcon(icon: Icons.help_outline)
+                    : CustomIcon(icon: IconsManager.getAccountIconByName(_fromAccount!.icon)),
+                  title: _fromAccount != null
+                    ? _fromAccount!.name.toString()
+                    : 'From account',
+                  trailing: const CustomIcon(icon: Icons.chevron_right),
+                  onTap: () =>_showAccountsTransferSheet(true),
+                ),
+              ),
+            ],
+          ),
+          // to account
+          Row(
+            spacing: 10,
+            children: [
+              Expanded(
+                child: CustomListTile(
+                  tileColor: Theme.of(context).colorScheme.primaryContainer, 
+                  leading: _toAccount == null 
+                    ? const CustomIcon(icon: Icons.help_outline)
+                    : CustomIcon(icon: IconsManager.getAccountIconByName(_toAccount!.icon)),
+                  title: _toAccount != null
+                    ? _toAccount!.name.toString()
+                    : 'To account',
+                  trailing: const CustomIcon(icon: Icons.chevron_right),
+                  onTap: () => _showAccountsTransferSheet(false),
+                ),
+              ),
+            ],
+          ),
+          // date 
+          Row(
+            spacing: 10,
+            children: [
+              Expanded(
+                child: CustomListTile(
+                  tileColor: Theme.of(context).colorScheme.primaryContainer,
+                  leading: const CustomIcon(icon: Icons.calendar_month),
+                  title: _selectedDate != null
+                    ? '${_selectedDate!.day.toString().padLeft(2, '0')}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.year}'
+                    : 'Date',
+                  trailing: const CustomIcon(icon: Icons.chevron_right),
+                  onTap: () async {
+                    final selectedDate = await pickDate(context: context);
+                    setState(() => _selectedDate = selectedDate);
+                  },
+                ),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _selectedDate = DateTime.now();
+                  });
+                }, 
+                child: Text('Now', style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),)
+              ),
+            ],
+          ),
+          // time 
+          Row(
+            spacing: 10,
+            children: [
+              Expanded(
+                child: CustomListTile(
+                  tileColor: Theme.of(context).colorScheme.primaryContainer,
+                  leading: const CustomIcon(icon: Icons.access_time),
+                  title: _selectedTime != null
+                    ? _selectedTime!.format(context)
+                    : 'Time',
+                  trailing: const CustomIcon(icon: Icons.chevron_right),
+                  onTap: () async {
+                    final selectedTime = await pickTime(context: context);
+                    setState(() => _selectedTime = selectedTime);
+                  },
+                ),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _selectedTime = TimeOfDay.now();
+                  });
+                }, 
+                child: Text('Now', style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),)
+              ),
+            ],
+          ),
+          // description textfield
+          CustomTextField(
+            controller: _descriptionController,
+            hintText: 'Enter description...',
+            minLines: 1,
+            maxLines: 5,
+            textInputType: TextInputType.multiline,
+          ),
+          // save button
+          SubmitButton(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              handleTransferSubmit(
+                db: widget.db, 
+                amountStr: _amountController.text, 
+                fromAccount: _fromAccount, 
+                toAccount: _toAccount, 
+                selectedDate: _selectedDate, 
+                selectedTime: _selectedTime, 
+                description: _descriptionController.text, 
+                displaySnackBar: (String content) {
+                  showSnackBar(
+                    context: context, 
+                    content: Text(content),
+                  );
+                }, 
+                clearTransferDataOnSubmit: _clearInputDataOnSubmit
+              );
+            },
+            text: 'Save'
+          ),
+        ],
+      ),
+    );
+  }
+
   // income / expense switch button
   Widget _switchButton({
-    required bool isIncome,
     required int pageIndex,
   }) {
-    int currentPageIndex = isIncome
-      ? 0
-      : 1;
+    const titles = ['Income', 'Expense', 'Transfer'];
+    const icons = [Icons.download_outlined, Icons.upload_outlined, Icons.swap_horiz];
 
     return FilledButton(
       style: FilledButton.styleFrom(
-        backgroundColor: pageIndex == currentPageIndex
+        backgroundColor: pageIndex == _transactionPageIndex
           ? Colors.blue
           : Theme.of(context).colorScheme.primaryContainer,
         shape: const StadiumBorder()
       ),
       onPressed: () => _pageViewController.animateToPage(
-        currentPageIndex, 
+        pageIndex, 
         duration: const Duration(milliseconds: 300), 
         curve: Curves.easeOutCubic
       ),
       child: Row(
         children: [
-          pageIndex == currentPageIndex
+          pageIndex == _transactionPageIndex
             ? Icon(
-              isIncome ? Icons.download_outlined : Icons.upload_outlined,
+              icons[pageIndex],
               color: Theme.of(context).colorScheme.secondary,
             )
             : const SizedBox(),
           const SizedBox(width: 5),
           Text(
-            isIncome ? 'Income' : 'Expense',
+            titles[pageIndex],
             style: TextStyle(
-              color: pageIndex == currentPageIndex
+              color: pageIndex == _transactionPageIndex
                 ? Theme.of(context).colorScheme.secondary
                 : Theme.of(context).colorScheme.onPrimary
             ),
@@ -415,15 +600,11 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                 spacing: 5,
                 children: [
                   // income button
-                  _switchButton(
-                    isIncome: true, 
-                    pageIndex: _transactionPageIndex,
-                  ),
+                  _switchButton(pageIndex: 0),
                   // expense button
-                  _switchButton(
-                    isIncome: false, 
-                    pageIndex: _transactionPageIndex,
-                  ),
+                  _switchButton(pageIndex: 1),
+                  // transfer button
+                  _switchButton(pageIndex: 2),
                 ],
               ),
             ),
@@ -436,6 +617,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
               children: [
                 _transactionAddForm(isIncome: true),
                 _transactionAddForm(isIncome: false),
+                _transactionTransferForm(),
               ],
             ),
           )

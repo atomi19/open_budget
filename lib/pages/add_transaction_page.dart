@@ -99,6 +99,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
       context: context, 
       backgroundColor: Theme.of(context).colorScheme.surface,
       child: CategoriesListBottomSheet(
+        context: context,
         db: widget.db, 
         isIncome: isIncome, 
         onTap: (int id) async {

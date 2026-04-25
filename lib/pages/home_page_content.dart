@@ -6,6 +6,7 @@ import 'package:open_budget/logic/currencies.dart';
 import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/logic/format_number.dart';
 import 'package:open_budget/logic/icons_manager.dart';
+import 'package:open_budget/pages/settings_page.dart';
 import 'package:open_budget/ui/accounts/account_choose_bottom_sheet.dart';
 import 'package:open_budget/ui/accounts/account_create_bottom_sheet.dart';
 import 'package:open_budget/ui/accounts/account_edit_bottom_sheet.dart';
@@ -16,7 +17,6 @@ import 'package:open_budget/ui/categories/categories_manager_bottom_sheet.dart';
 import 'package:open_budget/ui/categories/category_create_bottom_sheet.dart';
 import 'package:open_budget/ui/categories/category_edit_bottom_sheet.dart';
 import 'package:open_budget/ui/settings/about_bottom_sheet.dart';
-import 'package:open_budget/ui/settings/settings_bottom_sheet.dart';
 import 'package:open_budget/ui/statistics/statistics_bottom_sheet.dart';
 import 'package:open_budget/ui/transactions/all_transactions_bottom_sheet.dart';
 import 'package:open_budget/ui/transactions/amount_edit_bottom_sheet.dart';
@@ -365,32 +365,6 @@ class _HomePageContentState extends State<HomePageContent> {
     return _homeTransactionsCount;
   }
 
-  // settings modalBottomSheet
-  void _showSettings() async {
-    final theme = await AppSettings.getTheme();
-
-    if(!mounted) return;
-    showCustomModalBottomSheet(
-      context: context, 
-      isScrollControlled: true,
-      borderRadius: 0,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      child: SettingsBottomSheet(
-        context: context,
-        theme: theme,
-        homeTransactionsCount: _homeTransactionsCount,
-        isShowingDescription: _isShowingDescription,
-        setState: setState,
-        setTheme: (newTheme) => widget.setTheme(newTheme),
-        switchDescriptionState: (bool state) => _switchDescriptionState(state),
-        handleTransactionCount: (digit) => _handleTransactionCount(digit),
-        showAccountsSheet: _showAccountsSheet,
-        showCategoriesManager: _showCategoriesManager,
-        showAboutSheet: _showAboutSheet,
-      ),
-    );
-  }
-
   void _showAccountsSheet() {
     showCustomModalBottomSheet(
       context: context, 
@@ -598,7 +572,22 @@ class _HomePageContentState extends State<HomePageContent> {
           ),
           // settings icon button
           IconButton(
-            onPressed: () => _showSettings(), 
+            onPressed: () async {
+              Navigator.push(
+                context, 
+                MaterialPageRoute(builder: (context) => SettingsPage(
+                  homeTransactionsCount: _homeTransactionsCount,
+                  isShowingDescription: _isShowingDescription,
+                  setTheme: (newTheme) => widget.setTheme(newTheme),
+                  switchDescriptionState: (bool state) => _switchDescriptionState(state),
+                  handleTransactionCount: (digit) => _handleTransactionCount(digit),
+                  showAccountsSheet: _showAccountsSheet,
+                  showCategoriesManager: _showCategoriesManager,
+                  showAboutSheet: _showAboutSheet,
+                  )
+                )
+              );
+            },
             style: IconButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.primaryContainer,
             ),

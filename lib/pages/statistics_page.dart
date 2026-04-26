@@ -10,27 +10,30 @@ import 'package:open_budget/widgets/custom_modal_bottom_sheet.dart';
 import 'package:open_budget/widgets/empty_list_placeholder.dart';
 import 'package:open_budget/widgets/section_header.dart';
 
-class StatisticsBottomSheet extends StatelessWidget {
-  final BuildContext context;
+class StatisticsPage extends StatefulWidget {
   final AppDatabase db;
   final Currency currentCurrency;
   final int accountOwnerId;
 
-  const StatisticsBottomSheet({
+  const StatisticsPage({
     super.key,
-    required this.context,
     required this.db,
     required this.currentCurrency,
     required this.accountOwnerId,
   });
 
+  @override
+  State<StatisticsPage> createState() => _StatisticsPageState();
+}
+
+class _StatisticsPageState extends State<StatisticsPage> {
   // list of categories 
   Widget _buildCategoriesRankingList({
     required int accountOwnerId,
     required bool isIncome,
   }) {
     return StreamBuilder(
-      stream: db.categoriesDao.sortCategoriesByTotalAmount(
+      stream: widget.db.categoriesDao.sortCategoriesByTotalAmount(
         accountOwnerId: accountOwnerId,
         isIncome: isIncome,
         startDate: DateTime(2000),
@@ -101,6 +104,47 @@ class StatisticsBottomSheet extends StatelessWidget {
     );
   }
 
+  // category custom list tile
+  Widget _buildCategory({
+    required bool isFirst,
+    required bool isLast,
+    required int index,
+    required String title,
+    required double value,
+  }) {
+    return CustomListTile(
+      tileColor: Theme.of(context).colorScheme.primaryContainer,
+      customBorder: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          // top border 
+          top: isFirst 
+            // first in list so rounded corners
+            ? const Radius.circular(15)
+            // not first
+            : Radius.zero,
+          // bottom border
+          bottom: isLast 
+            // last in list so rounded corners
+            ? const Radius.circular(15)
+            // not last
+            : Radius.zero
+        )
+      ),
+      // category ranking number 
+      leading: Text(
+        '${index+1}.',
+        style: TextStyle(fontSize: 15, color: Theme.of(context).colorScheme.onPrimary),
+      ),
+      // category name
+      title: title,
+      // amount of spent money in this category
+      trailing: Text(
+        '${formatNumber(value)} ${widget.currentCurrency.symbol}',
+        style: const TextStyle(fontSize: 15),
+      ),
+    );
+  }
+
   // all categories ranking modal bottom sheet
   void _showAllCategoriesRanking({
     required BuildContext context,
@@ -156,88 +200,51 @@ class StatisticsBottomSheet extends StatelessWidget {
     );
   }
 
-  // category custom list tile
-  Widget _buildCategory({
-    required bool isFirst,
-    required bool isLast,
-    required int index,
-    required String title,
-    required double value,
-  }) {
-    return CustomListTile(
-      tileColor: Theme.of(context).colorScheme.primaryContainer,
-      customBorder: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          // top border 
-          top: isFirst 
-            // first in list so rounded corners
-            ? const Radius.circular(15)
-            // not first
-            : Radius.zero,
-          // bottom border
-          bottom: isLast 
-            // last in list so rounded corners
-            ? const Radius.circular(15)
-            // not last
-            : Radius.zero
-        )
-      ),
-      // category ranking number 
-      leading: Text(
-        '${index+1}.',
-        style: TextStyle(fontSize: 15, color: Theme.of(context).colorScheme.onPrimary),
-      ),
-      // category name
-      title: title,
-      // amount of spent money in this category
-      trailing: Text(
-        '${formatNumber(value)} ${currentCurrency.symbol}',
-        style: const TextStyle(fontSize: 15),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // header
-        CustomHeader(
+    return Scaffold(
+      body: SafeArea(
+        child: Column(
           children: [
-            CustomIconButton(
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.close)
-            ), 
-            const CustomHeaderTitle(title: 'Statistics'),
-            const SizedBox(width: 48),
-          ],
-        ),
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: Column(
+            // header
+            CustomHeader(
               children: [
-                const SectionHeader(
-                  title: 'Top Income Categories'
-                ),
-                const SizedBox(height: 5),
-                _buildCategoriesRankingList(
-                  accountOwnerId: accountOwnerId, 
-                  isIncome: true,
-                ),
-                const SectionHeader(
-                  title: 'Top Expense Categories'
-                ),
-                const SizedBox(height: 5),
-                _buildCategoriesRankingList(
-                  accountOwnerId: accountOwnerId, 
-                  isIncome: false,
-                ),
+                CustomIconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close)
+                ), 
+                const CustomHeaderTitle(title: 'Statistics'),
+                const SizedBox(width: 48),
               ],
             ),
-          ),
-        )
-      ],
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                child: Column(
+                  children: [
+                    const SectionHeader(
+                      title: 'Top Income Categories'
+                    ),
+                    const SizedBox(height: 5),
+                    _buildCategoriesRankingList(
+                      accountOwnerId: widget.accountOwnerId, 
+                      isIncome: true,
+                    ),
+                    const SectionHeader(
+                      title: 'Top Expense Categories'
+                    ),
+                    const SizedBox(height: 5),
+                    _buildCategoriesRankingList(
+                      accountOwnerId: widget.accountOwnerId, 
+                      isIncome: false,
+                    ),
+                  ],
+                ),
+              ),
+            )
+          ],
+        ),
+      )
     );
   }
 }

@@ -7,6 +7,7 @@ import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/logic/format_number.dart';
 import 'package:open_budget/logic/icons_manager.dart';
 import 'package:open_budget/pages/settings_page.dart';
+import 'package:open_budget/pages/statistics_page.dart';
 import 'package:open_budget/ui/accounts/account_choose_bottom_sheet.dart';
 import 'package:open_budget/ui/accounts/account_create_bottom_sheet.dart';
 import 'package:open_budget/ui/accounts/account_edit_bottom_sheet.dart';
@@ -17,7 +18,6 @@ import 'package:open_budget/ui/categories/categories_manager_bottom_sheet.dart';
 import 'package:open_budget/ui/categories/category_create_bottom_sheet.dart';
 import 'package:open_budget/ui/categories/category_edit_bottom_sheet.dart';
 import 'package:open_budget/ui/settings/about_bottom_sheet.dart';
-import 'package:open_budget/ui/statistics/statistics_bottom_sheet.dart';
 import 'package:open_budget/ui/transactions/all_transactions_bottom_sheet.dart';
 import 'package:open_budget/ui/transactions/amount_edit_bottom_sheet.dart';
 import 'package:open_budget/ui/transactions/transaction_details_bottom_sheet.dart';
@@ -511,25 +511,6 @@ class _HomePageContentState extends State<HomePageContent> {
     currentPageIndex = pageIndex; // selected account based on page view index
   }
 
-  // statistics modal bottom sheet
-  void _showStatisticsSheet({
-    required int accountOwnerId,
-    required Currency accountCurrency,
-  }) {
-    showCustomModalBottomSheet(
-      context: context, 
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      borderRadius: 0,
-      isScrollControlled: true,
-      child: StatisticsBottomSheet(
-        context: context, 
-        db: widget.db, 
-        currentCurrency: accountCurrency, 
-        accountOwnerId: accountOwnerId,
-      ),
-    );
-  }
-
   // header
   Widget _header({
     required Account account,
@@ -543,10 +524,15 @@ class _HomePageContentState extends State<HomePageContent> {
         children: [
           // statistics icon button
           IconButton(
-            onPressed: () => _showStatisticsSheet(
-              accountOwnerId: account.id,
-              accountCurrency: accountCurrency,
-            ), 
+            onPressed: () => Navigator.push(
+              context, 
+              MaterialPageRoute(builder: (context) => StatisticsPage(
+                  db: widget.db, 
+                  currentCurrency: accountCurrency, 
+                  accountOwnerId: account.id
+                )
+              )
+            ),
             style: IconButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.primaryContainer,
             ),

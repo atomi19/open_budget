@@ -134,6 +134,12 @@ class AccountsBottomSheet extends StatelessWidget {
                     // account icon 
                     leading: CustomIcon(icon: IconsManager.getAccountIconByName(item.icon)),
                     title: item.name,
+                    subtitle: Text(
+                      item.currency,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.tertiary,
+                      ),
+                    ),
                     // archive icon button 
                     trailing: IconButton(
                       onPressed: () => _showAccountArchivePrompt(item.id),

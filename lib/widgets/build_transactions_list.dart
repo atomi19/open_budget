@@ -95,7 +95,7 @@ Widget buildTransactionList({
                 item.description,
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: Colors.grey.shade600),
+                style: TextStyle(color: Theme.of(context).colorScheme.tertiary),
               )
               : null
             : null,

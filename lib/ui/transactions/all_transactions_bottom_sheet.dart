@@ -114,12 +114,13 @@ class _AllTransactionsBottomSheetState extends State<AllTransactionsBottomSheet>
             // incomes, all, expenses textbuttons
             Container(
               padding: const EdgeInsets.all(3),
-              margin: const EdgeInsets.all(5),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(15),
+              margin: const EdgeInsets.symmetric(horizontal: 15),
+              decoration: ShapeDecoration(
                 color: Theme.of(context).colorScheme.primaryContainer,
+                shape: const StadiumBorder(),
               ),
               child:Row(
+                spacing: 5,
                 children: _TransactionsListType.values.map((type) {
                   final label = switch (type) {
                     _TransactionsListType.incomes => 'Incomes',

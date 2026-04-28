@@ -554,12 +554,16 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
       child: Row(
         children: [
           pageIndex == _transactionPageIndex
-            ? Icon(
-              icons[pageIndex],
-              color: Theme.of(context).colorScheme.secondary,
+            ? Row(
+              children: [
+                Icon(
+                  icons[pageIndex],
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+                const SizedBox(width: 5),
+              ],
             )
             : const SizedBox(),
-          const SizedBox(width: 5),
           Text(
             titles[pageIndex],
             style: TextStyle(
@@ -588,9 +592,9 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
         children: [
           // header
           Padding(
-            padding: const EdgeInsets.fromLTRB(15, 15, 15, 0),
+            padding: const EdgeInsets.only(top: 15),
             child: Container(
-              padding: const EdgeInsets.all(5),
+              padding: const EdgeInsets.all(3),
               decoration: ShapeDecoration(
                 color: Theme.of(context).colorScheme.primaryContainer,
                 shape: const StadiumBorder(),

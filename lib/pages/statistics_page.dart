@@ -11,17 +11,18 @@ import 'package:open_budget/widgets/custom_modal_bottom_sheet.dart';
 import 'package:open_budget/widgets/date_time_picker.dart';
 import 'package:open_budget/widgets/empty_list_placeholder.dart';
 import 'package:open_budget/widgets/section_header.dart';
+import 'package:open_budget/widgets/summary_widget.dart';
 
 class StatisticsPage extends StatefulWidget {
   final AppDatabase db;
+  final Account account;
   final Currency currentCurrency;
-  final int accountOwnerId;
 
   const StatisticsPage({
     super.key,
     required this.db,
+    required this.account,
     required this.currentCurrency,
-    required this.accountOwnerId,
   });
 
   @override
@@ -357,123 +358,25 @@ class _StatisticsPageState extends State<StatisticsPage> {
                     // summary
                     const SectionHeader(title: 'Summary'),
                     const SizedBox(height: 10),
-                    // net 
-                    StreamBuilder(
-                      stream: widget.db.transactionsDao.watchTotalIncome(
-                        accountOwnerId: widget.accountOwnerId,
-                        customStartDate: _startDate,
-                        customEndDate: _endDate,
-                      ), 
-                      builder: (context, incomeSnapshot) {
-                        final income = incomeSnapshot.data ?? 0;
-
-                        return StreamBuilder(
-                          stream: widget.db.transactionsDao.watchTotalExpense(
-                            accountOwnerId: widget.accountOwnerId,
-                            customStartDate: _startDate,
-                            customEndDate: _endDate,
-                          ), 
-                          builder: (context, expenseSnapshot) {
-                            final expense = (expenseSnapshot.data ?? 0).abs();
-
-                            final net = income - expense;
-                            final formattedNet = formatNumber(net);
-                            final isPositive = net > 0 ? true : false;
-                            
-                            return CustomListTile(
-                              tileColor: Theme.of(context).colorScheme.primaryContainer, 
-                              leading: const CustomIcon(icon: Icons.bar_chart),
-                              title: 'Net',
-                              trailing: Text(
-                                '$formattedNet ${widget.currentCurrency.symbol}',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  color: isPositive ? Colors.green : Theme.of(context).colorScheme.onPrimary
-                                ),
-                              ),
-                              customBorder: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.vertical(top: Radius.circular(15))
-                              ),
-                            );
-                          }
-                        );
-                      }
-                    ),
-                    Divider(
-                      height: 1,
-                      color: Theme.of(context).colorScheme.surface,
-                    ),
-                    // total incomes
-                    StreamBuilder(
-                      stream: widget.db.transactionsDao.watchTotalIncome(
-                        accountOwnerId: widget.accountOwnerId,
-                        customStartDate: _startDate,
-                        customEndDate: _endDate,
-                      ), 
-                      builder: (context, snapshot) {
-                        final income = snapshot.data ?? 0;
-                        final formattedIncome = formatNumber(income);
-
-                        return CustomListTile(
-                          tileColor: Theme.of(context).colorScheme.primaryContainer,
-                          leading: const CustomIcon(icon: Icons.download_outlined),
-                          title: 'Income',
-                          trailing: Text(
-                            '+$formattedIncome ${widget.currentCurrency.symbol}',
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: income > 0 ? Colors.green : Theme.of(context).colorScheme.onPrimary
-                            ),
-                          ),
-                          customBorder: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.zero
-                          ),
-                        );
-                      }
-                    ),
-                    // total expenses
-                    StreamBuilder(
-                      stream: widget.db.transactionsDao.watchTotalExpense(
-                        accountOwnerId: widget.accountOwnerId,
-                        customStartDate: _startDate,
-                        customEndDate: _endDate,
-                      ), 
-                      builder: (context, snapshot) {
-                        final expense = snapshot.data ?? 0;
-                        final formattedExpense = formatNumber(expense);
-
-                        return CustomListTile(
-                          tileColor: Theme.of(context).colorScheme.primaryContainer,
-                          leading: const CustomIcon(icon: Icons.upload_outlined),
-                          title: 'Expense',
-                          trailing: Text(
-                            '$formattedExpense ${widget.currentCurrency.symbol}',
-                            style: const TextStyle(
-                              fontSize: 15
-                            ),
-                          ),
-                          customBorder: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(bottom: Radius.circular(15))
-                          ),
-                        );
-                      }
+                    SummaryWidget(
+                      db: widget.db, 
+                      account: widget.account, 
+                      accountCurrency: widget.currentCurrency,
+                      startDate: _startDate,
+                      endDate: _endDate,
                     ),
                     // top income categories
-                    const SectionHeader(
-                      title: 'Top Income Categories'
-                    ),
+                    const SectionHeader(title: 'Top Income Categories'),
                     const SizedBox(height: 10),
                     _buildCategoriesRankingList(
-                      accountOwnerId: widget.accountOwnerId, 
+                      accountOwnerId: widget.account.id, 
                       isIncome: true,
                     ),
                     // top expense categories
-                    const SectionHeader(
-                      title: 'Top Expense Categories'
-                    ),
+                    const SectionHeader(title: 'Top Expense Categories'),
                     const SizedBox(height: 10),
                     _buildCategoriesRankingList(
-                      accountOwnerId: widget.accountOwnerId, 
+                      accountOwnerId: widget.account.id, 
                       isIncome: false,
                     ),
                   ],

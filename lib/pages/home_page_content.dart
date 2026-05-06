@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:open_budget/logic/app_settings.dart';
 import 'package:open_budget/logic/currencies.dart';
 import 'package:open_budget/logic/database/database.dart';
-import 'package:open_budget/logic/format_number.dart';
 import 'package:open_budget/logic/icons_manager.dart';
 import 'package:open_budget/pages/settings_page.dart';
 import 'package:open_budget/pages/statistics_page.dart';
@@ -30,6 +29,7 @@ import 'package:open_budget/widgets/date_time_picker.dart';
 import 'package:open_budget/widgets/empty_list_placeholder.dart';
 import 'package:open_budget/widgets/section_header.dart';
 import 'package:open_budget/widgets/show_snack_bar.dart';
+import 'package:open_budget/widgets/summary_widget.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -528,8 +528,8 @@ class _HomePageContentState extends State<HomePageContent> {
               context, 
               MaterialPageRoute(builder: (context) => StatisticsPage(
                   db: widget.db, 
+                  account: account,
                   currentCurrency: accountCurrency, 
-                  accountOwnerId: account.id
                 )
               )
             ),
@@ -779,97 +779,14 @@ class _HomePageContentState extends State<HomePageContent> {
                               )
                             ),
                             // summary 
-                            const SectionHeader(
-                              title: 'This month'
-                            ),
+                            const SectionHeader(title: 'This month'),
                             const SizedBox(height: 10),
-                            Material(
-                              color: Theme.of(context).colorScheme.primaryContainer,
-                              borderRadius: BorderRadius.circular(15),
-                              child: Column(
-                                children: [
-                                  // net 
-                                  StreamBuilder(
-                                    stream: widget.db.transactionsDao.watchTotalIncome(accountOwnerId: account.id), 
-                                    builder: (context, incomeSnapshot) {
-                                      final income = incomeSnapshot.data ?? 0;
-
-                                      return StreamBuilder(
-                                        stream: widget.db.transactionsDao.watchTotalExpense(accountOwnerId: account.id), 
-                                        builder: (context, expenseSnapshot) {
-                                          final expense = (expenseSnapshot.data ?? 0).abs();
-
-                                          final net = income - expense;
-                                          final formattedNet = formatNumber(net);
-                                          final isPositive = net > 0 ? true : false;
-                                          
-                                          return CustomListTile(
-                                            tileColor: Theme.of(context).colorScheme.primaryContainer, 
-                                            leading: const CustomIcon(icon: Icons.bar_chart),
-                                            title: 'Net',
-                                            trailing: Text(
-                                              '$formattedNet ${accountCurrency.symbol}',
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                                color: isPositive ? Colors.green : Theme.of(context).colorScheme.onPrimary
-                                              ),
-                                            ),
-                                          );
-                                        }
-                                      );
-                                    }
-                                  ),
-                                  Divider(
-                                    height: 1,
-                                    color: Theme.of(context).colorScheme.surface,
-                                  ),
-                                  // total incomes
-                                  StreamBuilder(
-                                    stream: widget.db.transactionsDao.watchTotalIncome(
-                                      accountOwnerId: account.id,
-                                    ), 
-                                    builder: (context, snapshot) {
-                                      final income = snapshot.data ?? 0;
-                                      final formattedIncome = formatNumber(income);
-
-                                      return CustomListTile(
-                                        tileColor: Theme.of(context).colorScheme.primaryContainer,
-                                        leading: const CustomIcon(icon: Icons.download_outlined),
-                                        title: 'Income',
-                                        trailing: Text(
-                                          '+$formattedIncome ${accountCurrency.symbol}',
-                                          style: TextStyle(
-                                            fontSize: 15,
-                                            color: income > 0 ? Colors.green : Theme.of(context).colorScheme.onPrimary
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                  ),
-                                  // total expenses
-                                  StreamBuilder(
-                                    stream: widget.db.transactionsDao.watchTotalExpense(
-                                      accountOwnerId: account.id,
-                                    ), 
-                                    builder: (context, snapshot) {
-                                      final expense = snapshot.data ?? 0;
-                                      final formattedExpense = formatNumber(expense);
-
-                                      return CustomListTile(
-                                        tileColor: Theme.of(context).colorScheme.primaryContainer,
-                                        leading: const CustomIcon(icon: Icons.upload_outlined),
-                                        title: 'Expense',
-                                        trailing: Text(
-                                          '$formattedExpense ${accountCurrency.symbol}',
-                                          style: const TextStyle(
-                                            fontSize: 15
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                  ),
-                                ],
-                              ),
+                            SummaryWidget(
+                              db: widget.db, 
+                              account: account, 
+                              accountCurrency: accountCurrency,
+                              startDate: DateTime(DateTime.now().year, DateTime.now().month, 1),
+                              endDate: DateTime.now(),
                             ),
                           ],
                         ),

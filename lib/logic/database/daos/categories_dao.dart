@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:open_budget/logic/database/category_summary.dart';
 import '../database.dart';
 
 import '../tables/categories.dart';
@@ -6,13 +7,12 @@ import '../tables/transactions.dart';
 
 part 'categories_dao.g.dart';
 
-
 @DriftAccessor(tables: [Categories, Transactions])
 class CategoriesDao extends DatabaseAccessor<AppDatabase> with _$CategoriesDaoMixin {
   CategoriesDao(super.db);
 
   // sort categories from highest to lowest expenses or incomes
-  Stream<List<MapEntry<Category, double>>> sortCategoriesByTotalAmount({
+  Stream<List<CategorySummary>> sortCategoriesByTotalAmount({
     required int accountOwnerId,
     required bool isIncome,
     required DateTime startDate,
@@ -37,13 +37,26 @@ class CategoriesDao extends DatabaseAccessor<AppDatabase> with _$CategoriesDaoMi
       ..groupBy([categories.id])
       ..orderBy([OrderingTerm(expression: absTotalAmount, mode: OrderingMode.desc)]);
 
-
     return query.watch().map((rows) {
+      final percentageTotal = rows.fold<double>(
+        0, 
+        (sum, row) => sum + (row.read(totalAmount) ?? 0),
+      );
+
       return rows.map((row) {
         final category = row.readTable(categories);
+        // total money spent for this category
         final total = row.read(totalAmount) ?? 0;
+        // total percent of spent money for this category across all categories
+        final double percentage = percentageTotal == 0
+          ? 0
+          : (total / percentageTotal) * 100;
 
-        return MapEntry(category, total);
+        return CategorySummary(
+          category: category, 
+          totalAmount: total, 
+          percentage: percentage,
+        );
       }).toList();
     });
   }

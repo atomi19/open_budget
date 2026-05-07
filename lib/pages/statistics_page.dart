@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:open_budget/logic/currencies.dart';
+import 'package:open_budget/logic/database/category_summary.dart';
 import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/logic/format_number.dart';
 import 'package:open_budget/widgets/custom_header.dart';
@@ -69,8 +70,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
                   isFirst: isFirst, 
                   isLast: false,
                   index: index, 
-                  title: category.key.name, 
-                  value: category.value,
+                  title: category.category.name, 
+                  value: category.totalAmount,
+                  percentage: category.percentage,
                 );
               }
             ),
@@ -118,6 +120,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
     required int index,
     required String title,
     required double value,
+    required double percentage,
   }) {
     return CustomListTile(
       tileColor: Theme.of(context).colorScheme.primaryContainer,
@@ -146,7 +149,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
       title: title,
       // amount of spent money in this category
       trailing: Text(
-        '${formatNumber(value)} ${widget.currentCurrency.symbol}',
+        '${formatNumber(value)} ${widget.currentCurrency.symbol} (${formatNumber(percentage)}%)',
         style: const TextStyle(fontSize: 15),
       ),
     );
@@ -156,7 +159,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
   void _showAllCategoriesRanking({
     required BuildContext context,
     required bool isIncome,
-    required List<MapEntry<Category, double>> categories,
+    required List<CategorySummary> categories,
     }) {
     showCustomModalBottomSheet(
       context: context, 
@@ -196,8 +199,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
                   isFirst: isFirst, 
                   isLast: isLast,
                   index: index, 
-                  title: category.key.name, 
-                  value: category.value
+                  title: category.category.name, 
+                  value: category.totalAmount,
+                  percentage: category.percentage,
                 );
               }
             ),

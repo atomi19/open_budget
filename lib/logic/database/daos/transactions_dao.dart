@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:flutter/material.dart' hide Table;
 import 'package:open_budget/logic/format_number.dart';
+import 'package:open_budget/models/additional_info_summary.dart';
 import '../database.dart';
 import '../tables/transactions.dart';
 
@@ -245,5 +246,49 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase> with _$TransactionsD
         t.amount.cast<String>().like(formattedQuery)
       )
     ).watch();
+  }
+
+  // total, income and expense transactions count
+  Stream<AdditionalInfoSummary> additionalInfoSummary({
+    required int accountOwnerId,
+    required DateTime startDate,
+    required DateTime endDate,
+  }) {
+    final totalCount = transactions.id.count();
+
+    final incomeCount = transactions.id.count(
+      filter: transactions.transactionType.equals(0)
+    );
+
+    final expenseCount = transactions.id.count(
+      filter: transactions.transactionType.equals(1)
+    );
+
+    final transferCount = transactions.id.count(
+      filter: transactions.transactionType.equals(2)
+    );
+
+    final query = selectOnly(transactions)
+      ..addColumns([
+        totalCount,
+        incomeCount,
+        expenseCount,
+        transferCount,
+      ])
+      // selected account
+      ..where(transactions.accountOwnerId.equals(accountOwnerId))
+      // start date
+      ..where(transactions.dateAndTime.isBiggerOrEqualValue(startDate))
+      // end date
+      ..where(transactions.dateAndTime.isSmallerOrEqualValue(endDate));
+
+    return query.watchSingle().map((row) {
+      return AdditionalInfoSummary(
+        totalTransactionsCount: row.read(totalCount) ?? 0, 
+        incomeTransactionsCount: row.read(incomeCount) ?? 0, 
+        expenseTransactionsCount: row.read(expenseCount) ?? 0,
+        transferTransactionsCount: row.read(transferCount) ?? 0,
+      );
+    });
   }
 }

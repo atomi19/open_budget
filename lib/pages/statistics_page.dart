@@ -3,6 +3,7 @@ import 'package:open_budget/logic/currencies.dart';
 import 'package:open_budget/logic/database/category_summary.dart';
 import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/logic/format_number.dart';
+import 'package:open_budget/models/additional_info_summary.dart';
 import 'package:open_budget/widgets/custom_header.dart';
 import 'package:open_budget/widgets/custom_header_title.dart';
 import 'package:open_budget/widgets/custom_icon.dart';
@@ -34,6 +35,8 @@ class _StatisticsPageState extends State<StatisticsPage> {
   String _periodButtonLabel = 'This month';
   DateTime _startDate = DateTime(DateTime.now().year, DateTime.now().month, 1);
   DateTime _endDate = DateTime.now();
+
+  bool _isAdditionalInfoTileExpanded = false;
 
   // list of categories 
   Widget _buildCategoriesRankingList({
@@ -108,6 +111,97 @@ class _StatisticsPageState extends State<StatisticsPage> {
                 ),
               ),
           ],
+        );
+      }
+    );
+  }
+
+  Widget _buildAdditionalInfo() {
+    return StreamBuilder(
+      stream: widget.db.transactionsDao.additionalInfoSummary(
+        accountOwnerId: widget.account.id, 
+        startDate: _startDate, 
+        endDate: _endDate
+      ), 
+      builder: (context, snapshot) {
+        final data = snapshot.data ?? 
+          const AdditionalInfoSummary(
+            totalTransactionsCount: 0, 
+            incomeTransactionsCount: 0, 
+            expenseTransactionsCount: 0,
+            transferTransactionsCount: 0,
+          );
+
+        return ExpansionTile(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15)
+          ),
+          collapsedShape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15)
+          ),
+          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+          collapsedBackgroundColor: Theme.of(context).colorScheme.primaryContainer,
+          title: const Text(
+            'Transactions',
+            style: TextStyle(fontSize: 15),
+          ),
+          onExpansionChanged: (bool expanded) {
+            setState(() {
+              _isAdditionalInfoTileExpanded = expanded;
+            });
+          },
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 5,
+            children: [
+              // total transactions count
+              Text(
+                data.totalTransactionsCount.toString(),
+                style: const TextStyle(fontSize: 15),
+              ),
+              AnimatedRotation(
+                turns: _isAdditionalInfoTileExpanded ? 0.5 : 0.0, 
+                duration: const Duration(milliseconds: 200),
+                child: const CustomIcon(icon: Icons.expand_more),
+              ),
+            ],
+          ),
+          children: [
+            Divider(
+              height: 1,
+              color: Theme.of(context).colorScheme.surface,
+            ),
+            // income transaction count
+            CustomListTile(
+              tileColor: Theme.of(context).colorScheme.primaryContainer,
+              leading: const CustomIcon(icon: Icons.download_outlined),
+              title: 'Incomes',
+              trailing: Text(
+                data.incomeTransactionsCount.toString(),
+                style: const TextStyle(fontSize: 15),
+              ),
+            ),
+            // expense transactions count
+            CustomListTile(
+              tileColor: Theme.of(context).colorScheme.primaryContainer,
+              leading: const CustomIcon(icon: Icons.upload_outlined),
+              title: 'Expenses',
+              trailing: Text(
+                data.expenseTransactionsCount.toString(),
+                style: const TextStyle(fontSize: 15),
+              ),
+            ),
+            // transfer transactions count
+            CustomListTile(
+              tileColor: Theme.of(context).colorScheme.primaryContainer,
+              leading: const CustomIcon(icon: Icons.swap_horiz),
+              title: 'Transfers',
+              trailing: Text(
+                data.transferTransactionsCount.toString(),
+                style: const TextStyle(fontSize: 15),
+              ),
+            ),
+          ]
         );
       }
     );
@@ -383,6 +477,11 @@ class _StatisticsPageState extends State<StatisticsPage> {
                       accountOwnerId: widget.account.id, 
                       isIncome: false,
                     ),
+                    // additional info (transactions count)
+                    const SectionHeader(title: 'Additional Info'),
+                    const SizedBox(height: 10),
+                    _buildAdditionalInfo(),
+                    const SizedBox(height: 10),
                   ],
                 ),
               ),

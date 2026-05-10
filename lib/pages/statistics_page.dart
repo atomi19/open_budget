@@ -463,19 +463,19 @@ class _StatisticsPageState extends State<StatisticsPage> {
                       startDate: _startDate,
                       endDate: _endDate,
                     ),
-                    // top income categories
-                    const SectionHeader(title: 'Top Income Categories'),
-                    const SizedBox(height: 10),
-                    _buildCategoriesRankingList(
-                      accountOwnerId: widget.account.id, 
-                      isIncome: true,
-                    ),
                     // top expense categories
                     const SectionHeader(title: 'Top Expense Categories'),
                     const SizedBox(height: 10),
                     _buildCategoriesRankingList(
                       accountOwnerId: widget.account.id, 
                       isIncome: false,
+                    ),
+                    // top income categories
+                    const SectionHeader(title: 'Top Income Categories'),
+                    const SizedBox(height: 10),
+                    _buildCategoriesRankingList(
+                      accountOwnerId: widget.account.id, 
+                      isIncome: true,
                     ),
                     // additional info (transactions count)
                     const SectionHeader(title: 'Additional Info'),

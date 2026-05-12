@@ -159,6 +159,7 @@ class _AllTransactionsBottomSheetState extends State<AllTransactionsBottomSheet>
               // search transactions
               ? StreamBuilder(
                 stream: widget.db.transactionsDao.searchTransactions(
+                  categoriesById: widget.categoriesById,
                   query: searchQuery, 
                   accountOwnerId: widget.selectedAccountId
                 ),

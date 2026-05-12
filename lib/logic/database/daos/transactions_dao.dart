@@ -227,24 +227,44 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase> with _$TransactionsD
 
   // search transactions
   Stream<List<Transaction>> searchTransactions({
+    required Map<int, Category> categoriesById,
     required String query, 
-    required int accountOwnerId}) {
+    required int accountOwnerId,
+    }) {
+    final trimQuery = query.trim().toLowerCase();
+
     // if query is empty return all transactions
-    if(query.isEmpty) {
+    if(trimQuery.isEmpty) {
       return watchAllTransactionItems(accountOwnerId);
     }
-    final String formattedQuery = '%${query.toLowerCase()}%';
-    // search through descriptions and amounts 
+
+    final String likeQuery = '%$trimQuery%';
+
+    // ids of found categories 
+    final foundCategoriesIds = categoriesById.entries
+      .where(
+        (c) => c.value.name.toLowerCase().contains(trimQuery)
+      )
+      .map((c) => c.key)
+      .toList();
+
+    // search through descriptions, categories and amounts 
     return (
-      select(transactions)..orderBy([
+      select(transactions)
+      ..where((t) => 
+        t.accountOwnerId.equals(accountOwnerId) &
+        (
+          t.description.lower().like(likeQuery) |
+          t.amount.cast<String>().like(likeQuery) |
+          t.categoryId.isIn(foundCategoriesIds) 
+        )
+      )
+      ..orderBy([
         (t) => OrderingTerm(
           expression: t.dateAndTime,
           mode: OrderingMode.desc,
         )
-      ])..where((t) => 
-        t.description.lower().like(formattedQuery) |
-        t.amount.cast<String>().like(formattedQuery)
-      )
+      ])
     ).watch();
   }
 

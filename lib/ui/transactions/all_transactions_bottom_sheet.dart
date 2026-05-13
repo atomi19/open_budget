@@ -174,6 +174,7 @@ class _AllTransactionsBottomSheetState extends State<AllTransactionsBottomSheet>
                       subtitle: 'Try to search by category or amount'
                     )
                   : buildTransactionList(
+                    db: widget.db,
                     context: context, 
                     tileColor: Theme.of(context).colorScheme.surface,
                     shrinkWrap: false,
@@ -200,15 +201,16 @@ class _AllTransactionsBottomSheetState extends State<AllTransactionsBottomSheet>
                       subtitle: 'Add transactions and they will appear here'
                     )
                   : buildTransactionList(
+                    db: widget.db,
                     context: context, 
                     tileColor: Theme.of(context).colorScheme.surface,
                     shrinkWrap: false,
                     items: filteredItems, 
                     categoriesById: widget.categoriesById,
                     currentCurrency: widget.currentCurrency, 
-                    showTransactionDetails: widget.showTransactionDetails,
                     shouldInsertDate: true,
                     showDescription: widget.isShowingDescription,
+                    showTransactionDetails: widget.showTransactionDetails,
                   );
                 }
               ),

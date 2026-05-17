@@ -9,4 +9,5 @@ class Transactions extends Table {
   DateTimeColumn get dateAndTime => dateTime()();
   IntColumn get transactionType => integer()(); // 0 - income, 1 - expense, 2 - transfer
   IntColumn get transferId => integer().nullable()(); // transfer id (null if it is income or expense transaction)
+  TextColumn get imageFileName => text().nullable()();
 }

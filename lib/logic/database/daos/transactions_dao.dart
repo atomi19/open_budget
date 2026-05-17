@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:flutter/material.dart' hide Table;
 import 'package:open_budget/logic/format_number.dart';
+import 'package:open_budget/logic/pick_image.dart';
 import 'package:open_budget/models/additional_info_summary.dart';
 import '../database.dart';
 import '../tables/transactions.dart';
@@ -310,5 +311,30 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase> with _$TransactionsD
         transferTransactionsCount: row.read(transferCount) ?? 0,
       );
     });
+  }
+
+  // attach image to transaction
+  Future<void> addImageToTransaction({
+    required int transactionId,
+    required String imageFileName,
+  }) {
+    return (update(transactions)
+      ..where(((t) => t.id.equals(transactionId))))
+        .write(TransactionsCompanion(imageFileName: Value(imageFileName)
+      )
+    );
+  }
+
+  // remove image from transaction
+  Future<void> removeImageFromTransaction({
+    required int transactionId,
+    required String imageFilePath,
+  }) {
+    deleteImageFile(imageFilePath);
+    return (update(transactions)
+      ..where(((t) => t.id.equals(transactionId))))
+        .write(const TransactionsCompanion(imageFileName: Value(null)
+      )
+    );
   }
 }

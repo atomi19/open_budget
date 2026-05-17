@@ -1,7 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:open_budget/logic/currencies.dart';
 import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/logic/icons_manager.dart';
+import 'package:open_budget/logic/pick_image.dart';
+import 'package:open_budget/pages/image_preview.dart';
 import 'package:open_budget/widgets/custom_header.dart';
 import 'package:open_budget/widgets/custom_header_title.dart';
 import 'package:open_budget/widgets/custom_icon.dart';
@@ -9,6 +12,7 @@ import 'package:open_budget/widgets/custom_icon_button.dart';
 import 'package:open_budget/widgets/custom_list_tile.dart';
 import 'package:open_budget/widgets/custom_text_field.dart';
 import 'package:open_budget/widgets/section_header.dart';
+import 'package:path_provider/path_provider.dart';
 
 class TransactionDetailsBottomSheet extends StatefulWidget {
   final AppDatabase db;
@@ -44,13 +48,38 @@ class TransactionDetailsBottomSheet extends StatefulWidget {
 }
 
 class _TransactionDetailsBottomSheetState extends State<TransactionDetailsBottomSheet> {
+  String? imageDirPath;
+  late TextEditingController transactionDescriptionController;
+  late bool isTransfer;
+  late bool hasImage;
+  File? attachedImage;
+
+  @override
+  void initState()  {
+    super.initState();
+    transactionDescriptionController = TextEditingController(text: widget.item.description);
+    isTransfer = widget.item.transactionType == 2 ? true : false;
+    hasImage = widget.item.imageFileName != null;
+
+    _loadImage();
+  }
+
+  void _loadImage() async {
+    final appDir = await getApplicationSupportDirectory();
+    final path = '${appDir.path}/images/';
+    imageDirPath = path;
+
+    if(mounted) {
+      setState(() {
+        if(hasImage) {
+          attachedImage = File('$path/${widget.item.imageFileName}');
+        }
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-  final TextEditingController transactionDescriptionController = 
-    TextEditingController(text: widget.item.description);
-    bool isTransfer = widget.item.transactionType == 2 ? true : false;
-
     return Column(
       children: [
         // header
@@ -202,6 +231,85 @@ class _TransactionDetailsBottomSheetState extends State<TransactionDetailsBottom
                       const SizedBox(height: 10),
                     ],
                   ),
+                // image
+                (hasImage && attachedImage != null)
+                  // attached image 
+                  ? CustomListTile(
+                    tileColor: Theme.of(context).colorScheme.primaryContainer, 
+                    leading: (hasImage && attachedImage != null) 
+                      ? SizedBox(
+                        width: 35,
+                        height: 35,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.file(
+                            attachedImage!,
+                            cacheWidth: 105,
+                            fit: BoxFit.cover,
+                          )
+                        )
+                      )
+                      : const CustomIcon(icon: Icons.image_outlined),
+                    title: 'Image',
+                    trailing: PopupMenuButton(
+                      icon: const Icon(Icons.remove_circle, color: Colors.red),
+                      menuPadding: EdgeInsets.zero,
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15)
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      itemBuilder: (BuildContext context) => <PopupMenuEntry> [
+                        // add account 
+                        PopupMenuItem(
+                          padding: EdgeInsets.zero,
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+                            leading: const Icon(Icons.delete_outline, color: Colors.red,),
+                            title: const Text('Delete', style: TextStyle(color: Colors.red),),
+                            onTap: () {
+                              Navigator.pop(context);
+                              setState(() {
+                                widget.db.transactionsDao.removeImageFromTransaction(
+                                  transactionId: widget.item.id,
+                                  imageFilePath: attachedImage!.path,
+                                );
+                                attachedImage = null;
+                                hasImage = false;
+                              });
+                            }
+                          )
+                        ),
+                      ]
+                    ),
+                    onTap: () => Navigator.push(
+                      context, 
+                      MaterialPageRoute(
+                        builder: (context) => ImagePreview(image: attachedImage!)
+                      )
+                    ),
+                  )
+                  // no image list tile
+                  : CustomListTile(
+                    tileColor: Theme.of(context).colorScheme.primaryContainer, 
+                    leading: const CustomIcon(icon: Icons.image_outlined),
+                    title: 'Add Image',
+                    onTap: () async{
+                      final imageFileName = await pickImage();
+
+                      if(imageFileName != null) {
+                        widget.db.transactionsDao.addImageToTransaction(
+                          transactionId: widget.item.id, 
+                          imageFileName: imageFileName,
+                        );
+                        setState(() {
+                          hasImage = true;
+                          attachedImage = File('$imageDirPath/$imageFileName');
+                        });
+                      }
+                    },
+                  ),
+                const SizedBox(height: 10),
                 // description inside transaction details
                 // if user changed description it will update
                 // when focus on CustomTextField is lost

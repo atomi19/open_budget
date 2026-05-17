@@ -23,7 +23,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -35,6 +35,10 @@ class AppDatabase extends _$AppDatabase {
         await m.drop(categories);
 
         await m.createAll();
+      }
+
+      if(from < 5) {
+        await m.addColumn(transactions, transactions.imageFileName);
       }
     }
   );

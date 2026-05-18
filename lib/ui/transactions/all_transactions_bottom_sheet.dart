@@ -41,6 +41,12 @@ class _AllTransactionsBottomSheetState extends State<AllTransactionsBottomSheet>
   bool isSearchingTransactions = false;
   String searchQuery = '';
 
+  @override
+  void dispose() {
+    searchTransactionController.dispose();
+    super.dispose();
+  }
+
   // filter for income, all and expense transactions
   _TransactionsListType _currentTransactionsListType = _TransactionsListType.all; // income, all, expense
 

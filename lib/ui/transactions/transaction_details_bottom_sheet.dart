@@ -64,6 +64,12 @@ class _TransactionDetailsBottomSheetState extends State<TransactionDetailsBottom
     _loadImage();
   }
 
+  @override
+  void dispose() {
+    transactionDescriptionController.dispose();
+    super.dispose();
+  }
+
   void _loadImage() async {
     final appDir = await getApplicationSupportDirectory();
     final path = '${appDir.path}/images/';

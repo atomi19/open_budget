@@ -11,18 +11,18 @@ class AmountEditBottomSheet extends StatelessWidget {
   final AppDatabase db;
   final bool isIncome;
   final Transaction item;
-  const AmountEditBottomSheet({
+  AmountEditBottomSheet({
     super.key,
     required this.db,
     required this.isIncome,
     required this.item,
   });
 
+  final TextEditingController editAmountController = TextEditingController();
+  bool get isTransfer => item.transactionType == 2 ? true : false;
+
   @override
   Widget build(BuildContext context) {
-    final TextEditingController editAmountController = TextEditingController();
-    final bool isTransfer = item.transactionType == 2 ? true : false;
-
     return Wrap(
       children: [
         // header

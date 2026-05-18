@@ -55,6 +55,15 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     _getFavoriteAccount();
   }
 
+  @override
+  void dispose() {
+    _amountController.dispose();
+    _descriptionController.dispose();
+    _pageViewController.dispose();
+
+    super.dispose();
+  }
+
   void _getFavoriteAccount() async {
     final favoriteAccountId = await AppSettings.getFavoriteAccount();
     final Account? favoriteAccount = await widget.db.accountsDao.getAccountById(favoriteAccountId);

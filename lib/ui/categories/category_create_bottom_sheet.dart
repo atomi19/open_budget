@@ -27,6 +27,12 @@ class _CategoryCreateBottomSheetState extends State<CategoryCreateBottomSheet> {
   String? selectedIcon;
 
   @override
+  void dispose() {
+    categoryNameController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return StatefulBuilder(
       builder: (context, StateSetter setState) {

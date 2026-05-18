@@ -73,6 +73,12 @@ class _HomePageContentState extends State<HomePageContent> {
     _initAppInfo();
   }
 
+  @override
+  void dispose() {
+    _pageViewController.dispose();
+    super.dispose();
+  }
+
   // get app info
   Future<void> _initAppInfo() async {
     final info = await PackageInfo.fromPlatform();

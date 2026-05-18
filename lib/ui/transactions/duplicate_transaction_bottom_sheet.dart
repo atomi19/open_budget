@@ -51,6 +51,13 @@ class _DuplicateTransactionBottomSheetState extends State<DuplicateTransactionBo
     _selectedTime = TimeOfDay.now();
   }
 
+  @override
+  void dispose() {
+    _amountController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
   Future<void> _findCategoryById(int id) async {
     final selectedCategory = await widget.db.categoriesDao.getCategoryById(id);
     setState(() {

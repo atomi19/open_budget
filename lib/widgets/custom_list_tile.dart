@@ -7,6 +7,7 @@ class CustomListTile extends StatelessWidget {
   final Widget? trailing;
   final Widget? subtitle;
   final VoidCallback? onTap;
+  final GestureTapDownCallback? onTapDown;
   final RoundedRectangleBorder? customBorder;
 
   const CustomListTile({
@@ -17,25 +18,33 @@ class CustomListTile extends StatelessWidget {
     this.trailing,
     this.subtitle,
     this.onTap,
+    this.onTapDown,
     this.customBorder,
   });
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      tileColor: tileColor,
-      shape: customBorder ??
-        RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15)
+    final border = customBorder ?? 
+      RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+      );
+    return Material(
+      color: tileColor,
+      shape: border,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        onTapDown: onTapDown,
+        child: ListTile(
+          leading: leading,
+          title: Text(
+            title,
+            style: const TextStyle(fontSize: 15),
+          ),
+          trailing: trailing,
+          subtitle: subtitle,
         ),
-      leading: leading,
-      title: Text(
-        title,
-        style: const TextStyle(fontSize: 15),
-      ),
-      trailing: trailing,
-      subtitle: subtitle,
-      onTap: onTap,
+      )
     );
   }
 }

@@ -4,6 +4,7 @@ import 'package:open_budget/logic/currencies.dart';
 import 'package:open_budget/logic/database/database.dart';
 import 'package:open_budget/logic/icons_manager.dart';
 import 'package:open_budget/logic/pick_image.dart';
+import 'package:open_budget/models/app_platform.dart';
 import 'package:open_budget/pages/image_preview.dart';
 import 'package:open_budget/widgets/custom_header.dart';
 import 'package:open_budget/widgets/custom_header_title.dart';
@@ -12,6 +13,7 @@ import 'package:open_budget/widgets/custom_icon_button.dart';
 import 'package:open_budget/widgets/custom_list_tile.dart';
 import 'package:open_budget/widgets/custom_text_field.dart';
 import 'package:open_budget/widgets/section_header.dart';
+import 'package:open_budget/widgets/show_custom_menu.dart';
 import 'package:path_provider/path_provider.dart';
 
 class TransactionDetailsBottomSheet extends StatefulWidget {
@@ -80,6 +82,89 @@ class _TransactionDetailsBottomSheetState extends State<TransactionDetailsBottom
         if(hasImage) {
           attachedImage = File('$path/${widget.item.imageFileName}');
         }
+      });
+    }
+  }
+
+  // menu with options for adding image (pick from gallery, files or take a photo)
+  // visible on mobile phones only
+  void _showImageAddMenu({
+    required TapDownDetails details,
+  }) {
+    showCustomMenu(
+      context: context, 
+      position: details, 
+      items: [
+        // pick image from gallery 
+        PopupMenuItem(
+          padding: EdgeInsets.zero,
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+            leading: const CustomIcon(icon: Icons.image_outlined),
+            title: const Text('From Gallery'),
+            onTap: () {
+              Navigator.pop(context);
+              _handleImagePicker('gallery');
+            }
+          )
+        ),
+        // pick image from files
+        PopupMenuItem(
+          padding: EdgeInsets.zero,
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+            leading: const CustomIcon(icon: Icons.attachment_outlined),
+            title: const Text('From Files'),
+            onTap: () {
+              Navigator.pop(context);
+              _handleImagePicker('files');
+            }
+          )
+        ),
+        // take a photo
+        PopupMenuItem(
+          padding: EdgeInsets.zero,
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+            leading: const CustomIcon(icon: Icons.camera_outlined),
+            title: const Text('Take a Photo'),
+            onTap: () async {
+              Navigator.pop(context);
+              _handleImagePicker('camera');
+            }
+          )
+        ),
+      ]
+    );
+  }
+
+  // switch different image picker modes
+  void _handleImagePicker(String pickerMode) async {
+    String? imageFileName;
+
+    switch (pickerMode) {
+      case 'gallery':
+        imageFileName = await pickImage();
+        break;
+      case 'files':
+        imageFileName = await pickFile();
+        break;
+      case 'camera':
+        imageFileName = await getImageFromCamera();
+        break;
+      default:
+        imageFileName = await pickFile();
+    }
+
+    // add image file name to transaction 
+    if(imageFileName != null) {
+      widget.db.transactionsDao.addImageToTransaction(
+        transactionId: widget.item.id, 
+        imageFileName: imageFileName,
+      );
+      setState(() {
+        hasImage = true;
+        attachedImage = File('$imageDirPath/$imageFileName');
       });
     }
   }
@@ -266,7 +351,7 @@ class _TransactionDetailsBottomSheetState extends State<TransactionDetailsBottom
                       ),
                       clipBehavior: Clip.antiAlias,
                       itemBuilder: (BuildContext context) => <PopupMenuEntry> [
-                        // add account 
+                        // delete image confirmation 
                         PopupMenuItem(
                           padding: EdgeInsets.zero,
                           child: ListTile(
@@ -300,20 +385,15 @@ class _TransactionDetailsBottomSheetState extends State<TransactionDetailsBottom
                     tileColor: Theme.of(context).colorScheme.primaryContainer, 
                     leading: const CustomIcon(icon: Icons.image_outlined),
                     title: 'Add Image',
-                    onTap: () async{
-                      final imageFileName = await pickImage();
-
-                      if(imageFileName != null) {
-                        widget.db.transactionsDao.addImageToTransaction(
-                          transactionId: widget.item.id, 
-                          imageFileName: imageFileName,
-                        );
-                        setState(() {
-                          hasImage = true;
-                          attachedImage = File('$imageDirPath/$imageFileName');
-                        });
+                    onTapDown: (details) {
+                      if(AppPlatform.isDesktop) {
+                        // use file picker on desktop
+                        _handleImagePicker('files');
+                      } else {
+                        // show menu with options for picking image on mobile
+                        _showImageAddMenu(details: details);
                       }
-                    },
+                    }
                   ),
                 const SizedBox(height: 10),
                 // description inside transaction details

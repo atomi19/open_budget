@@ -158,10 +158,17 @@ class _TransactionDetailsBottomSheetState extends State<TransactionDetailsBottom
 
     // add image file name to transaction 
     if(imageFileName != null) {
-      widget.db.transactionsDao.addImageToTransaction(
-        transactionId: widget.item.id, 
-        imageFileName: imageFileName,
-      );
+      if(!isTransfer) {
+        widget.db.transactionsDao.addImageToTransaction(
+          transactionId: widget.item.id, 
+          imageFileName: imageFileName,
+        );
+      } else {
+        widget.db.transactionsDao.addImageToTransfer(
+          transferId: widget.item.transferId!, 
+          imageFileName: imageFileName
+        );
+      }
       setState(() {
         hasImage = true;
         attachedImage = File('$imageDirPath/$imageFileName');
@@ -360,11 +367,18 @@ class _TransactionDetailsBottomSheetState extends State<TransactionDetailsBottom
                             title: const Text('Delete', style: TextStyle(color: Colors.red),),
                             onTap: () {
                               Navigator.pop(context);
-                              setState(() {
+                              if(!isTransfer) {
                                 widget.db.transactionsDao.removeImageFromTransaction(
                                   transactionId: widget.item.id,
                                   imageFilePath: attachedImage!.path,
                                 );
+                              } else {
+                                widget.db.transactionsDao.removeImageFromTransfer(
+                                  transferId: widget.item.transferId!, 
+                                  imageFilePath: attachedImage!.path,
+                                );
+                              }
+                              setState(() {
                                 attachedImage = null;
                                 hasImage = false;
                               });

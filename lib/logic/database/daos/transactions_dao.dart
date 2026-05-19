@@ -325,6 +325,18 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase> with _$TransactionsD
     );
   }
 
+  // attach image to transaction
+  Future<void> addImageToTransfer({
+    required int transferId,
+    required String imageFileName,
+  }) {
+    return (update(transactions)
+      ..where(((t) => t.transferId.equals(transferId))))
+        .write(TransactionsCompanion(imageFileName: Value(imageFileName)
+      )
+    );
+  }
+
   // remove image from transaction
   Future<void> removeImageFromTransaction({
     required int transactionId,
@@ -333,6 +345,19 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase> with _$TransactionsD
     deleteImageFile(imageFilePath);
     return (update(transactions)
       ..where(((t) => t.id.equals(transactionId))))
+        .write(const TransactionsCompanion(imageFileName: Value(null)
+      )
+    );
+  }
+
+  // remove image from transfer
+  Future<void> removeImageFromTransfer({
+    required int transferId,
+    required String imageFilePath,
+  }) {
+    deleteImageFile(imageFilePath);
+    return (update(transactions)
+      ..where(((t) => t.transferId.equals(transferId))))
         .write(const TransactionsCompanion(imageFileName: Value(null)
       )
     );

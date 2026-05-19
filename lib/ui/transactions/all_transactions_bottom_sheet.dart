@@ -60,6 +60,21 @@ class _AllTransactionsBottomSheetState extends State<AllTransactionsBottomSheet>
     return filteredItems;
   }
 
+  Widget _buildTransactionsList(List<Transaction> filteredItems) {
+    return TransactionsList(
+      db: widget.db, 
+      shrinkWrap: false, 
+      items: filteredItems, 
+      categoriesById: widget.categoriesById, 
+      currentCurrency: widget.currentCurrency, 
+      shouldInsertDate: true, 
+      listPadding: 15,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 15),
+      showDescription: widget.isShowingDescription, 
+      showTransactionDetails: widget.showTransactionDetails,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return StatefulBuilder(
@@ -179,18 +194,7 @@ class _AllTransactionsBottomSheetState extends State<AllTransactionsBottomSheet>
                       title: 'No results found', 
                       subtitle: 'Try to search by category or amount'
                     )
-                  : buildTransactionList(
-                    db: widget.db,
-                    context: context, 
-                    tileColor: Theme.of(context).colorScheme.surface,
-                    shrinkWrap: false,
-                    items: filteredItems, 
-                    categoriesById: widget.categoriesById,
-                    currentCurrency: widget.currentCurrency, 
-                    showTransactionDetails: widget.showTransactionDetails,
-                    shouldInsertDate: true,
-                    showDescription: widget.isShowingDescription,
-                  );
+                  : _buildTransactionsList(filteredItems);
                 }
               )
               // all transactions
@@ -206,18 +210,7 @@ class _AllTransactionsBottomSheetState extends State<AllTransactionsBottomSheet>
                       title: 'No transactions yet', 
                       subtitle: 'Add transactions and they will appear here'
                     )
-                  : buildTransactionList(
-                    db: widget.db,
-                    context: context, 
-                    tileColor: Theme.of(context).colorScheme.surface,
-                    shrinkWrap: false,
-                    items: filteredItems, 
-                    categoriesById: widget.categoriesById,
-                    currentCurrency: widget.currentCurrency, 
-                    shouldInsertDate: true,
-                    showDescription: widget.isShowingDescription,
-                    showTransactionDetails: widget.showTransactionDetails,
-                  );
+                  : _buildTransactionsList(filteredItems);
                 }
               ),
             ),

@@ -6,6 +6,7 @@ class CustomListTile extends StatelessWidget {
   final String title;
   final Widget? trailing;
   final Widget? subtitle;
+  final EdgeInsetsGeometry? contentPadding;
   final VoidCallback? onTap;
   final GestureTapDownCallback? onTapDown;
   final RoundedRectangleBorder? customBorder;
@@ -17,6 +18,7 @@ class CustomListTile extends StatelessWidget {
     required this.title,
     this.trailing,
     this.subtitle,
+    this.contentPadding,
     this.onTap,
     this.onTapDown,
     this.customBorder,
@@ -36,6 +38,7 @@ class CustomListTile extends StatelessWidget {
         onTap: onTap,
         onTapDown: onTapDown,
         child: ListTile(
+          contentPadding: contentPadding ?? const EdgeInsetsDirectional.only(start: 16.0, end: 24.0),
           leading: leading,
           title: Text(
             title,

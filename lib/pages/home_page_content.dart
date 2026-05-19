@@ -741,18 +741,16 @@ class _HomePageContentState extends State<HomePageContent> {
                                       final items = snapshot.data ?? [];
                                       final lastThreeItems = items.take(_homeTransactionsCount).toList();
                                       return items.isNotEmpty
-                                      ? buildTransactionList(
-                                        db: widget.db,
-                                        context: context, 
-                                        tileColor: Theme.of(context).colorScheme.primaryContainer,
-                                        shrinkWrap: true,
+                                      ? TransactionsList(
+                                        db: widget.db, 
+                                        shrinkWrap: true, 
                                         items: lastThreeItems, 
-                                        categoriesById: _categoriesById,
+                                        categoriesById: _categoriesById, 
                                         currentCurrency: accountCurrency, 
-                                        shouldInsertDate: false,
-                                        showDescription: _isShowingDescription,
-                                        scrollPhysics: const NeverScrollableScrollPhysics(),
-                                        showTransactionDetails: _showTransactionDetails,
+                                        shouldInsertDate: false, 
+                                        contentPadding: const EdgeInsetsDirectional.only(start: 16.0, end: 24.0),
+                                        showDescription: _isShowingDescription, 
+                                        showTransactionDetails: _showTransactionDetails
                                       )
                                       : Padding(
                                         padding: const EdgeInsets.all(10),

@@ -6,6 +6,7 @@ import 'package:open_budget/logic/icons_manager.dart';
 import 'package:open_budget/logic/pick_image.dart';
 import 'package:open_budget/models/app_platform.dart';
 import 'package:open_budget/pages/image_preview.dart';
+import 'package:open_budget/widgets/custom_alert_dialog.dart';
 import 'package:open_budget/widgets/custom_header.dart';
 import 'package:open_budget/widgets/custom_header_title.dart';
 import 'package:open_budget/widgets/custom_icon.dart';
@@ -14,6 +15,7 @@ import 'package:open_budget/widgets/custom_list_tile.dart';
 import 'package:open_budget/widgets/custom_text_field.dart';
 import 'package:open_budget/widgets/section_header.dart';
 import 'package:open_budget/widgets/show_custom_menu.dart';
+import 'package:open_budget/widgets/show_snack_bar.dart';
 import 'package:path_provider/path_provider.dart';
 
 class TransactionDetailsBottomSheet extends StatefulWidget {
@@ -23,8 +25,6 @@ class TransactionDetailsBottomSheet extends StatefulWidget {
   final Map<int, Category> categoriesById;
   final bool isIncome;
   final String? iconNameKey;
-  final Function(Transaction item) showDeleteConfirmation;
-  final Function(Transaction item) showTransferDeleteConfirmation;
   final Function({required bool isIncome, required Transaction item}) showAmountEditingSheet;
   final Function({required bool isIncome, required Transaction item}) showCategories;
   final Function(Transaction item) showEditDatePicker;
@@ -38,8 +38,6 @@ class TransactionDetailsBottomSheet extends StatefulWidget {
     required this.categoriesById,
     required this.isIncome,
     required this.iconNameKey,
-    required this.showDeleteConfirmation,
-    required this.showTransferDeleteConfirmation,
     required this.showAmountEditingSheet,
     required this.showCategories,
     required this.showEditDatePicker,
@@ -80,10 +78,107 @@ class _TransactionDetailsBottomSheetState extends State<TransactionDetailsBottom
     if(mounted) {
       setState(() {
         if(hasImage) {
-          attachedImage = File('$path/${widget.item.imageFileName}');
+          attachedImage = File('$path${widget.item.imageFileName}');
         }
       });
     }
+  }
+
+  // delete transaction confirmation AlertDialog
+  void _showDeleteConfirmation(Transaction transaction) {
+    showDialog(
+      context: context, 
+      builder: (context) => CustomAlertDialog(
+        title: 'Delete transaction?', 
+        content: 'Are you sure you want to delete this transaction?', 
+        leftButtonLabel: 'Cancel', 
+        rightButtonLabel: 'Delete', 
+        leftButtonAction: () => Navigator.pop(context), 
+        rightButtonAction: () => _handleTransactionDelete(transaction),
+      ),
+    );
+  }
+
+  void _showTransferDeleteConfirmation(Transaction transaction) {
+    showDialog(
+      context: context, 
+      builder: (context) => CustomAlertDialog(
+        title: 'Delete transfer?', 
+        content: 'Are you sure you want to delete this transfer?', 
+        leftButtonLabel: 'Cancel', 
+        rightButtonLabel: 'Delete', 
+        leftButtonAction: () => Navigator.pop(context), 
+        rightButtonAction: () {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+          widget.db.transactionsDao.deleteTransfer(transaction.transferId!);
+          // delete attached image 
+          if(hasImage && attachedImage != null) {
+            deleteImageFile(attachedImage!.path);
+          }
+        }
+      ),
+    );
+  }
+
+  // handle transaction delete 
+  void _handleTransactionDelete(Transaction transaction) {
+    bool shouldDelete = true;
+    final messenger = ScaffoldMessenger.of(context);
+    Navigator.of(context).popUntil((route) => route.isFirst);
+
+    final deletedTransaction = transaction;
+    widget.db.transactionsDao.deleteTransaction(deletedTransaction.id);
+
+    showSnackBar(
+      context: context, 
+      content: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Transaction deleted',
+            style: TextStyle(color: Theme.of(context).colorScheme.secondary),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.surface,
+            ),
+            onPressed: () {
+              shouldDelete = false;
+              // date and time
+              final DateTime dateAndTime = deletedTransaction.dateAndTime;
+
+              // date
+              final DateTime date = DateTime(
+                dateAndTime.year,
+                dateAndTime.month,
+                dateAndTime.day,
+              );
+
+              // time
+              final TimeOfDay time = TimeOfDay.fromDateTime(dateAndTime);
+
+              widget.db.transactionsDao.addTransaction(
+                amount: deletedTransaction.amount, 
+                description: deletedTransaction.description, 
+                accountOwnerId: deletedTransaction.accountOwnerId,
+                categoryId: deletedTransaction.categoryId, 
+                date: date, 
+                time: time,
+                imageFileName: deletedTransaction.imageFileName,
+              );
+
+              messenger.hideCurrentSnackBar();
+            },
+            child: Text('Undo', style: TextStyle(color: Theme.of(context).colorScheme.onPrimary)),
+          ),
+        ],
+      ),
+      onClosed: () {
+        if(shouldDelete && attachedImage != null) {
+          deleteImageFile(attachedImage!.path);
+        }
+      },
+    );
   }
 
   // menu with options for adding image (pick from gallery, files or take a photo)
@@ -193,9 +288,9 @@ class _TransactionDetailsBottomSheetState extends State<TransactionDetailsBottom
             CustomIconButton(
               onPressed: () {
                 if(isTransfer) {
-                  widget.showTransferDeleteConfirmation(widget.item);
+                  _showTransferDeleteConfirmation(widget.item);
                 } else {
-                  widget.showDeleteConfirmation(widget.item);
+                  _showDeleteConfirmation(widget.item);
                 }
               },
               icon: const Icon(Icons.delete_outlined)

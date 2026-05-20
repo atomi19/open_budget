@@ -256,97 +256,10 @@ class _HomePageContentState extends State<HomePageContent> {
         categoriesById: _categoriesById, 
         isIncome: isIncome, 
         iconNameKey: iconNameKey, 
-        showDeleteConfirmation: _showDeleteConfirmation, 
-        showTransferDeleteConfirmation: _showTransferDeleteConfirmation,
         showAmountEditingSheet: _showAmountEditingSheet, 
         showCategories: _showCategories, 
         showEditDatePicker: _showEditDatePicker, 
         showEditTimePicker: _showEditTimePicker
-      ),
-    );
-  }
-
-  // delete transaction confirmation AlertDialog
-  void _showDeleteConfirmation(Transaction transaction) {
-    showDialog(
-      context: context, 
-      builder: (context) => CustomAlertDialog(
-        title: 'Delete transaction?', 
-        content: 'Are you sure you want to delete this transaction?', 
-        leftButtonLabel: 'Cancel', 
-        rightButtonLabel: 'Delete', 
-        leftButtonAction: () => Navigator.pop(context), 
-        rightButtonAction: () => _handleTransactionDelete(transaction),
-      ),
-    );
-  }
-
-  // handle transaction delete 
-  void _handleTransactionDelete(Transaction transaction) {
-    final messenger = ScaffoldMessenger.of(context);
-    Navigator.of(context).popUntil((route) => route.isFirst);
-
-    final deletedTransaction = transaction;
-    widget.db.transactionsDao.deleteTransaction(deletedTransaction.id);
-
-    showSnackBar(
-      context: context, 
-      content: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            'Transaction deleted',
-            style: TextStyle(color: Theme.of(context).colorScheme.secondary),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.surface,
-            ),
-            onPressed: () {
-              // date and time
-              final DateTime dateAndTime = deletedTransaction.dateAndTime;
-
-              // date
-              final DateTime date = DateTime(
-                dateAndTime.year,
-                dateAndTime.month,
-                dateAndTime.day,
-              );
-
-              // time
-              final TimeOfDay time = TimeOfDay.fromDateTime(dateAndTime);
-
-              widget.db.transactionsDao.addTransaction(
-                amount: deletedTransaction.amount, 
-                description: deletedTransaction.description, 
-                accountOwnerId: deletedTransaction.accountOwnerId,
-                categoryId: deletedTransaction.categoryId, 
-                date: date, 
-                time: time
-              );
-
-              messenger.hideCurrentSnackBar();
-            },
-            child: Text('Undo', style: TextStyle(color: Theme.of(context).colorScheme.onPrimary)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showTransferDeleteConfirmation(Transaction transaction) {
-    showDialog(
-      context: context, 
-      builder: (context) => CustomAlertDialog(
-        title: 'Delete transfer?', 
-        content: 'Are you sure you want to delete this transfer?', 
-        leftButtonLabel: 'Cancel', 
-        rightButtonLabel: 'Delete', 
-        leftButtonAction: () => Navigator.pop(context), 
-        rightButtonAction: () {
-          Navigator.of(context).popUntil((route) => route.isFirst);
-          widget.db.transactionsDao.deleteTransfer(transaction.transferId!);
-        }
       ),
     );
   }

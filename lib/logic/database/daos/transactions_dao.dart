@@ -20,6 +20,7 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase> with _$TransactionsD
     int? categoryId,
     required DateTime date, 
     required TimeOfDay time,
+    String? imageFileName,
   }) {
     final dateAndTime = DateTime(
       date.year,
@@ -40,6 +41,7 @@ class TransactionsDao extends DatabaseAccessor<AppDatabase> with _$TransactionsD
         categoryId: Value(categoryId),
         dateAndTime: dateAndTime,
         transactionType: transactionType,
+        imageFileName: Value(imageFileName),
       )
     );
   }

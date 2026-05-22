@@ -110,10 +110,8 @@ class _AccountChooseBottomSheetState extends State<AccountChooseBottomSheet> {
                   ],
                 )
             ], 
-            onReorder: (oldIndex, newIndex) async {
+            onReorderItem: (int oldIndex, int newIndex) async {
               setState(() {
-                if (newIndex > oldIndex) newIndex--;
-
                 final item = accounts.removeAt(oldIndex);
                 accounts.insert(newIndex, item);
               });
@@ -125,7 +123,7 @@ class _AccountChooseBottomSheetState extends State<AccountChooseBottomSheet> {
                   i,
                 );
               }
-            }
+            },
           ),
         )
       ],

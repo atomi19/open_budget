@@ -1,21 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:open_budget/logic/app_settings.dart';
 import 'package:open_budget/logic/database/database.dart';
 
 // validate data that user entered and save into db
 void handleDataSubmit({
   required AppDatabase db,
+  required bool isIncome,
   required String amountStr,
   required DateTime? selectedDate, 
   required TimeOfDay? selectedTime,
   required Account? accountOwner,
   required int? categoryId,
   required TextEditingController descriptionController,
+  List<Category>? recentCategories,
   required void Function(String message) displaySnackBar,
   required VoidCallback clearInputDataOnSubmit,
 }) async {
   try {
     // validate amount
-    double? amount = double.tryParse(amountStr);
+    String amountIncomeOrExpense = isIncome 
+      ? amountStr
+      : '-$amountStr';
+
+    double? amount = double.tryParse(amountIncomeOrExpense);
     if(amount == null) {
       displaySnackBar('Enter valid amount');
       return;
@@ -53,6 +60,13 @@ void handleDataSubmit({
       date: selectedDate, 
       time: selectedTime,
     );
+
+    if(recentCategories != null) {
+      AppSettings.convertAndSetCategoryId(
+        isIncome: isIncome, 
+        recentCategories: recentCategories,
+      );
+    }
 
     // clear amount and description fields
     clearInputDataOnSubmit();

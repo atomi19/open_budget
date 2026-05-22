@@ -28,7 +28,10 @@ class _HomePageState extends State<HomePage> {
         db: db,
         setTheme: widget.setTheme,
       ),
-      AddTransactionPage(db: db),
+      AddTransactionPage(
+        db: db,
+        currentTabIndex: _currentTabIndex,
+      ),
     ];
 
     return Scaffold(

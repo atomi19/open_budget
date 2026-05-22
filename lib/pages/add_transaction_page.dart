@@ -19,10 +19,12 @@ import 'package:open_budget/widgets/submit_button.dart';
 
 class AddTransactionPage extends StatefulWidget {
   final AppDatabase db;
+  final int currentTabIndex;
 
   const AddTransactionPage({
     super.key,
     required this.db,
+    required this.currentTabIndex,
   });
   @override
   State<AddTransactionPage> createState() => _AddTransactionPageState();
@@ -44,6 +46,8 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
 
   // quick amounts
   final List<double> _quickAmounts = [10, 50, 100, 200, 500, 1000];
+  List<Category> _recentIncomeCategories = [];
+  List<Category> _recentExpenseCategories = [];
   
   // transfer 
   Account? _fromAccount;
@@ -53,6 +57,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
   void initState() {
     super.initState();
     _getFavoriteAccount();
+    _getRecentCategories();
   }
 
   @override
@@ -64,12 +69,50 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     super.dispose();
   }
 
+  @override
+  void didUpdateWidget(AddTransactionPage oldWidget)  {
+    super.didUpdateWidget(oldWidget);
+
+    if(widget.currentTabIndex == 1 && oldWidget.currentTabIndex != widget.currentTabIndex) {
+      _getRecentCategories();
+    }
+  }
+
   void _getFavoriteAccount() async {
     final favoriteAccountId = await AppSettings.getFavoriteAccount();
     final Account? favoriteAccount = await widget.db.accountsDao.getAccountById(favoriteAccountId);
     setState(() {
       _favoriteAccount = favoriteAccount;
       _selectedAccount = favoriteAccount;
+    });
+  }
+
+  void _getRecentCategories() async {
+    final recentIncomeCategoriesIds = await AppSettings.getRecentCategories(true);
+    final recentExpenseCategoriesIds = await AppSettings.getRecentCategories(false);
+
+    final List<Category> recentIncomeCategories = [];
+    final List<Category> recentExpenseCategories = [];
+
+    for (final id in recentIncomeCategoriesIds) {
+      final category = await _getCategoryById(id);
+
+      if(category != null) {
+        recentIncomeCategories.add(category);
+      }
+    }
+
+    for (final id in recentExpenseCategoriesIds) {
+      final category = await _getCategoryById(id);
+
+      if(category != null) {
+        recentExpenseCategories.add(category);
+      }
+    }
+
+    setState(() {
+      _recentIncomeCategories = recentIncomeCategories;
+      _recentExpenseCategories = recentExpenseCategories;
     });
   }
 
@@ -98,6 +141,10 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
 
   Future<void> _findCategoryById(int id) async {
     _selectedCategory = await widget.db.categoriesDao.getCategoryById(id);
+  }
+
+  Future<Category?> _getCategoryById(int id) async {
+    return await widget.db.categoriesDao.getCategoryById(id);
   }
 
   // list income or expense categories
@@ -177,6 +224,38 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
     );
   }
 
+  void _handleRecentCategories(bool isIncome) {
+    if(_selectedCategory != null) {
+      // recent income categories
+      if(isIncome) {
+        if(_recentIncomeCategories.length > 5) {
+          // limit length by 5
+          _recentIncomeCategories.removeLast();
+        }
+        if(!_recentIncomeCategories.contains(_selectedCategory)) {
+          // check if recent caegories already contains this category
+          _recentIncomeCategories.insert(
+            0, 
+            _selectedCategory!,
+          );
+        }
+      } else {
+        // recent expense categories
+        if(_recentExpenseCategories.length > 5) {
+          // limit length by 5
+          _recentExpenseCategories.removeLast();
+        }
+        if(!_recentExpenseCategories.contains(_selectedCategory)) {
+          // check if recent caegories already contains this category
+          _recentExpenseCategories.insert(
+            0, 
+            _selectedCategory!,
+          );
+        }
+      }
+    }
+  }
+
   // income or expense form
   Widget _transactionAddForm({
     required bool isIncome
@@ -186,6 +265,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
       child: Column(
         spacing: 10,
         children: [
+          // quick amounts
           SizedBox(
             height: 35,
             child: ListView.builder(
@@ -330,6 +410,42 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
               ),
             ],
           ),
+          // recent categories chips (up to 5)
+          if(isIncome && _recentIncomeCategories.isNotEmpty || !isIncome && _recentExpenseCategories.isNotEmpty)
+            SizedBox(
+              height: 35,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: isIncome 
+                  ? _recentIncomeCategories.length
+                  : _recentExpenseCategories.length,
+                itemBuilder: (context, index) {
+                  final category = isIncome
+                    ? _recentIncomeCategories[index]
+                    : _recentExpenseCategories[index];
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 5),
+                    child: ActionChip(
+                      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                      side: BorderSide.none,
+                      avatar: CustomIcon(
+                        icon: IconsManager.getCategoryIconByName(category.iconName)
+                      ),
+                      label: Text(
+                        category.name,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _selectedCategory = category;
+                          _selectedCategoryId = category.id;
+                        });
+                      },
+                    ),
+                  );
+                }
+              ),
+            ),
           // category
           CustomListTile(
             tileColor: Theme.of(context).colorScheme.primaryContainer,
@@ -354,8 +470,12 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           SubmitButton(
             onTap: () {
               HapticFeedback.lightImpact();
+
+              _handleRecentCategories(isIncome);
+
               handleDataSubmit(
                 db: widget.db, 
+                isIncome: isIncome,
                 displaySnackBar: (content) => 
                   showSnackBar(
                     context: context, 
@@ -364,13 +484,14 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                       style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
                     ),
                   ),
-                amountStr: isIncome
-                ? _amountController.text // income amount
-                : '-${_amountController.text}', // expense amount
+                amountStr: _amountController.text,
                 selectedDate: _selectedDate, 
                 selectedTime: _selectedTime, 
                 accountOwner: _selectedAccount,
                 categoryId: _selectedCategoryId, 
+                recentCategories: isIncome
+                  ? _recentIncomeCategories
+                  : _recentExpenseCategories,
                 descriptionController: _descriptionController, 
                 clearInputDataOnSubmit: _clearInputDataOnSubmit,
               );

@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:open_budget/logic/app_settings.dart';
 import 'package:open_budget/logic/database/category_summary.dart';
 import '../database.dart';
 
@@ -89,7 +90,36 @@ class CategoriesDao extends DatabaseAccessor<AppDatabase> with _$CategoriesDaoMi
   } 
 
   // delete category
-  Future<int> deleteCategory(int categoryId) {
+  Future<int> deleteCategory(int categoryId) async {
+    final recentIncomeCategoriesIds = await AppSettings.getRecentCategories(true);
+    final recentExpenseCategoriesIds = await AppSettings.getRecentCategories(false);
+
+    // remove category from recent income categories
+    if(recentIncomeCategoriesIds.contains(categoryId)) {
+      recentIncomeCategoriesIds.removeWhere((c) => c == categoryId);
+
+      final List<String> recentIncomeCategoriesIdsStr = 
+        recentIncomeCategoriesIds.map((c) => c.toString()).toList();
+
+      await AppSettings.setRecentCategoriesId(
+        isIncome: true, 
+        recentCategoriesIds: recentIncomeCategoriesIdsStr,
+      );
+    }
+
+    // remove category from recent expense categories
+    if(recentExpenseCategoriesIds.contains(categoryId)) {
+      recentExpenseCategoriesIds.removeWhere((c) => c == categoryId);
+
+      final List<String> recentExpenseCategoriesIdsStr = 
+        recentExpenseCategoriesIds.map((c) => c.toString()).toList();
+      
+      await AppSettings.setRecentCategoriesId(
+        isIncome: false, 
+        recentCategoriesIds: recentExpenseCategoriesIdsStr,
+      );
+    }
+
     return (delete(categories)..where((c) => c.id.equals(categoryId))).go();
   }
 

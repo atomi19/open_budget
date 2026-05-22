@@ -125,9 +125,8 @@ class _DuplicateTransactionBottomSheetState extends State<DuplicateTransactionBo
                 HapticFeedback.lightImpact();
                 handleDataSubmit(
                   db: widget.db, 
-                  amountStr: widget.isIncome 
-                    ? _amountController.text
-                    : '-${_amountController.text}', 
+                  isIncome: widget.isIncome,
+                  amountStr: _amountController.text,
                   selectedDate: _selectedDate, 
                   selectedTime: _selectedTime, 
                   accountOwner: _selectedAccount, 

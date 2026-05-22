@@ -1,6 +1,7 @@
 // small app settings that are saved into shared_preferences
 import 'package:flutter/material.dart';
 import 'package:open_budget/logic/currencies.dart';
+import 'package:open_budget/logic/database/database.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppSettings {
@@ -11,6 +12,55 @@ class AppSettings {
   static const _datePickerInitialEntryMode = 'date_picker_initial_entry_mode';
   static const _timePickerInitialEntryMode = 'time_picker_initial_entry_mode';
   static const _favoriteAccount = 'favorite_account';
+  static const _recentIncomeCategories = 'recent_income_categories';
+  static const _recentExpenseCategories = 'recent_expense_categories';
+
+  // set recent income or expense categories
+  static Future<void> setRecentCategoriesId({
+    required bool isIncome,
+    required List<String> recentCategoriesIds,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    if(isIncome) {
+      await prefs.setStringList(_recentIncomeCategories, recentCategoriesIds);
+    } else {
+      await prefs.setStringList(_recentExpenseCategories, recentCategoriesIds);
+    }
+  }
+
+  // extract id from Category class and save it 
+  static Future<void> convertAndSetCategoryId({
+    required bool isIncome,
+    required List<Category> recentCategories,
+  }) async {
+    List<int> recentCategoriesIds = recentCategories.map((c) => c.id).toList();
+    List<String> recentCategoriesStringIds = recentCategoriesIds.map((c) => c.toString()).toList();
+
+    setRecentCategoriesId(
+      isIncome: isIncome, 
+      recentCategoriesIds: recentCategoriesStringIds,
+    );
+  }
+
+  // get recent income or expense categories
+  static Future<List<int>> getRecentCategories(bool isIncome) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    List<String>? recentCategoriesString;
+
+    if(isIncome) {
+      recentCategoriesString = prefs.getStringList(_recentIncomeCategories);
+    }
+
+    if(!isIncome) {
+      recentCategoriesString = prefs.getStringList(_recentExpenseCategories);
+    }
+
+    if(recentCategoriesString == null) return [];
+
+    return recentCategoriesString.map((c) => int.parse(c)).toList();
+  }
 
   // set favorite account id
   static Future<void> setFavoriteAccount(int accountId) async {

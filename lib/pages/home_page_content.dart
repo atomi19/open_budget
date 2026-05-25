@@ -9,29 +9,18 @@ import 'package:open_budget/pages/settings_page.dart';
 import 'package:open_budget/pages/statistics_page.dart';
 import 'package:open_budget/ui/accounts/account_choose_bottom_sheet.dart';
 import 'package:open_budget/ui/accounts/account_create_bottom_sheet.dart';
-import 'package:open_budget/ui/accounts/account_edit_bottom_sheet.dart';
-import 'package:open_budget/ui/accounts/accounts_archive_sheet.dart';
-import 'package:open_budget/ui/accounts/accounts_bottom_sheet.dart';
 import 'package:open_budget/ui/categories/categories_bottom_sheet.dart';
-import 'package:open_budget/ui/categories/categories_manager_bottom_sheet.dart';
-import 'package:open_budget/ui/categories/category_create_bottom_sheet.dart';
-import 'package:open_budget/ui/categories/category_edit_bottom_sheet.dart';
-import 'package:open_budget/ui/settings/about_bottom_sheet.dart';
 import 'package:open_budget/ui/transactions/all_transactions_bottom_sheet.dart';
 import 'package:open_budget/ui/transactions/amount_edit_bottom_sheet.dart';
 import 'package:open_budget/ui/transactions/transaction_details_bottom_sheet.dart';
 import 'package:open_budget/widgets/build_transactions_list.dart';
-import 'package:open_budget/widgets/custom_alert_dialog.dart';
 import 'package:open_budget/widgets/custom_icon.dart';
 import 'package:open_budget/widgets/custom_list_tile.dart';
 import 'package:open_budget/widgets/custom_modal_bottom_sheet.dart';
 import 'package:open_budget/widgets/date_time_picker.dart';
 import 'package:open_budget/widgets/empty_list_placeholder.dart';
 import 'package:open_budget/widgets/section_header.dart';
-import 'package:open_budget/widgets/show_snack_bar.dart';
 import 'package:open_budget/widgets/summary_widget.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class HomePageContent extends StatefulWidget {
   final AppDatabase db;
@@ -52,12 +41,6 @@ class _HomePageContentState extends State<HomePageContent> {
 
   bool _isShowingDescription = false;
   int _homeTransactionsCount = 3;
-  PackageInfo _appInfo = PackageInfo(
-    appName: 'Unknown', 
-    packageName: 'Unknown', 
-    version: 'Unknown', 
-    buildNumber: 'Unknown',
-  );
 
   // store categories locally 
   // sort them by id 
@@ -70,21 +53,12 @@ class _HomePageContentState extends State<HomePageContent> {
     _loadCategories();
     _loadDescriptionState();
     _loadTransactionsCount();
-    _initAppInfo();
   }
 
   @override
   void dispose() {
     _pageViewController.dispose();
     super.dispose();
-  }
-
-  // get app info
-  Future<void> _initAppInfo() async {
-    final info = await PackageInfo.fromPlatform();
-    setState(() {
-      _appInfo = info;
-    });
   }
 
   // load description preview state from shared_preferences
@@ -104,20 +78,6 @@ class _HomePageContentState extends State<HomePageContent> {
 
   Future<void> _loadTransactionsCount() async {
     _homeTransactionsCount = await AppSettings.getTransactionsCountOnHomePage() ?? 3;
-  }
-
-  // open url in browser
-  Future<void> _openWebsite(Uri url) async {
-    if(!await launchUrl(
-      url,
-      mode: LaunchMode.externalApplication,
-    )) {
-      if(!mounted) return;
-      showSnackBar(
-        context: context, 
-        content: const Text('Could not launch url')
-      );
-    }
   }
 
   // all transactions modalBottomSheet
@@ -287,22 +247,6 @@ class _HomePageContentState extends State<HomePageContent> {
     return _homeTransactionsCount;
   }
 
-  void _showAccountsSheet() {
-    showCustomModalBottomSheet(
-      context: context, 
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      isScrollControlled: true,
-      borderRadius: 0,
-      child: AccountsBottomSheet(
-        context: context,
-        db: widget.db,
-        showAccountCreateSheet: _showAccountCreateSheet,
-        showAccountEditSheet: _showAccountEditSheet,
-        showAccountsArchiveSheet: _showAccountsArchiveSheet,
-      ),
-    );
-  }
-
   void _showAccountCreateSheet() {
     showCustomModalBottomSheet(
       context: context, 
@@ -310,93 +254,6 @@ class _HomePageContentState extends State<HomePageContent> {
       borderRadius: 0,
       backgroundColor: Theme.of(context).colorScheme.surface,
       child: AccountCreateBottomSheet(db: widget.db,)
-    );
-  }
-
-  // about app modal bottom sheet
-  void _showAboutSheet() {
-    showCustomModalBottomSheet(
-      context: context, 
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      child: AboutBottomSheet(
-        appInfo: _appInfo,
-        openWebsite: _openWebsite,
-      ),
-    );
-  }
-
-  // categories manager modal bottom sheet
-  void _showCategoriesManager() {
-    showCustomModalBottomSheet(
-      context: context, 
-      isScrollControlled: true,
-      borderRadius: 0,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      child: CategoriesManagerBottomSheet(
-        db: widget.db, 
-        showCategoryDeletetionPrompt: _showCategoryDeletetionPrompt, 
-        showCategoryEditingSheet: _showCategoryEditingSheet, 
-        showCategoryCreationSheet: _showCategoryCreationSheet,
-      ),
-    );
-  }
-
-  // category deletion AlertDialog
-  void _showCategoryDeletetionPrompt(int categoryId) {
-    showDialog(
-      context: context, 
-      builder: (context) => CustomAlertDialog(
-        title: 'Delete category?', 
-        content: 'Transactions will stay, but without a category.', 
-        leftButtonLabel: 'Cancel', 
-        rightButtonLabel: 'Delete', 
-        leftButtonAction: () => Navigator.pop(context), 
-        rightButtonAction: () {
-          HapticFeedback.heavyImpact();
-          widget.db.categoriesDao.deleteCategory(categoryId);
-          Navigator.pop(context);
-        }
-      ),
-    );
-  }
-
-  // category creation modalBottomSheet
-  void _showCategoryCreationSheet({
-    required bool isIncome,
-  }) {
-    showCustomModalBottomSheet(
-      context: context, 
-      isScrollControlled: true,
-      borderRadius: 0,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      child: CategoryCreateBottomSheet(
-        db: widget.db,
-        isIncome: isIncome,
-      ),
-    );
-  }
-
-  // edit category name and icon modal bottom sheet
-  void _showCategoryEditingSheet(Category category) {
-    showCustomModalBottomSheet(
-      context: context, 
-      isScrollControlled: true,
-      borderRadius: 0,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      child: CategoryEditBottomSheet(
-        db: widget.db,
-        category: category,
-      )
-    );
-  }
-
-  void _showAccountEditSheet(Account account) {
-    showCustomModalBottomSheet(
-      context: context, 
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      isScrollControlled: true,
-      borderRadius: 0,
-      child: AccountEditBottomSheet(db: widget.db, account: account,)
     );
   }
 
@@ -409,19 +266,6 @@ class _HomePageContentState extends State<HomePageContent> {
         pageViewController: _pageViewController,
         allAccounts: allAccounts,
       ),
-    );
-  }
-
-  void _showAccountsArchiveSheet() {
-    showCustomModalBottomSheet(
-      context: context, 
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      borderRadius: 0,
-      isScrollControlled: true,
-      child: AccountsArchiveSheet(
-        context: context,
-        db: widget.db,
-      )
     );
   }
 
@@ -480,20 +324,18 @@ class _HomePageContentState extends State<HomePageContent> {
           ),
           // settings icon button
           IconButton(
-            onPressed: () async {
+            onPressed: () {
               Navigator.push(
                 context, 
                 MaterialPageRoute(builder: (context) => SettingsPage(
-                  homeTransactionsCount: _homeTransactionsCount,
-                  isShowingDescription: _isShowingDescription,
-                  setTheme: (newTheme) => widget.setTheme(newTheme),
-                  switchDescriptionState: (bool state) => _switchDescriptionState(state),
-                  handleTransactionCount: (digit) => _handleTransactionCount(digit),
-                  showAccountsSheet: _showAccountsSheet,
-                  showCategoriesManager: _showCategoriesManager,
-                  showAboutSheet: _showAboutSheet,
-                  )
-                )
+                    db: widget.db,
+                    homeTransactionsCount: _homeTransactionsCount,
+                    isShowingDescription: _isShowingDescription,
+                    setTheme: (newTheme) => widget.setTheme(newTheme),
+                    switchDescriptionState: (bool state) => _switchDescriptionState(state),
+                    handleTransactionCount: (digit) => _handleTransactionCount(digit),
+                  ),
+                ),
               );
             },
             style: IconButton.styleFrom(

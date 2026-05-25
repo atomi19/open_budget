@@ -140,7 +140,7 @@ class AccountsBottomSheet extends StatelessWidget {
                       ),
                     ),
                     // archive icon button 
-                    trailing: IconButton(
+                    trailing: CustomIconButton(
                       onPressed: () => _showAccountArchivePrompt(item.id),
                       icon: const Icon(Icons.archive_outlined)
                     ),

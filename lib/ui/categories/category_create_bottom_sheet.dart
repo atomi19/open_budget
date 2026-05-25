@@ -92,15 +92,13 @@ class _CategoryCreateBottomSheetState extends State<CategoryCreateBottomSheet> {
                               crossAxisSpacing: 2,
                             ), 
                             itemBuilder: (context, index) {
-                              return IconButton(
+                              return CustomIconButton(
                                 onPressed: () {
                                   setState(() {
                                     selectedIcon = IconsManager.categoriesKeys[index];
                                   });
                                 },
                                 icon: CustomIcon(icon: IconsManager.getCategoryIconByName(IconsManager.categoriesKeys[index])),
-                                iconSize: 25,
-                                padding: EdgeInsets.zero,
                               );
                             }
                           )

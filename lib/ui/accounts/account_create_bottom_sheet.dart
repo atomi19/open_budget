@@ -211,15 +211,13 @@ class _AccountCreateBottomSheetState extends State<AccountCreateBottomSheet> {
                           crossAxisSpacing: 2,
                         ), 
                         itemBuilder: (context, index) {
-                          return IconButton(
+                          return CustomIconButton(
+                            icon: CustomIcon(icon: IconsManager.getAccountIconByName(IconsManager.accountsKeys[index])),
                             onPressed: () {
                               setState(() {
                                 selectedIcon = IconsManager.accountsKeys[index];
                               });
                             },
-                            icon: CustomIcon(icon: IconsManager.getAccountIconByName(IconsManager.accountsKeys[index])),
-                            iconSize: 25,
-                            padding: EdgeInsets.zero,
                           );
                         }
                       )

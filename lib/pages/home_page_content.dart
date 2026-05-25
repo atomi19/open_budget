@@ -15,6 +15,7 @@ import 'package:open_budget/ui/transactions/amount_edit_bottom_sheet.dart';
 import 'package:open_budget/ui/transactions/transaction_details_bottom_sheet.dart';
 import 'package:open_budget/widgets/build_transactions_list.dart';
 import 'package:open_budget/widgets/custom_icon.dart';
+import 'package:open_budget/widgets/custom_icon_button.dart';
 import 'package:open_budget/widgets/custom_list_tile.dart';
 import 'package:open_budget/widgets/custom_modal_bottom_sheet.dart';
 import 'package:open_budget/widgets/date_time_picker.dart';
@@ -289,7 +290,7 @@ class _HomePageContentState extends State<HomePageContent> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // statistics icon button
-          IconButton(
+          CustomIconButton(
             onPressed: () => Navigator.push(
               context, 
               MaterialPageRoute(builder: (context) => StatisticsPage(
@@ -298,9 +299,6 @@ class _HomePageContentState extends State<HomePageContent> {
                   currentCurrency: accountCurrency, 
                 )
               )
-            ),
-            style: IconButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
             ),
             icon: const Icon(Icons.data_usage_outlined)
           ),
@@ -323,7 +321,7 @@ class _HomePageContentState extends State<HomePageContent> {
             )
           ),
           // settings icon button
-          IconButton(
+          CustomIconButton(
             onPressed: () {
               Navigator.push(
                 context, 
@@ -338,9 +336,6 @@ class _HomePageContentState extends State<HomePageContent> {
                 ),
               );
             },
-            style: IconButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-            ),
             icon: const Icon(Icons.settings_outlined)
           ),
         ],
@@ -443,7 +438,7 @@ class _HomePageContentState extends State<HomePageContent> {
                                 mainAxisSize: MainAxisSize.min,
                                 spacing: 10,
                                 children: [
-                                  IconButton(
+                                  CustomIconButton(
                                     onPressed: () {
                                       _pageViewController.animateToPage(
                                         currentPageIndex - 1, 
@@ -466,7 +461,7 @@ class _HomePageContentState extends State<HomePageContent> {
                                       );
                                     }
                                   ),
-                                  IconButton(
+                                  CustomIconButton(
                                     onPressed: () {
                                       _pageViewController.animateToPage(
                                         currentPageIndex + 1, 

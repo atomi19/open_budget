@@ -78,7 +78,7 @@ class _AccountsListBottomSheetState extends State<AccountsListBottomSheet> {
                     tileColor: Theme.of(context).colorScheme.primaryContainer, 
                     leading: CustomIcon(icon: IconsManager.getAccountIconByName(item.icon)),
                     title: item.name,
-                    trailing: IconButton(
+                    trailing: CustomIconButton(
                       onPressed: () async {
                         await widget.onFavoriteTap(item);
 

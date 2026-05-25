@@ -200,15 +200,13 @@ class _AccountEditBottomSheetState extends State<AccountEditBottomSheet> {
                           crossAxisSpacing: 2,
                         ), 
                         itemBuilder: (context, index) {
-                          return IconButton(
+                          return CustomIconButton(
+                            icon: CustomIcon(icon: IconsManager.getAccountIconByName(IconsManager.accountsKeys[index])),
                             onPressed: () {
                               setState(() {
                                 _selectedIcon = IconsManager.accountsKeys[index];
                               });
                             },
-                            icon: CustomIcon(icon: IconsManager.getAccountIconByName(IconsManager.accountsKeys[index])),
-                            iconSize: 25,
-                            padding: EdgeInsets.zero,
                           );
                         }
                       )

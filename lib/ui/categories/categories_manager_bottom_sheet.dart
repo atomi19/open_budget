@@ -143,7 +143,7 @@ class _CategoriesManagerBottomSheetState extends State<CategoriesManagerBottomSh
                         tileColor: Theme.of(context).colorScheme.primaryContainer,
                         leading: CustomIcon(icon: IconsManager.getCategoryIconByName(item.iconName)),
                         title: item.name,
-                        trailing: IconButton(
+                        trailing: CustomIconButton(
                           onPressed: () => widget.showCategoryDeletetionPrompt(item.id),
                           icon: const Icon(Icons.delete_outlined)
                         ),

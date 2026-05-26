@@ -95,7 +95,6 @@ class _StatisticsPageState extends State<StatisticsPage> {
                 : 'Add expenses and they will appear here'
               )
               : CustomListTile(
-                tileColor: Theme.of(context).colorScheme.primaryContainer,
                 customBorder: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.vertical(
                     top: Radius.zero,
@@ -173,7 +172,6 @@ class _StatisticsPageState extends State<StatisticsPage> {
             ),
             // income transaction count
             CustomListTile(
-              tileColor: Theme.of(context).colorScheme.primaryContainer,
               leading: const CustomIcon(icon: Icons.download_outlined),
               title: 'Incomes',
               trailing: Text(
@@ -183,7 +181,6 @@ class _StatisticsPageState extends State<StatisticsPage> {
             ),
             // expense transactions count
             CustomListTile(
-              tileColor: Theme.of(context).colorScheme.primaryContainer,
               leading: const CustomIcon(icon: Icons.upload_outlined),
               title: 'Expenses',
               trailing: Text(
@@ -193,7 +190,6 @@ class _StatisticsPageState extends State<StatisticsPage> {
             ),
             // transfer transactions count
             CustomListTile(
-              tileColor: Theme.of(context).colorScheme.primaryContainer,
               leading: const CustomIcon(icon: Icons.swap_horiz),
               title: 'Transfers',
               trailing: Text(
@@ -217,7 +213,6 @@ class _StatisticsPageState extends State<StatisticsPage> {
     required double percentage,
   }) {
     return CustomListTile(
-      tileColor: Theme.of(context).colorScheme.primaryContainer,
       customBorder: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           // top border 
@@ -332,7 +327,6 @@ class _StatisticsPageState extends State<StatisticsPage> {
                 // this month
                 CustomListTile(
                   leading: const CustomIcon(icon: Icons.calendar_today),
-                  tileColor: Theme.of(context).colorScheme.primaryContainer, 
                   title: 'This month',
                   onTap: () {
                     final now = DateTime.now();
@@ -347,7 +341,6 @@ class _StatisticsPageState extends State<StatisticsPage> {
                 // previous month
                 CustomListTile(
                   leading: const CustomIcon(icon: Icons.calendar_month),
-                  tileColor: Theme.of(context).colorScheme.primaryContainer, 
                   title: 'Previous month',
                   onTap: () {
                     final now = DateTime.now();
@@ -362,7 +355,6 @@ class _StatisticsPageState extends State<StatisticsPage> {
                 // all time
                 CustomListTile(
                   leading: const CustomIcon(icon: Icons.calendar_view_week_outlined),
-                  tileColor: Theme.of(context).colorScheme.primaryContainer, 
                   title: 'All time',
                   onTap: () {
                     Navigator.pop(context);
@@ -376,7 +368,6 @@ class _StatisticsPageState extends State<StatisticsPage> {
                 // custom period
                 CustomListTile(
                   leading: const CustomIcon(icon: Icons.edit),
-                  tileColor: Theme.of(context).colorScheme.primaryContainer, 
                   title: 'Custom period',
                   trailing: const CustomIcon(icon: Icons.chevron_right),
                   onTap: () async {

@@ -519,7 +519,6 @@ class _HomePageContentState extends State<HomePageContent> {
                                   ),
                                   // all transactions listtile
                                   CustomListTile(
-                                    tileColor: Theme.of(context).colorScheme.primaryContainer,
                                     title: 'All Transactions',
                                     trailing: const CustomIcon(icon: Icons.chevron_right),
                                     customBorder: const RoundedRectangleBorder(

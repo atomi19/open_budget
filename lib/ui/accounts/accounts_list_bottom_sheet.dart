@@ -75,7 +75,6 @@ class _AccountsListBottomSheetState extends State<AccountsListBottomSheet> {
                 itemBuilder: (context, index) {
                   final item = items[index];
                   return CustomListTile(
-                    tileColor: Theme.of(context).colorScheme.primaryContainer, 
                     leading: CustomIcon(icon: IconsManager.getAccountIconByName(item.icon)),
                     title: item.name,
                     trailing: CustomIconButton(

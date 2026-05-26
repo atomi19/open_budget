@@ -335,7 +335,6 @@ class _TransactionDetailsBottomSheetState extends State<TransactionDetailsBottom
                   children: [
                     // date in dd-mm-yyyy format
                     CustomListTile(
-                      tileColor: Theme.of(context).colorScheme.primaryContainer,
                       leading: const CustomIcon(icon: Icons.calendar_today,),
                       title: 'Date',
                       customBorder: const RoundedRectangleBorder(
@@ -363,7 +362,6 @@ class _TransactionDetailsBottomSheetState extends State<TransactionDetailsBottom
                     ),
                     // time in hh:mm format
                     CustomListTile(
-                      tileColor: Theme.of(context).colorScheme.primaryContainer,
                       leading: const CustomIcon(icon: Icons.access_time),
                       title: 'Time',
                       customBorder: const RoundedRectangleBorder(
@@ -396,7 +394,6 @@ class _TransactionDetailsBottomSheetState extends State<TransactionDetailsBottom
                   Column(
                     children: [
                       CustomListTile(
-                        tileColor: Theme.of(context).colorScheme.primaryContainer,
                         leading: CustomIcon(icon: IconsManager.getCategoryIconByName(widget.iconNameKey)),
                         title: 'Category', 
                         trailing: Row(
@@ -428,7 +425,6 @@ class _TransactionDetailsBottomSheetState extends State<TransactionDetailsBottom
                 (hasImage && attachedImage != null)
                   // attached image 
                   ? CustomListTile(
-                    tileColor: Theme.of(context).colorScheme.primaryContainer, 
                     leading: (hasImage && attachedImage != null) 
                       ? SizedBox(
                         width: 35,
@@ -491,7 +487,6 @@ class _TransactionDetailsBottomSheetState extends State<TransactionDetailsBottom
                   )
                   // no image list tile
                   : CustomListTile(
-                    tileColor: Theme.of(context).colorScheme.primaryContainer, 
                     leading: const CustomIcon(icon: Icons.image_outlined),
                     title: 'Add Image',
                     onTapDown: (details) {

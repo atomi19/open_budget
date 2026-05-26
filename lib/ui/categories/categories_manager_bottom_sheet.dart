@@ -140,7 +140,6 @@ class _CategoriesManagerBottomSheetState extends State<CategoriesManagerBottomSh
                       final item = items[index];
 
                       return CustomListTile(
-                        tileColor: Theme.of(context).colorScheme.primaryContainer,
                         leading: CustomIcon(icon: IconsManager.getCategoryIconByName(item.iconName)),
                         title: item.name,
                         trailing: CustomIconButton(

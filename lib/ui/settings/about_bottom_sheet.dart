@@ -68,21 +68,18 @@ class AboutBottomSheet extends StatelessWidget {
                 ),
                 // github link
                 CustomListTile(
-                  tileColor: Theme.of(context).colorScheme.primaryContainer, 
                   title: 'GitHub',
                   trailing: const Icon(Icons.launch),
                   onTap: () => openWebsite(Uri.parse('https://github.com/atomi19/open_budget')),
                 ),
                 // license link
                 CustomListTile(
-                  tileColor: Theme.of(context).colorScheme.primaryContainer, 
                   title: 'License',
                   trailing: const Icon(Icons.launch),
                   onTap: () => openWebsite(Uri.parse('https://github.com/atomi19/open_budget/blob/main/LICENSE.txt')),
                 ),
                 // open source licenses used in project 
                 CustomListTile(
-                  tileColor: Theme.of(context).colorScheme.primaryContainer, 
                   title: 'Open Source Licenses',
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {

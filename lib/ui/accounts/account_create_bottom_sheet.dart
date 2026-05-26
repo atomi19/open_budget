@@ -106,7 +106,6 @@ class _AccountCreateBottomSheetState extends State<AccountCreateBottomSheet> {
                 final item = Currency.currencies[index];
 
                 return CustomListTile(
-                  tileColor: Theme.of(context).colorScheme.primaryContainer, 
                   title: item.name,
                   trailing: Text(
                     item.code,
@@ -176,7 +175,6 @@ class _AccountCreateBottomSheetState extends State<AccountCreateBottomSheet> {
                 ),
                 // currency
                 CustomListTile(
-                  tileColor: Theme.of(context).colorScheme.primaryContainer, 
                   title: 'Currency',
                   trailing: selectedAccountCreationCurrency == null
                     ? null

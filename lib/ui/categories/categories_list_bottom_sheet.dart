@@ -97,7 +97,6 @@ class CategoriesListBottomSheet extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final item = items[index];
                   return CustomListTile(
-                    tileColor: Theme.of(context).colorScheme.primaryContainer, 
                     leading: CustomIcon(icon: IconsManager.getCategoryIconByName(item.iconName)),
                     title: item.name,
                     onTap: () => onTap(item.id),

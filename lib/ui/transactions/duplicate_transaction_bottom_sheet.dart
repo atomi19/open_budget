@@ -168,7 +168,6 @@ class _DuplicateTransactionBottomSheetState extends State<DuplicateTransactionBo
                   children: [
                     Expanded(
                       child: CustomListTile(
-                        tileColor: Theme.of(context).colorScheme.primaryContainer, 
                         leading: _selectedAccount == null 
                           ? const CustomIcon(icon: Icons.help_outline)
                           : CustomIcon(icon: IconsManager.getAccountIconByName(_selectedAccount!.icon)),
@@ -183,7 +182,6 @@ class _DuplicateTransactionBottomSheetState extends State<DuplicateTransactionBo
                 ),
                 // date 
                 CustomListTile(
-                  tileColor: Theme.of(context).colorScheme.primaryContainer,
                   leading: const CustomIcon(icon: Icons.calendar_month),
                   title: _selectedDate != null
                     ? '${_selectedDate!.day.toString().padLeft(2, '0')}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.year}'
@@ -196,7 +194,6 @@ class _DuplicateTransactionBottomSheetState extends State<DuplicateTransactionBo
                 ),
                 // time 
                 CustomListTile(
-                  tileColor: Theme.of(context).colorScheme.primaryContainer,
                   leading: const CustomIcon(icon: Icons.access_time),
                   title: _selectedTime != null
                     ? _selectedTime!.format(context)
@@ -209,7 +206,6 @@ class _DuplicateTransactionBottomSheetState extends State<DuplicateTransactionBo
                 ),
                 // category
                 CustomListTile(
-                  tileColor: Theme.of(context).colorScheme.primaryContainer,
                   leading: _selectedCategory == null 
                     ? const CustomIcon(icon: Icons.help_outline)
                     : CustomIcon(icon: IconsManager.getCategoryIconByName(_selectedCategory!.iconName)),

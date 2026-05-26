@@ -220,7 +220,6 @@ class TransactionsList extends StatelessWidget {
         )
       ),
       contentPadding: contentPadding,
-      tileColor: Theme.of(context).colorScheme.primaryContainer,
       // category icon or transfer icon
       leading: isTransfer
         ? const CustomIcon(icon: Icons.swap_horiz)

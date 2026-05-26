@@ -88,7 +88,6 @@ class _AccountChooseBottomSheetState extends State<AccountChooseBottomSheet> {
                   key: ValueKey('${accounts[index].id}'),
                   children: [
                     CustomListTile(
-                      tileColor: Theme.of(context).colorScheme.primaryContainer, 
                       // account icon 
                       leading: CustomIcon(icon: IconsManager.getAccountIconByName(accounts[index].icon)),
                       title: accounts[index].name,

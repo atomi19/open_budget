@@ -314,7 +314,6 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                           // home transactions count
                           CustomListTile(
-                            tileColor: Theme.of(context).colorScheme.primaryContainer, 
                             title: 'Recent Transactions',
                             subtitle: Text(
                               'Number of transactions shown on the Home page',
@@ -366,7 +365,6 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                           // transaction description switch
                           CustomListTile(
-                            tileColor: Theme.of(context).colorScheme.primaryContainer,
                             title: 'Show transaction description',
                             subtitle: Text(
                               'Display the description below each transaction',
@@ -391,21 +389,18 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                           // accounts
                           CustomListTile(
-                            tileColor: Theme.of(context).colorScheme.primaryContainer, 
                             title: 'Accounts',
                             trailing: const CustomIcon(icon: Icons.chevron_right),
                             onTap: () => _showAccountsSheet(),
                           ),
                           // categories manager
                           CustomListTile(
-                            tileColor: Theme.of(context).colorScheme.primaryContainer,
                             title: 'Categories',
                             trailing: const CustomIcon(icon: Icons.chevron_right),
                             onTap: () => _showCategoriesManager(),
                           ),
                           // about
                           CustomListTile(
-                            tileColor: Theme.of(context).colorScheme.primaryContainer,
                             title: 'About',
                             trailing: const CustomIcon(icon: Icons.chevron_right),
                             onTap: () => _showAboutSheet(),

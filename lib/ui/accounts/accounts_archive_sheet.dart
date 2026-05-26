@@ -84,7 +84,6 @@ class AccountsArchiveSheet extends StatelessWidget {
 
                   // account list tile
                   return CustomListTile(
-                    tileColor: Theme.of(context).colorScheme.primaryContainer, 
                     // account icon 
                     leading: CustomIcon(icon: IconsManager.getAccountIconByName(item.icon)),
                     title: item.name,

@@ -49,7 +49,6 @@ class SummaryWidget extends StatelessWidget {
                 final isPositive = net > 0 ? true : false;
                 
                 return CustomListTile(
-                  tileColor: Theme.of(context).colorScheme.primaryContainer, 
                   leading: const CustomIcon(icon: Icons.bar_chart),
                   title: 'Net',
                   trailing: Text(
@@ -83,7 +82,6 @@ class SummaryWidget extends StatelessWidget {
             final formattedIncome = formatNumber(income);
 
             return CustomListTile(
-              tileColor: Theme.of(context).colorScheme.primaryContainer,
               leading: const CustomIcon(icon: Icons.download_outlined),
               title: 'Income',
               trailing: Text(
@@ -111,7 +109,6 @@ class SummaryWidget extends StatelessWidget {
             final formattedExpense = formatNumber(expense);
 
             return CustomListTile(
-              tileColor: Theme.of(context).colorScheme.primaryContainer,
               leading: const CustomIcon(icon: Icons.upload_outlined),
               title: 'Expense',
               trailing: Text(

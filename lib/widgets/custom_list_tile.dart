@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class CustomListTile extends StatelessWidget {
-  final Color tileColor;
+  final Color? tileColor;
   final Widget? leading;
   final String title;
   final Widget? trailing;
@@ -13,7 +13,7 @@ class CustomListTile extends StatelessWidget {
 
   const CustomListTile({
     super.key,
-    required this.tileColor,
+    this.tileColor,
     this.leading,
     required this.title,
     this.trailing,
@@ -31,7 +31,7 @@ class CustomListTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(15),
       );
     return Material(
-      color: tileColor,
+      color: tileColor ?? Theme.of(context).colorScheme.primaryContainer,
       shape: border,
       clipBehavior: Clip.antiAlias,
       child: InkWell(

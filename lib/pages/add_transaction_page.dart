@@ -321,7 +321,6 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
             children: [
               Expanded(
                 child: CustomListTile(
-                  tileColor: Theme.of(context).colorScheme.primaryContainer, 
                   leading: _selectedAccount == null 
                     ? const CustomIcon(icon: Icons.help_outline)
                     : CustomIcon(icon: IconsManager.getAccountIconByName(_selectedAccount!.icon)),
@@ -352,7 +351,6 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
             children: [
               Expanded(
                 child: CustomListTile(
-                  tileColor: Theme.of(context).colorScheme.primaryContainer,
                   leading: const CustomIcon(icon: Icons.calendar_month),
                   title: _selectedDate != null
                     ? '${_selectedDate!.day.toString().padLeft(2, '0')}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.year}'
@@ -384,7 +382,6 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
             children: [
               Expanded(
                 child: CustomListTile(
-                  tileColor: Theme.of(context).colorScheme.primaryContainer,
                   leading: const CustomIcon(icon: Icons.access_time),
                   title: _selectedTime != null
                     ? _selectedTime!.format(context)
@@ -448,7 +445,6 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
             ),
           // category
           CustomListTile(
-            tileColor: Theme.of(context).colorScheme.primaryContainer,
             leading: _selectedCategory == null 
               ? const CustomIcon(icon: Icons.help_outline)
               : CustomIcon(icon: IconsManager.getCategoryIconByName(_selectedCategory!.iconName)),
@@ -530,7 +526,6 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
             children: [
               Expanded(
                 child: CustomListTile(
-                  tileColor: Theme.of(context).colorScheme.primaryContainer, 
                   leading: _fromAccount == null 
                     ? const CustomIcon(icon: Icons.help_outline)
                     : CustomIcon(icon: IconsManager.getAccountIconByName(_fromAccount!.icon)),
@@ -549,7 +544,6 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
             children: [
               Expanded(
                 child: CustomListTile(
-                  tileColor: Theme.of(context).colorScheme.primaryContainer, 
                   leading: _toAccount == null 
                     ? const CustomIcon(icon: Icons.help_outline)
                     : CustomIcon(icon: IconsManager.getAccountIconByName(_toAccount!.icon)),
@@ -568,7 +562,6 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
             children: [
               Expanded(
                 child: CustomListTile(
-                  tileColor: Theme.of(context).colorScheme.primaryContainer,
                   leading: const CustomIcon(icon: Icons.calendar_month),
                   title: _selectedDate != null
                     ? '${_selectedDate!.day.toString().padLeft(2, '0')}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.year}'
@@ -600,7 +593,6 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
             children: [
               Expanded(
                 child: CustomListTile(
-                  tileColor: Theme.of(context).colorScheme.primaryContainer,
                   leading: const CustomIcon(icon: Icons.access_time),
                   title: _selectedTime != null
                     ? _selectedTime!.format(context)

@@ -47,10 +47,7 @@ class AmountEditBottomSheet extends StatelessWidget {
                 double? amount = double.tryParse(newAmount);
 
                 if(amount == null) {
-                  showSnackBar(
-                    context: context, 
-                    content: const Text('Enter valid amount')
-                  );
+                  showSnackBar(context: context, content: 'Enter valid amount');
                 } else {
                   if(!isTransfer) {
                     db.transactionsDao.updateAmount(item.id, amount);

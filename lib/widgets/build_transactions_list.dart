@@ -150,45 +150,35 @@ class TransactionsList extends StatelessWidget {
 
           showSnackBar(
             context: context, 
-            content: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Transaction deleted',
-                  style: TextStyle(color: Theme.of(context).colorScheme.secondary),
-                ),
-                TextButton(
-                  style: TextButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.surface,
-                  ),
-                  onPressed: () {
-                    // date and time
-                    final DateTime dateAndTime = deletedTransaction.dateAndTime;
+            content: 'Transaction deleted',
+            action: SnackBarAction(
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+              label: 'Undo', 
+              onPressed: () {
+                // date and time
+                final DateTime dateAndTime = deletedTransaction.dateAndTime;
 
-                    // date
-                    final DateTime date = DateTime(
-                      dateAndTime.year,
-                      dateAndTime.month,
-                      dateAndTime.day,
-                    );
+                // date
+                final DateTime date = DateTime(
+                  dateAndTime.year,
+                  dateAndTime.month,
+                  dateAndTime.day,
+                );
 
-                    // time
-                    final TimeOfDay time = TimeOfDay.fromDateTime(dateAndTime);
+                // time
+                final TimeOfDay time = TimeOfDay.fromDateTime(dateAndTime);
 
-                    db.transactionsDao.addTransaction(
-                      amount: deletedTransaction.amount, 
-                      description: deletedTransaction.description, 
-                      accountOwnerId: deletedTransaction.accountOwnerId,
-                      categoryId: deletedTransaction.categoryId, 
-                      date: date, 
-                      time: time
-                    );
+                db.transactionsDao.addTransaction(
+                  amount: deletedTransaction.amount, 
+                  description: deletedTransaction.description, 
+                  accountOwnerId: deletedTransaction.accountOwnerId,
+                  categoryId: deletedTransaction.categoryId, 
+                  date: date, 
+                  time: time
+                );
 
-                    messenger.hideCurrentSnackBar();
-                  },
-                  child: Text('Undo', style: TextStyle(color: Theme.of(context).colorScheme.onPrimary)),
-                ),
-              ],
+                messenger.hideCurrentSnackBar();
+              }
             ),
           );
         }

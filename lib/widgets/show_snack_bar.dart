@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 void showSnackBar({
   required BuildContext context,
-  required Widget content,
+  required String content,
+  SnackBarAction? action,
   VoidCallback? onClosed,
   }) {
   ScaffoldMessenger.of(context).showSnackBar(
@@ -13,11 +14,18 @@ void showSnackBar({
       content: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: Colors.grey.shade800,
+          color: Theme.of(context).colorScheme.primaryContainer,
           borderRadius: BorderRadius.circular(15),
+          border: Border.all(
+            color: Colors.black12,
+          )
         ),
-        child: content,
+        child: Text(
+          content,
+          style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+        ),
       ),
+      action: action,
     ),
   ).closed.then((_) => onClosed?.call());
 }

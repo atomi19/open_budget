@@ -38,34 +38,22 @@ class _AccountCreateBottomSheetState extends State<AccountCreateBottomSheet> {
 
     double? initialBalance = double.tryParse(initialBalanceStr);
     if(initialBalance == null) {
-      showSnackBar(
-        context: context, 
-        content: const Text('Enter valid initial balance')
-      );
+      showSnackBar(context: context, content: 'Enter valid initial balance');
       return;
     }
 
     if(name == null) {
-      showSnackBar(
-        context: context, 
-        content: const Text('Enter valid account name')
-      );
+      showSnackBar(context: context, content: 'Enter valid account name');
       return;
     }
 
     if(selectedCurrency == null) {
-      showSnackBar(
-        context: context, 
-        content: const Text('Select account currency')
-      );
+      showSnackBar(context: context, content: 'Select account currency',);
       return;
     }
 
     if(selectedIcon == null) {
-      showSnackBar(
-        context: context, 
-        content: const Text('Select account icon')
-      );
+      showSnackBar(context: context, content: 'Select account icon');
       return;
     }
 

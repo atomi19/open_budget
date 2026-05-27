@@ -87,10 +87,7 @@ class _SettingsPageState extends State<SettingsPage> {
       mode: LaunchMode.externalApplication,
     )) {
       if(!mounted) return;
-      showSnackBar(
-        context: context, 
-        content: const Text('Could not launch url')
-      );
+      showSnackBar(context: context, content: 'Could not launch url');
     }
   }
 

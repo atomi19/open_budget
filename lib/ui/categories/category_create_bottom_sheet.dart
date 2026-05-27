@@ -120,7 +120,7 @@ class _CategoryCreateBottomSheetState extends State<CategoryCreateBottomSheet> {
                         } else {
                           showSnackBar(
                             context: context, 
-                            content: const Text('Enter category name'),
+                            content: 'Enter category name',
                           );
                         }
                       }, 

@@ -132,14 +132,7 @@ class _DuplicateTransactionBottomSheetState extends State<DuplicateTransactionBo
                   accountOwner: _selectedAccount, 
                   categoryId: _selectedCategory?.id, 
                   descriptionController: _descriptionController, 
-                  displaySnackBar: (content) =>
-                    showSnackBar(
-                      context: context, 
-                      content: Text(
-                        content,
-                        style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
-                      ),
-                    ), 
+                  displaySnackBar: (content) => showSnackBar(context: context, content: content), 
                   clearInputDataOnSubmit: () {}
                 );
                 Navigator.pop(context);

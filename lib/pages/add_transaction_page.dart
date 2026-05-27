@@ -472,14 +472,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
               handleDataSubmit(
                 db: widget.db, 
                 isIncome: isIncome,
-                displaySnackBar: (content) => 
-                  showSnackBar(
-                    context: context, 
-                    content: Text(
-                      content,
-                      style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
-                    ),
-                  ),
+                displaySnackBar: (content) => showSnackBar(context: context, content: content),
                 amountStr: _amountController.text,
                 selectedDate: _selectedDate, 
                 selectedTime: _selectedTime, 
@@ -638,12 +631,7 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
                 selectedDate: _selectedDate, 
                 selectedTime: _selectedTime, 
                 description: _descriptionController.text, 
-                displaySnackBar: (String content) {
-                  showSnackBar(
-                    context: context, 
-                    content: Text(content),
-                  );
-                }, 
+                displaySnackBar: (String content) => showSnackBar(context: context, content: content), 
                 clearTransferDataOnSubmit: _clearInputDataOnSubmit
               );
             },

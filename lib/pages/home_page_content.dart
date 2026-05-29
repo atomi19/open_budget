@@ -393,13 +393,13 @@ class _HomePageContentState extends State<HomePageContent> {
                       return SingleChildScrollView(
                         padding: const EdgeInsets.fromLTRB(15, 0, 15, 10),
                         child: Column(
+                          spacing: 10,
                           children: [
                             _header(
                               account: account, 
                               allAccounts: items,
                               accountCurrency: accountCurrency
                             ),
-                            const SizedBox(height: 10),
                             // total balance
                             StreamBuilder(
                               stream: widget.db.transactionsDao.watchTotalBalance(account),
@@ -426,7 +426,6 @@ class _HomePageContentState extends State<HomePageContent> {
                                 );
                               }
                             ),
-                            const SizedBox(height: 10),
                             // tab indicator
                             Container(
                               padding: const EdgeInsets.all(5),
@@ -475,10 +474,7 @@ class _HomePageContentState extends State<HomePageContent> {
                               ),
                             ),
                             // last transactions (3 to 10)
-                            const SectionHeader(
-                              title: 'Transactions'
-                            ),
-                            const SizedBox(height: 10),
+                            const SectionHeader(title: 'Transactions'),
                             Material(
                               color: Theme.of(context).colorScheme.primaryContainer,
                               borderRadius: BorderRadius.circular(15),
@@ -537,7 +533,6 @@ class _HomePageContentState extends State<HomePageContent> {
                             ),
                             // summary 
                             const SectionHeader(title: 'This month'),
-                            const SizedBox(height: 10),
                             SummaryWidget(
                               db: widget.db, 
                               account: account, 

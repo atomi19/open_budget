@@ -291,6 +291,7 @@ class _TransactionDetailsBottomSheetState extends State<TransactionDetailsBottom
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 15),
             child: Column(
+              spacing: 10,
               children: [
                 // amount
                 GestureDetector(
@@ -320,7 +321,6 @@ class _TransactionDetailsBottomSheetState extends State<TransactionDetailsBottom
                   }
                 ),
                 const SectionHeader(title: 'Date & Time'),
-                const SizedBox(height: 10),
                 Column(
                   children: [
                     // date in dd-mm-yyyy format
@@ -375,10 +375,7 @@ class _TransactionDetailsBottomSheetState extends State<TransactionDetailsBottom
                     ),
                   ],
                 ),
-                const SectionHeader(
-                  title: 'Details'
-                ),
-                const SizedBox(height: 10),
+                const SectionHeader(title: 'Details'),
                 if(!isTransfer) 
                   // category
                   Column(
@@ -408,7 +405,6 @@ class _TransactionDetailsBottomSheetState extends State<TransactionDetailsBottom
                           item: widget.item,
                         ),
                       ),
-                      const SizedBox(height: 10),
                     ],
                   ),
                 // image
@@ -489,7 +485,6 @@ class _TransactionDetailsBottomSheetState extends State<TransactionDetailsBottom
                       }
                     }
                   ),
-                const SizedBox(height: 10),
                 // description inside transaction details
                 // if user changed description it will update
                 // when focus on CustomTextField is lost

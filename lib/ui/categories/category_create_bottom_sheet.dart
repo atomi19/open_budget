@@ -57,6 +57,7 @@ class _CategoryCreateBottomSheetState extends State<CategoryCreateBottomSheet> {
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
                 child: Column(
+                  spacing: 10,
                   children: [
                     // category name
                     CustomTextField(
@@ -64,7 +65,6 @@ class _CategoryCreateBottomSheetState extends State<CategoryCreateBottomSheet> {
                       maxLines: 1,
                       hintText: 'Enter category name...'
                     ),
-                    const SizedBox(height: 10),
                     // expansion tile with icons for custom categories 
                     ExpansionTile(
                       backgroundColor: Theme.of(context).colorScheme.primaryContainer,
@@ -105,7 +105,6 @@ class _CategoryCreateBottomSheetState extends State<CategoryCreateBottomSheet> {
                         )
                       ]
                     ),
-                    const SizedBox(height: 10),
                     // submit button
                     SubmitButton(
                       onTap: () async {

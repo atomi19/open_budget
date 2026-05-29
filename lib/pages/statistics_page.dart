@@ -441,12 +441,12 @@ class _StatisticsPageState extends State<StatisticsPage> {
             ),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
+                padding: const EdgeInsets.fromLTRB(15, 0, 15, 10),
                 child: Column(
+                  spacing: 10,
                   children: [
                     // summary
                     const SectionHeader(title: 'Summary'),
-                    const SizedBox(height: 10),
                     SummaryWidget(
                       db: widget.db, 
                       account: widget.account, 
@@ -456,23 +456,19 @@ class _StatisticsPageState extends State<StatisticsPage> {
                     ),
                     // top expense categories
                     const SectionHeader(title: 'Top Expense Categories'),
-                    const SizedBox(height: 10),
                     _buildCategoriesRankingList(
                       accountOwnerId: widget.account.id, 
                       isIncome: false,
                     ),
                     // top income categories
                     const SectionHeader(title: 'Top Income Categories'),
-                    const SizedBox(height: 10),
                     _buildCategoriesRankingList(
                       accountOwnerId: widget.account.id, 
                       isIncome: true,
                     ),
                     // additional info (transactions count)
                     const SectionHeader(title: 'Additional Info'),
-                    const SizedBox(height: 10),
                     _buildAdditionalInfo(),
-                    const SizedBox(height: 10),
                   ],
                 ),
               ),

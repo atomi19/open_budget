@@ -69,13 +69,13 @@ class _CategoryEditBottomSheetState extends State<CategoryEditBottomSheet> {
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
                 child: Column(
+                  spacing: 10,
                   children: [
                     // edit name text field
                     CustomTextField(
                       controller: controller, 
                       hintText: 'Edit category name'
                     ),
-                    const SizedBox(height: 10),
                     // edit icon
                     ExpansionTile(
                       backgroundColor: Theme.of(context).colorScheme.primaryContainer,
